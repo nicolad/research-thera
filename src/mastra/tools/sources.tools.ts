@@ -6,6 +6,12 @@
  * - Crossref API (no auth required)
  * - PubMed API (E-utilities)
  * - Semantic Scholar API (no auth required)
+ * - OpenAlex API (requires free API key via OPENALEX_API_KEY env var)
+ * - arXiv API (no auth required, Atom XML)
+ * - Europe PMC API (no auth required)
+ * - DataCite API (no auth required)
+ * - Unpaywall API (requires email via UNPAYWALL_EMAIL env var)
+ * - DOI Content Negotiation (CSL-JSON fallback)
  *
  * Usage Example:
  * ```typescript
@@ -41,6 +47,151 @@ export interface PaperCandidate {
 export interface PaperDetails extends PaperCandidate {
   abstract: string;
   authors: string[];
+  citationCount?: number;
+  oaUrl?: string; // Open Access full-text URL
+  oaStatus?: string; // e.g., "gold", "green", "hybrid", "bronze", "closed"
+}
+
+/**
+ * Normalize DOI to canonical form (lowercase, no URL prefix)
+ */
+export function normalizeDoi(doi?: string): string | undefined {
+  if (!doi) return undefined;
+  const d = doi.trim().toLowerCase();
+
+  // Remove common DOI URL prefixes
+  return d
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//, "")
+    .replace(/^doi:\s*/i, "")
+    .trim();
+}
+
+/**
+ * Strip JATS XML tags from abstracts (common in Crossref)
+ */
+export function stripJats(input?: string): string | undefined {
+  if (!input) return undefined;
+
+  // Crossref abstracts can include JATS tags like <jats:p>...</jats:p>
+  // This is a conservative tag-strip (not a full XML parser).
+  const noTags = input.replace(/<\/?[^>]+>/g, " ");
+  const decoded = noTags
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+
+  return decoded.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Create normalized title fingerprint for better deduplication
+ */
+export function titleFingerprint(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[\u2010-\u2015]/g, "-") // normalize dashes
+    .replace(/[^a-z0-9\s]/g, " ") // drop punctuation
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter((t) => t.length > 2) // remove tiny tokens
+    .filter(
+      (t) =>
+        ![
+          "the",
+          "and",
+          "for",
+          "with",
+          "from",
+          "into",
+          "over",
+          "under",
+          "after",
+          "before",
+        ].includes(t),
+    )
+    .sort()
+    .join(" ");
+}
+
+/**
+ * Score a candidate match against a target paper
+ */
+export function scoreCandidate(
+  c: PaperCandidate,
+  target: { title: string; year?: number },
+): number {
+  let score = 0;
+
+  const cTitle = (c.title || "").trim();
+  const tTitle = (target.title || "").trim();
+
+  if (!cTitle || !tTitle) return -1;
+
+  const fpC = titleFingerprint(cTitle);
+  const fpT = titleFingerprint(tTitle);
+
+  // Simple overlap score on fingerprint tokens
+  const setC = new Set(fpC.split(" ").filter(Boolean));
+  const setT = new Set(fpT.split(" ").filter(Boolean));
+
+  let overlap = 0;
+  for (const tok of setT) if (setC.has(tok)) overlap++;
+
+  const denom = Math.max(1, setT.size);
+  const overlapRatio = overlap / denom;
+
+  // Title similarity dominates
+  score += overlapRatio * 70;
+
+  // Year match helps (if you have it)
+  if (target.year && c.year) {
+    const diff = Math.abs(target.year - c.year);
+    score += diff === 0 ? 15 : diff === 1 ? 8 : diff <= 3 ? 2 : -5;
+  }
+
+  // Prefer candidates with DOI + abstract + authors
+  if (c.doi) score += 8;
+  if (c.abstract && stripJats(c.abstract)?.length) score += 5;
+  if (c.authors && c.authors.length > 0) score += 2;
+
+  // Source preference (tune as needed)
+  if (c.source === "openalex") score += 4; // broad coverage, good metadata
+  if (c.source === "semantic_scholar") score += 3; // good for CS/general
+  if (c.source === "crossref") score += 2; // authoritative DOIs
+  if (c.source === "europepmc") score += 1; // good for biomed
+  if (c.source === "arxiv") score += 0; // preprints, may not be final
+  if (c.source === "datacite") score -= 1; // often datasets, not papers
+  if (c.source === "pubmed") score -= 1; // for labor econ, usually noise
+
+  return score;
+}
+
+/**
+ * Pick the best matching candidate from a list
+ */
+export function pickBestCandidate(
+  candidates: PaperCandidate[],
+  target: { title: string; year?: number },
+): PaperCandidate | null {
+  if (!candidates.length) return null;
+
+  let best: PaperCandidate | null = null;
+  let bestScore = -Infinity;
+
+  for (const c of candidates) {
+    const s = scoreCandidate(c, target);
+    if (s > bestScore) {
+      bestScore = s;
+      best = c;
+    }
+  }
+
+  // Guardrail: require some title similarity
+  if (bestScore < 35) return null;
+  return best;
 }
 
 /**
@@ -216,6 +367,356 @@ export async function searchSemanticScholar(
 }
 
 /**
+ * Search OpenAlex for papers
+ * Requires OPENALEX_API_KEY environment variable (free from openalex.org)
+ */
+export async function searchOpenAlex(
+  query: string,
+  limit: number = 10,
+): Promise<PaperCandidate[]> {
+  try {
+    const apiKey = process.env.OPENALEX_API_KEY;
+    if (!apiKey) {
+      console.warn("OPENALEX_API_KEY not set, skipping OpenAlex");
+      return [];
+    }
+
+    const url = new URL("https://api.openalex.org/works");
+    url.searchParams.set("search", query);
+    url.searchParams.set("per-page", limit.toString());
+    url.searchParams.set(
+      "mailto",
+      process.env.UNPAYWALL_EMAIL || "research@example.com",
+    );
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`OpenAlex API error: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data.results || [];
+
+    return results.map((work: any) => ({
+      title: work.title || "Untitled",
+      doi: work.doi?.replace("https://doi.org/", ""),
+      url: work.doi || work.id,
+      year: work.publication_year,
+      source: "openalex",
+      authors:
+        work.authorships
+          ?.map((a: any) => a.author?.display_name)
+          .filter(Boolean) || [],
+      abstract: work.abstract_inverted_index
+        ? reconstructAbstract(work.abstract_inverted_index)
+        : undefined,
+      journal:
+        work.primary_location?.source?.display_name ||
+        work.host_venue?.display_name,
+    }));
+  } catch (error) {
+    console.error("Error searching OpenAlex:", error);
+    return [];
+  }
+}
+
+/**
+ * Reconstruct abstract from OpenAlex inverted index
+ */
+function reconstructAbstract(invertedIndex: Record<string, number[]>): string {
+  const tokens: { word: string; pos: number }[] = [];
+  for (const [word, positions] of Object.entries(invertedIndex)) {
+    for (const pos of positions) {
+      tokens.push({ word, pos });
+    }
+  }
+  return tokens
+    .sort((a, b) => a.pos - b.pos)
+    .map((t) => t.word)
+    .join(" ");
+}
+
+/**
+ * Search arXiv for preprints
+ * Returns Atom XML which is parsed to PaperCandidates
+ */
+export async function searchArxiv(
+  query: string,
+  limit: number = 10,
+): Promise<PaperCandidate[]> {
+  try {
+    const url = new URL("http://export.arxiv.org/api/query");
+    url.searchParams.set("search_query", `all:${query}`);
+    url.searchParams.set("start", "0");
+    url.searchParams.set("max_results", limit.toString());
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      console.error(`arXiv API error: ${response.status}`);
+      return [];
+    }
+
+    const xml = await response.text();
+
+    // Basic XML parsing for entries
+    const entries = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)];
+
+    return entries.map((match) => {
+      const entry = match[1];
+      const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/);
+      const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/);
+      const publishedMatch = entry.match(/<published>(\d{4})/);
+      const idMatch = entry.match(/<id>([^<]+)<\/id>/);
+      const doiMatch = entry.match(/<arxiv:doi[^>]*>([^<]+)<\/arxiv:doi>/);
+      const authorMatches = [
+        ...entry.matchAll(/<author>\s*<name>([^<]+)<\/name>/g),
+      ];
+
+      return {
+        title: titleMatch?.[1]?.replace(/\s+/g, " ").trim() || "Untitled",
+        doi: doiMatch?.[1]?.trim(),
+        url: idMatch?.[1]?.trim(),
+        year: publishedMatch?.[1] ? parseInt(publishedMatch[1]) : undefined,
+        source: "arxiv",
+        authors: authorMatches.map((m) => m[1].trim()),
+        abstract: summaryMatch?.[1]?.replace(/\s+/g, " ").trim(),
+        journal: "arXiv (preprint)",
+      };
+    });
+  } catch (error) {
+    console.error("Error searching arXiv:", error);
+    return [];
+  }
+}
+
+/**
+ * Search Europe PMC for biomedical/life-science papers
+ */
+export async function searchEuropePmc(
+  query: string,
+  limit: number = 10,
+): Promise<PaperCandidate[]> {
+  try {
+    const url = new URL(
+      "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+    );
+    url.searchParams.set("query", query);
+    url.searchParams.set("pageSize", limit.toString());
+    url.searchParams.set("format", "json");
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      console.error(`Europe PMC API error: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data.resultList?.result || [];
+
+    return results.map((paper: any) => ({
+      title: paper.title || "Untitled",
+      doi: paper.doi,
+      url: paper.doi
+        ? `https://doi.org/${paper.doi}`
+        : paper.pmid
+          ? `https://europepmc.org/article/MED/${paper.pmid}`
+          : undefined,
+      year: parseInt(paper.pubYear),
+      source: "europepmc",
+      authors: paper.authorString?.split(", ") || [],
+      abstract: paper.abstractText,
+      journal: paper.journalTitle,
+    }));
+  } catch (error) {
+    console.error("Error searching Europe PMC:", error);
+    return [];
+  }
+}
+
+/**
+ * Search DataCite for datasets, software, and other research outputs
+ */
+export async function searchDataCite(
+  query: string,
+  limit: number = 10,
+): Promise<PaperCandidate[]> {
+  try {
+    const url = new URL("https://api.datacite.org/dois");
+    url.searchParams.set("query", query);
+    url.searchParams.set("page[size]", limit.toString());
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      console.error(`DataCite API error: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data.data || [];
+
+    return results.map((item: any) => {
+      const attrs = item.attributes;
+      return {
+        title: attrs.titles?.[0]?.title || "Untitled",
+        doi: attrs.doi,
+        url: attrs.url || `https://doi.org/${attrs.doi}`,
+        year: attrs.publicationYear,
+        source: "datacite",
+        authors:
+          attrs.creators
+            ?.map(
+              (c: any) =>
+                c.name || `${c.givenName || ""} ${c.familyName || ""}`.trim(),
+            )
+            .filter(Boolean) || [],
+        abstract: attrs.descriptions?.find(
+          (d: any) => d.descriptionType === "Abstract",
+        )?.description,
+        journal: attrs.container?.title || attrs.publisher,
+      };
+    });
+  } catch (error) {
+    console.error("Error searching DataCite:", error);
+    return [];
+  }
+}
+
+/**
+ * Get Open Access full-text URL via Unpaywall
+ * Requires UNPAYWALL_EMAIL environment variable
+ */
+export async function getUnpaywallOaUrl(
+  doi: string,
+): Promise<{ oaUrl?: string; oaStatus?: string } | null> {
+  try {
+    const email = process.env.UNPAYWALL_EMAIL;
+    if (!email) {
+      console.warn("UNPAYWALL_EMAIL not set, skipping Unpaywall lookup");
+      return null;
+    }
+
+    const normalizedDoi = normalizeDoi(doi);
+    if (!normalizedDoi) return null;
+
+    const url = `https://api.unpaywall.org/v2/${normalizedDoi}?email=${email}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      if (response.status !== 404) {
+        console.error(`Unpaywall API error: ${response.status}`);
+      }
+      return null;
+    }
+
+    const data = await response.json();
+
+    return {
+      oaUrl: data.best_oa_location?.url_for_pdf || data.best_oa_location?.url,
+      oaStatus: data.oa_status,
+    };
+  } catch (error) {
+    console.error("Error fetching Unpaywall data:", error);
+    return null;
+  }
+}
+
+/**
+ * Fetch metadata via DOI content negotiation (CSL-JSON)
+ * Fast fallback when source APIs are flaky
+ */
+export async function fetchDoiMetadata(
+  doi: string,
+): Promise<Partial<PaperCandidate> | null> {
+  try {
+    const normalizedDoi = normalizeDoi(doi);
+    if (!normalizedDoi) return null;
+
+    const url = `https://doi.org/${normalizedDoi}`;
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/vnd.citationstyles.csl+json",
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`DOI content negotiation error: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    return {
+      title: data.title || data["title-short"],
+      doi: normalizedDoi,
+      url: data.URL || `https://doi.org/${normalizedDoi}`,
+      year:
+        data.issued?.["date-parts"]?.[0]?.[0] ||
+        data.published?.["date-parts"]?.[0]?.[0],
+      authors: data.author
+        ?.map((a: any) => `${a.given || ""} ${a.family || ""}`.trim())
+        .filter(Boolean),
+      abstract: data.abstract,
+      journal: data["container-title"] || data.publisher,
+    };
+  } catch (error) {
+    console.error("Error fetching DOI metadata:", error);
+    return null;
+  }
+}
+
+/**
+ * Fetch DOI and full abstract from PubMed via efetch XML
+ */
+export async function fetchPubMedDoiAndAbstractByPmid(
+  pmid: string,
+): Promise<{ doi?: string; abstract?: string }> {
+  const url = new URL(
+    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
+  );
+  url.searchParams.set("db", "pubmed");
+  url.searchParams.set("id", pmid);
+  url.searchParams.set("retmode", "xml");
+
+  const response = await fetch(url.toString());
+  if (!response.ok) return {};
+
+  const xml = await response.text();
+
+  // DOI via ArticleIdList
+  const doiMatch = xml.match(
+    /<ArticleId[^>]*IdType="doi"[^>]*>([\s\S]*?)<\/ArticleId>/i,
+  );
+  const doi = doiMatch?.[1]?.trim();
+
+  // Abstract can have multiple AbstractText blocks; join them.
+  const abstractBlocks = [
+    ...xml.matchAll(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/gi),
+  ]
+    .map((m) =>
+      m[1]
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(Boolean);
+
+  const abstract = abstractBlocks.length
+    ? abstractBlocks.join("\n")
+    : undefined;
+
+  return { doi: normalizeDoi(doi), abstract };
+}
+
+/**
  * Fetch full paper details
  */
 export async function fetchPaperDetails(
@@ -258,33 +759,18 @@ export async function fetchPaperDetails(
       }
     }
 
-    // If from PubMed, try to get abstract
+    // If from PubMed, try to get DOI and full abstract
     if (candidate.source === "pubmed" && candidate.url) {
       const pmid = candidate.url.match(/\/(\d+)\//)?.[1];
       if (pmid) {
-        const url = new URL(
-          "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
-        );
-        url.searchParams.set("db", "pubmed");
-        url.searchParams.set("id", pmid);
-        url.searchParams.set("retmode", "xml");
-
-        const response = await fetch(url.toString());
-        if (response.ok) {
-          const xml = await response.text();
-          // Basic XML parsing for abstract
-          const abstractMatch = xml.match(
-            /<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/,
-          );
-          if (abstractMatch) {
-            const abstract = abstractMatch[1].replace(/<[^>]+>/g, "").trim();
-            return {
-              ...candidate,
-              abstract: abstract || "Abstract not available",
-              authors: candidate.authors || [],
-            };
-          }
-        }
+        const extra = await fetchPubMedDoiAndAbstractByPmid(pmid);
+        return {
+          ...candidate,
+          doi: candidate.doi || extra.doi,
+          abstract:
+            extra.abstract || candidate.abstract || "Abstract not available",
+          authors: candidate.authors || [],
+        };
       }
     }
 
@@ -313,16 +799,56 @@ export async function fetchPaperDetails(
     console.error("Error fetching paper details:", error);
   }
 
+  // Try DOI content negotiation as fallback
+  if (candidate.doi) {
+    const doiData = await fetchDoiMetadata(candidate.doi);
+    if (doiData) {
+      const merged = {
+        ...candidate,
+        title: candidate.title || doiData.title || "Untitled",
+        abstract:
+          stripJats(candidate.abstract || doiData.abstract) ||
+          "Abstract not available",
+        authors: candidate.authors?.length
+          ? candidate.authors
+          : doiData.authors || [],
+        year: candidate.year || doiData.year,
+        journal: candidate.journal || doiData.journal,
+        doi: normalizeDoi(candidate.doi),
+      };
+
+      // Add OA link if available
+      const oaData = await getUnpaywallOaUrl(candidate.doi);
+      return {
+        ...merged,
+        oaUrl: oaData?.oaUrl,
+        oaStatus: oaData?.oaStatus,
+      };
+    }
+  }
+
   // Fallback to candidate data
-  return {
+  const result: PaperDetails = {
     ...candidate,
-    abstract: candidate.abstract || "Abstract not available",
+    abstract: stripJats(candidate.abstract) || "Abstract not available",
     authors: candidate.authors || [],
+    doi: normalizeDoi(candidate.doi),
   };
+
+  // Try to add OA link even without full enrichment
+  if (candidate.doi) {
+    const oaData = await getUnpaywallOaUrl(candidate.doi);
+    if (oaData) {
+      result.oaUrl = oaData.oaUrl;
+      result.oaStatus = oaData.oaStatus;
+    }
+  }
+
+  return result;
 }
 
 /**
- * Deduplicate candidates by DOI/title
+ * Deduplicate candidates by normalized DOI and title fingerprint
  */
 export function dedupeCandidates(
   candidates: PaperCandidate[],
@@ -330,23 +856,135 @@ export function dedupeCandidates(
   const seen = new Set<string>();
   const unique: PaperCandidate[] = [];
 
-  for (const candidate of candidates) {
-    // Prefer DOI for deduplication
-    const key = candidate.doi || candidate.title.toLowerCase().trim();
+  for (const c of candidates) {
+    const doi = normalizeDoi(c.doi);
+    const titleKey = c.title ? titleFingerprint(c.title) : "";
+
+    // Prefer DOI, fallback to title fingerprint
+    const key = doi ? `doi:${doi}` : `t:${titleKey}`;
+
+    if (!titleKey && !doi) continue;
 
     if (!seen.has(key)) {
       seen.add(key);
-      unique.push(candidate);
+      unique.push({ ...c, doi });
     }
   }
 
   return unique;
 }
 
+/**
+ * Resolve paper metadata by title (optionally with year)
+ * This is the main function for your 182-paper backfill use case
+ */
+export async function resolvePaperByTitle(
+  title: string,
+  opts?: { year?: number; limitPerSource?: number },
+): Promise<PaperDetails | null> {
+  const limit = opts?.limitPerSource ?? 8;
+
+  // Search all available sources in parallel
+  const [crossref, pubmed, semantic, openalex, arxiv, europepmc] =
+    await Promise.all([
+      searchCrossref(title, limit),
+      searchPubMed(title, limit),
+      searchSemanticScholar(title, limit),
+      searchOpenAlex(title, limit),
+      searchArxiv(title, limit),
+      searchEuropePmc(title, limit),
+    ]);
+
+  const candidates = dedupeCandidates([
+    ...crossref,
+    ...pubmed,
+    ...semantic,
+    ...openalex,
+    ...arxiv,
+    ...europepmc,
+  ]);
+  const best = pickBestCandidate(candidates, { title, year: opts?.year });
+
+  if (!best) return null;
+
+  // Enrich details using existing function
+  const details = await fetchPaperDetails(best);
+
+  // Extra PubMed enrichment if needed (DOI/abstract)
+  if (details.source === "pubmed" && details.url) {
+    const pmid = details.url.match(/\/(\d+)\//)?.[1];
+    if (pmid) {
+      const extra = await fetchPubMedDoiAndAbstractByPmid(pmid);
+      return {
+        ...details,
+        doi: details.doi ?? extra.doi,
+        abstract:
+          details.abstract && details.abstract !== "Abstract not available"
+            ? details.abstract
+            : (extra.abstract ?? details.abstract),
+        authors: details.authors ?? [],
+      };
+    }
+  }
+
+  return {
+    ...details,
+    abstract: stripJats(details.abstract) ?? "Abstract not available",
+    doi: normalizeDoi(details.doi),
+  };
+}
+
+/**
+ * Process items with controlled concurrency
+ * Useful for batch-processing your 182 papers without overwhelming APIs
+ */
+export async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let i = 0;
+
+  const workers = new Array(Math.min(limit, items.length))
+    .fill(0)
+    .map(async () => {
+      while (true) {
+        const idx = i++;
+        if (idx >= items.length) break;
+        results[idx] = await fn(items[idx], idx);
+      }
+    });
+
+  await Promise.all(workers);
+  return results;
+}
+
 export const sourceTools = {
+  // Search functions
   searchCrossref,
   searchPubMed,
   searchSemanticScholar,
+  searchOpenAlex,
+  searchArxiv,
+  searchEuropePmc,
+  searchDataCite,
+
+  // Enrichment functions
   fetchPaperDetails,
+  fetchPubMedDoiAndAbstractByPmid,
+  fetchDoiMetadata,
+  getUnpaywallOaUrl,
+
+  // Resolution and deduplication
   dedupeCandidates,
+  resolvePaperByTitle,
+  pickBestCandidate,
+
+  // Utilities
+  mapLimit,
+  normalizeDoi,
+  stripJats,
+  titleFingerprint,
+  scoreCandidate,
 };

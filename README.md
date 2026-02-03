@@ -7,7 +7,9 @@ A Next.js application providing AI-powered therapeutic audio content with voice 
 - 🧠 **Evidence-Based Therapy**: CBT, MBSR, ACT, and DBT-inspired content
 - 🎙️ **Voice Capabilities**: Multiple voice providers (OpenAI, ElevenLabs)
 - 📊 **GraphQL API**: Goals and therapeutic research management
-- 💾 **Conversation History**: libSQL storage for agent memory
+- � **Claim Cards**: Verify therapeutic claims with research evidence from 9+ scholarly databases
+- 📚 **Multi-Source Research**: Crossref, PubMed, Semantic Scholar, OpenAlex, arXiv, Europe PMC, DataCite
+- �💾 **Conversation History**: libSQL storage for agent memory
 - 🎨 **Modern UI**: Radix UI with responsive design
 - 🔧 **AI SDK Integration**: Advanced voice and language model support
 
@@ -50,6 +52,45 @@ pnpm start
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
+
+## Research & Evidence Features
+
+### Claim Cards
+
+Turn therapeutic claims into evidence-backed, auditable units that reduce hallucination risk:
+
+```typescript
+import { claimCardsTools } from "@/src/mastra/tools/claim-cards.tools";
+
+// Extract and verify claims from text
+const cards = await claimCardsTools.buildClaimCardsFromText(
+  "CBT reduces anxiety symptoms in adults with GAD by 60-80%",
+  {
+    sources: ["semantic_scholar", "pubmed", "crossref"],
+    useLlmJudge: true,
+    topK: 5,
+  }
+);
+
+// Each card includes:
+// - verdict: supported/contradicted/mixed/insufficient
+// - confidence: 0-1 score
+// - evidence: array of research papers with excerpts
+// - provenance: which sources, when generated
+```
+
+**Supported Research Sources:**
+
+- Crossref (DOI metadata, abstracts)
+- PubMed (biomedical literature)
+- Semantic Scholar (CS/general research)
+- OpenAlex (broad coverage, requires free API key)
+- arXiv (preprints)
+- Europe PMC (life sciences)
+- DataCite (datasets, software)
+- Unpaywall (open access PDFs, requires email)
+
+See [docs/CLAIM_CARDS.md](docs/CLAIM_CARDS.md) for complete guide.
 
 ## Available Agents
 

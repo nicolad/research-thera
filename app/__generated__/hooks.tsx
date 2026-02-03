@@ -44,6 +44,60 @@ export type AudioSegmentInfo = {
   url: Scalars['String']['output'];
 };
 
+export type BuildClaimCardsInput = {
+  claims?: InputMaybe<Array<Scalars['String']['input']>>;
+  perSourceLimit?: InputMaybe<Scalars['Int']['input']>;
+  sources?: InputMaybe<Array<ResearchSource>>;
+  text?: InputMaybe<Scalars['String']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  useLlmJudge?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type BuildClaimCardsResult = {
+  __typename?: 'BuildClaimCardsResult';
+  cards: Array<ClaimCard>;
+};
+
+export type ClaimCard = {
+  __typename?: 'ClaimCard';
+  claim: Scalars['String']['output'];
+  confidence: Scalars['Float']['output'];
+  createdAt: Scalars['String']['output'];
+  evidence: Array<EvidenceItem>;
+  id: Scalars['ID']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  provenance: ClaimProvenance;
+  queries: Array<Scalars['String']['output']>;
+  scope?: Maybe<ClaimScope>;
+  updatedAt: Scalars['String']['output'];
+  verdict: ClaimVerdict;
+};
+
+export type ClaimProvenance = {
+  __typename?: 'ClaimProvenance';
+  generatedBy: Scalars['String']['output'];
+  model?: Maybe<Scalars['String']['output']>;
+  sourceTools: Array<Scalars['String']['output']>;
+};
+
+export type ClaimScope = {
+  __typename?: 'ClaimScope';
+  comparator?: Maybe<Scalars['String']['output']>;
+  intervention?: Maybe<Scalars['String']['output']>;
+  outcome?: Maybe<Scalars['String']['output']>;
+  population?: Maybe<Scalars['String']['output']>;
+  setting?: Maybe<Scalars['String']['output']>;
+  timeframe?: Maybe<Scalars['String']['output']>;
+};
+
+export enum ClaimVerdict {
+  Contradicted = 'CONTRADICTED',
+  Insufficient = 'INSUFFICIENT',
+  Mixed = 'MIXED',
+  Supported = 'SUPPORTED',
+  Unverified = 'UNVERIFIED'
+}
+
 export type CreateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
@@ -89,6 +143,30 @@ export type DeleteResearchResult = {
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
+
+export type EvidenceItem = {
+  __typename?: 'EvidenceItem';
+  excerpt?: Maybe<Scalars['String']['output']>;
+  locator?: Maybe<EvidenceLocator>;
+  paper: PaperCandidate;
+  polarity: EvidencePolarity;
+  rationale?: Maybe<Scalars['String']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+};
+
+export type EvidenceLocator = {
+  __typename?: 'EvidenceLocator';
+  page?: Maybe<Scalars['Int']['output']>;
+  section?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export enum EvidencePolarity {
+  Contradicts = 'CONTRADICTS',
+  Irrelevant = 'IRRELEVANT',
+  Mixed = 'MIXED',
+  Supports = 'SUPPORTS'
+}
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -208,8 +286,10 @@ export enum JobType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  buildClaimCards: BuildClaimCardsResult;
   createGoal: Goal;
   createNote: Note;
+  deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
@@ -218,8 +298,14 @@ export type Mutation = {
   generateLongFormText: GenerateLongFormTextResult;
   generateResearch: GenerateResearchResult;
   generateTherapeuticQuestions: GenerateQuestionsResult;
+  refreshClaimCard: ClaimCard;
   updateGoal: Goal;
   updateNote: Note;
+};
+
+
+export type MutationBuildClaimCardsArgs = {
+  input: BuildClaimCardsInput;
 };
 
 
@@ -230,6 +316,11 @@ export type MutationCreateGoalArgs = {
 
 export type MutationCreateNoteArgs = {
   input: CreateNoteInput;
+};
+
+
+export type MutationDeleteClaimCardArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -279,6 +370,11 @@ export type MutationGenerateTherapeuticQuestionsArgs = {
 };
 
 
+export type MutationRefreshClaimCardArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationUpdateGoalArgs = {
   id: Scalars['Int']['input'];
   input: UpdateGoalInput;
@@ -306,8 +402,24 @@ export type Note = {
   userId: Scalars['String']['output'];
 };
 
+export type PaperCandidate = {
+  __typename?: 'PaperCandidate';
+  abstract?: Maybe<Scalars['String']['output']>;
+  authors?: Maybe<Array<Scalars['String']['output']>>;
+  doi?: Maybe<Scalars['String']['output']>;
+  journal?: Maybe<Scalars['String']['output']>;
+  oaStatus?: Maybe<Scalars['String']['output']>;
+  oaUrl?: Maybe<Scalars['String']['output']>;
+  source: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  year?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  claimCard?: Maybe<ClaimCard>;
+  claimCardsForNote: Array<ClaimCard>;
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
@@ -316,6 +428,16 @@ export type Query = {
   notes: Array<Note>;
   research: Array<Research>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
+};
+
+
+export type QueryClaimCardArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryClaimCardsForNoteArgs = {
+  noteId: Scalars['Int']['input'];
 };
 
 
@@ -390,6 +512,16 @@ export type Research = {
   year?: Maybe<Scalars['Int']['output']>;
 };
 
+export enum ResearchSource {
+  Arxiv = 'ARXIV',
+  Crossref = 'CROSSREF',
+  Datacite = 'DATACITE',
+  Europepmc = 'EUROPEPMC',
+  Openalex = 'OPENALEX',
+  Pubmed = 'PUBMED',
+  SemanticScholar = 'SEMANTIC_SCHOLAR'
+}
+
 export type Subscription = {
   __typename?: 'Subscription';
   audioJobStatus: GenerationJob;
@@ -444,6 +576,36 @@ export type UpdateNoteInput = {
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
+
+export type BuildClaimCardsFromTextMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BuildClaimCardsFromTextMutation = { __typename?: 'Mutation', buildClaimCards: { __typename?: 'BuildClaimCardsResult', cards: Array<{ __typename?: 'ClaimCard', id: string, claim: string, verdict: ClaimVerdict, confidence: number, queries: Array<string>, createdAt: string, evidence: Array<{ __typename?: 'EvidenceItem', polarity: EvidencePolarity, excerpt?: string | null, rationale?: string | null, score?: number | null, paper: { __typename?: 'PaperCandidate', title: string, authors?: Array<string> | null, doi?: string | null, year?: number | null, journal?: string | null, oaUrl?: string | null } }>, provenance: { __typename?: 'ClaimProvenance', generatedBy: string, model?: string | null, sourceTools: Array<string> } }> } };
+
+export type BuildClaimCardsFromClaimsMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BuildClaimCardsFromClaimsMutation = { __typename?: 'Mutation', buildClaimCards: { __typename?: 'BuildClaimCardsResult', cards: Array<{ __typename?: 'ClaimCard', id: string, claim: string, verdict: ClaimVerdict, confidence: number, evidence: Array<{ __typename?: 'EvidenceItem', polarity: EvidencePolarity, score?: number | null, paper: { __typename?: 'PaperCandidate', title: string, doi?: string | null } }> }> } };
+
+export type GetClaimCardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetClaimCardQuery = { __typename?: 'Query', claimCard?: { __typename?: 'ClaimCard', id: string, claim: string, verdict: ClaimVerdict, confidence: number, notes?: string | null, createdAt: string, updatedAt: string, evidence: Array<{ __typename?: 'EvidenceItem', polarity: EvidencePolarity, excerpt?: string | null, rationale?: string | null, score?: number | null, paper: { __typename?: 'PaperCandidate', title: string, authors?: Array<string> | null, doi?: string | null, url?: string | null, year?: number | null, journal?: string | null } }>, scope?: { __typename?: 'ClaimScope', population?: string | null, intervention?: string | null, outcome?: string | null } | null } | null };
+
+export type GetClaimCardsForNoteQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetClaimCardsForNoteQuery = { __typename?: 'Query', claimCardsForNote: Array<{ __typename?: 'ClaimCard', id: string, claim: string, verdict: ClaimVerdict, confidence: number, createdAt: string, evidence: Array<{ __typename?: 'EvidenceItem', polarity: EvidencePolarity, paper: { __typename?: 'PaperCandidate', title: string, doi?: string | null } }> }> };
+
+export type RefreshClaimCardMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RefreshClaimCardMutation = { __typename?: 'Mutation', refreshClaimCard: { __typename?: 'ClaimCard', id: string, claim: string, verdict: ClaimVerdict, confidence: number, updatedAt: string, evidence: Array<{ __typename?: 'EvidenceItem', polarity: EvidencePolarity, score?: number | null, paper: { __typename?: 'PaperCandidate', title: string, doi?: string | null, year?: number | null } }> } };
+
+export type DeleteClaimCardMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DeleteClaimCardMutation = { __typename?: 'Mutation', deleteClaimCard: boolean };
 
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
@@ -529,6 +691,312 @@ export type UpdateNoteMutationVariables = Exact<{
 export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string } };
 
 
+export const BuildClaimCardsFromTextDocument = gql`
+    mutation BuildClaimCardsFromText {
+  buildClaimCards(
+    input: {text: """
+    Cognitive Behavioral Therapy is effective for treating anxiety disorders.
+    CBT reduces anxiety symptoms by 60-80% in most patients.
+    The effects of CBT persist for years after treatment ends.
+    """, perSourceLimit: 10, topK: 5, useLlmJudge: true, sources: [CROSSREF, SEMANTIC_SCHOLAR, PUBMED]}
+  ) {
+    cards {
+      id
+      claim
+      verdict
+      confidence
+      evidence {
+        paper {
+          title
+          authors
+          doi
+          year
+          journal
+          oaUrl
+        }
+        polarity
+        excerpt
+        rationale
+        score
+      }
+      queries
+      provenance {
+        generatedBy
+        model
+        sourceTools
+      }
+      createdAt
+    }
+  }
+}
+    `;
+export type BuildClaimCardsFromTextMutationFn = Apollo.MutationFunction<BuildClaimCardsFromTextMutation, BuildClaimCardsFromTextMutationVariables>;
+
+/**
+ * __useBuildClaimCardsFromTextMutation__
+ *
+ * To run a mutation, you first call `useBuildClaimCardsFromTextMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBuildClaimCardsFromTextMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [buildClaimCardsFromTextMutation, { data, loading, error }] = useBuildClaimCardsFromTextMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useBuildClaimCardsFromTextMutation(baseOptions?: Apollo.MutationHookOptions<BuildClaimCardsFromTextMutation, BuildClaimCardsFromTextMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BuildClaimCardsFromTextMutation, BuildClaimCardsFromTextMutationVariables>(BuildClaimCardsFromTextDocument, options);
+      }
+export type BuildClaimCardsFromTextMutationHookResult = ReturnType<typeof useBuildClaimCardsFromTextMutation>;
+export type BuildClaimCardsFromTextMutationResult = Apollo.MutationResult<BuildClaimCardsFromTextMutation>;
+export type BuildClaimCardsFromTextMutationOptions = Apollo.BaseMutationOptions<BuildClaimCardsFromTextMutation, BuildClaimCardsFromTextMutationVariables>;
+export const BuildClaimCardsFromClaimsDocument = gql`
+    mutation BuildClaimCardsFromClaims {
+  buildClaimCards(
+    input: {claims: ["Mindfulness meditation reduces stress in adults with GAD", "Exercise therapy improves mood in adults with major depressive disorder"], perSourceLimit: 8, topK: 4, useLlmJudge: false, sources: [SEMANTIC_SCHOLAR, OPENALEX]}
+  ) {
+    cards {
+      id
+      claim
+      verdict
+      confidence
+      evidence {
+        paper {
+          title
+          doi
+        }
+        polarity
+        score
+      }
+    }
+  }
+}
+    `;
+export type BuildClaimCardsFromClaimsMutationFn = Apollo.MutationFunction<BuildClaimCardsFromClaimsMutation, BuildClaimCardsFromClaimsMutationVariables>;
+
+/**
+ * __useBuildClaimCardsFromClaimsMutation__
+ *
+ * To run a mutation, you first call `useBuildClaimCardsFromClaimsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBuildClaimCardsFromClaimsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [buildClaimCardsFromClaimsMutation, { data, loading, error }] = useBuildClaimCardsFromClaimsMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useBuildClaimCardsFromClaimsMutation(baseOptions?: Apollo.MutationHookOptions<BuildClaimCardsFromClaimsMutation, BuildClaimCardsFromClaimsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BuildClaimCardsFromClaimsMutation, BuildClaimCardsFromClaimsMutationVariables>(BuildClaimCardsFromClaimsDocument, options);
+      }
+export type BuildClaimCardsFromClaimsMutationHookResult = ReturnType<typeof useBuildClaimCardsFromClaimsMutation>;
+export type BuildClaimCardsFromClaimsMutationResult = Apollo.MutationResult<BuildClaimCardsFromClaimsMutation>;
+export type BuildClaimCardsFromClaimsMutationOptions = Apollo.BaseMutationOptions<BuildClaimCardsFromClaimsMutation, BuildClaimCardsFromClaimsMutationVariables>;
+export const GetClaimCardDocument = gql`
+    query GetClaimCard {
+  claimCard(id: "claim_abc123def456") {
+    id
+    claim
+    verdict
+    confidence
+    evidence {
+      paper {
+        title
+        authors
+        doi
+        url
+        year
+        journal
+      }
+      polarity
+      excerpt
+      rationale
+      score
+    }
+    scope {
+      population
+      intervention
+      outcome
+    }
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetClaimCardQuery__
+ *
+ * To run a query within a React component, call `useGetClaimCardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClaimCardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClaimCardQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetClaimCardQuery(baseOptions?: Apollo.QueryHookOptions<GetClaimCardQuery, GetClaimCardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetClaimCardQuery, GetClaimCardQueryVariables>(GetClaimCardDocument, options);
+      }
+export function useGetClaimCardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClaimCardQuery, GetClaimCardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetClaimCardQuery, GetClaimCardQueryVariables>(GetClaimCardDocument, options);
+        }
+// @ts-ignore
+export function useGetClaimCardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClaimCardQuery, GetClaimCardQueryVariables>): Apollo.UseSuspenseQueryResult<GetClaimCardQuery, GetClaimCardQueryVariables>;
+export function useGetClaimCardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClaimCardQuery, GetClaimCardQueryVariables>): Apollo.UseSuspenseQueryResult<GetClaimCardQuery | undefined, GetClaimCardQueryVariables>;
+export function useGetClaimCardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClaimCardQuery, GetClaimCardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetClaimCardQuery, GetClaimCardQueryVariables>(GetClaimCardDocument, options);
+        }
+export type GetClaimCardQueryHookResult = ReturnType<typeof useGetClaimCardQuery>;
+export type GetClaimCardLazyQueryHookResult = ReturnType<typeof useGetClaimCardLazyQuery>;
+export type GetClaimCardSuspenseQueryHookResult = ReturnType<typeof useGetClaimCardSuspenseQuery>;
+export type GetClaimCardQueryResult = Apollo.QueryResult<GetClaimCardQuery, GetClaimCardQueryVariables>;
+export const GetClaimCardsForNoteDocument = gql`
+    query GetClaimCardsForNote {
+  claimCardsForNote(noteId: 1) {
+    id
+    claim
+    verdict
+    confidence
+    evidence {
+      paper {
+        title
+        doi
+      }
+      polarity
+    }
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetClaimCardsForNoteQuery__
+ *
+ * To run a query within a React component, call `useGetClaimCardsForNoteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClaimCardsForNoteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClaimCardsForNoteQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetClaimCardsForNoteQuery(baseOptions?: Apollo.QueryHookOptions<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>(GetClaimCardsForNoteDocument, options);
+      }
+export function useGetClaimCardsForNoteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>(GetClaimCardsForNoteDocument, options);
+        }
+// @ts-ignore
+export function useGetClaimCardsForNoteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>): Apollo.UseSuspenseQueryResult<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>;
+export function useGetClaimCardsForNoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>): Apollo.UseSuspenseQueryResult<GetClaimCardsForNoteQuery | undefined, GetClaimCardsForNoteQueryVariables>;
+export function useGetClaimCardsForNoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>(GetClaimCardsForNoteDocument, options);
+        }
+export type GetClaimCardsForNoteQueryHookResult = ReturnType<typeof useGetClaimCardsForNoteQuery>;
+export type GetClaimCardsForNoteLazyQueryHookResult = ReturnType<typeof useGetClaimCardsForNoteLazyQuery>;
+export type GetClaimCardsForNoteSuspenseQueryHookResult = ReturnType<typeof useGetClaimCardsForNoteSuspenseQuery>;
+export type GetClaimCardsForNoteQueryResult = Apollo.QueryResult<GetClaimCardsForNoteQuery, GetClaimCardsForNoteQueryVariables>;
+export const RefreshClaimCardDocument = gql`
+    mutation RefreshClaimCard {
+  refreshClaimCard(id: "claim_abc123def456") {
+    id
+    claim
+    verdict
+    confidence
+    evidence {
+      paper {
+        title
+        doi
+        year
+      }
+      polarity
+      score
+    }
+    updatedAt
+  }
+}
+    `;
+export type RefreshClaimCardMutationFn = Apollo.MutationFunction<RefreshClaimCardMutation, RefreshClaimCardMutationVariables>;
+
+/**
+ * __useRefreshClaimCardMutation__
+ *
+ * To run a mutation, you first call `useRefreshClaimCardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRefreshClaimCardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [refreshClaimCardMutation, { data, loading, error }] = useRefreshClaimCardMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRefreshClaimCardMutation(baseOptions?: Apollo.MutationHookOptions<RefreshClaimCardMutation, RefreshClaimCardMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RefreshClaimCardMutation, RefreshClaimCardMutationVariables>(RefreshClaimCardDocument, options);
+      }
+export type RefreshClaimCardMutationHookResult = ReturnType<typeof useRefreshClaimCardMutation>;
+export type RefreshClaimCardMutationResult = Apollo.MutationResult<RefreshClaimCardMutation>;
+export type RefreshClaimCardMutationOptions = Apollo.BaseMutationOptions<RefreshClaimCardMutation, RefreshClaimCardMutationVariables>;
+export const DeleteClaimCardDocument = gql`
+    mutation DeleteClaimCard {
+  deleteClaimCard(id: "claim_abc123def456")
+}
+    `;
+export type DeleteClaimCardMutationFn = Apollo.MutationFunction<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>;
+
+/**
+ * __useDeleteClaimCardMutation__
+ *
+ * To run a mutation, you first call `useDeleteClaimCardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteClaimCardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteClaimCardMutation, { data, loading, error }] = useDeleteClaimCardMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDeleteClaimCardMutation(baseOptions?: Apollo.MutationHookOptions<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>(DeleteClaimCardDocument, options);
+      }
+export type DeleteClaimCardMutationHookResult = ReturnType<typeof useDeleteClaimCardMutation>;
+export type DeleteClaimCardMutationResult = Apollo.MutationResult<DeleteClaimCardMutation>;
+export type DeleteClaimCardMutationOptions = Apollo.BaseMutationOptions<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>;
 export const CreateNoteDocument = gql`
     mutation CreateNote($input: CreateNoteInput!) {
   createNote(input: $input) {

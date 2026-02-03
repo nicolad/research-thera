@@ -144,3 +144,30 @@ export const notesResearch = sqliteTable("notes_research", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const claimCards = sqliteTable("claim_cards", {
+  id: text("id").primaryKey(),
+  noteId: integer("note_id"),
+  claim: text("claim").notNull(),
+  scope: text("scope"), // JSON: { population?, intervention?, comparator?, outcome?, timeframe?, setting? }
+  verdict: text("verdict").notNull(), // unverified, supported, contradicted, mixed, insufficient
+  confidence: integer("confidence").notNull(), // 0-100 (stored as integer for SQLite)
+  evidence: text("evidence").notNull(), // JSON array of EvidenceItem[]
+  queries: text("queries").notNull(), // JSON array of search queries used
+  provenance: text("provenance").notNull(), // JSON: { generatedBy, model?, sourceTools[] }
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const notesClaims = sqliteTable("notes_claims", {
+  noteId: integer("note_id").notNull(),
+  claimId: text("claim_id").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});

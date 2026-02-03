@@ -22,6 +22,56 @@ type AudioSegmentInfo {
   url: String!
 }
 
+input BuildClaimCardsInput {
+  claims: [String!]
+  perSourceLimit: Int
+  sources: [ResearchSource!]
+  text: String
+  topK: Int
+  useLlmJudge: Boolean
+}
+
+type BuildClaimCardsResult {
+  cards: [ClaimCard!]!
+}
+
+type ClaimCard {
+  claim: String!
+  confidence: Float!
+  createdAt: String!
+  evidence: [EvidenceItem!]!
+  id: ID!
+  notes: String
+  provenance: ClaimProvenance!
+  queries: [String!]!
+  scope: ClaimScope
+  updatedAt: String!
+  verdict: ClaimVerdict!
+}
+
+type ClaimProvenance {
+  generatedBy: String!
+  model: String
+  sourceTools: [String!]!
+}
+
+type ClaimScope {
+  comparator: String
+  intervention: String
+  outcome: String
+  population: String
+  setting: String
+  timeframe: String
+}
+
+enum ClaimVerdict {
+  CONTRADICTED
+  INSUFFICIENT
+  MIXED
+  SUPPORTED
+  UNVERIFIED
+}
+
 input CreateGoalInput {
   description: String
   familyMemberId: Int!
@@ -62,6 +112,28 @@ type DeleteResearchResult {
   deletedCount: Int!
   message: String
   success: Boolean!
+}
+
+type EvidenceItem {
+  excerpt: String
+  locator: EvidenceLocator
+  paper: PaperCandidate!
+  polarity: EvidencePolarity!
+  rationale: String
+  score: Float
+}
+
+type EvidenceLocator {
+  page: Int
+  section: String
+  url: String
+}
+
+enum EvidencePolarity {
+  CONTRADICTS
+  IRRELEVANT
+  MIXED
+  SUPPORTS
 }
 
 type GenerateAudioResult {
@@ -172,8 +244,10 @@ enum JobType {
 }
 
 type Mutation {
+  buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   createGoal(input: CreateGoalInput!): Goal!
   createNote(input: CreateNoteInput!): Note!
+  deleteClaimCard(id: ID!): Boolean!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteNote(id: Int!): DeleteNoteResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
@@ -182,6 +256,7 @@ type Mutation {
   generateLongFormText(goalId: Int!, language: String, minutes: Int): GenerateLongFormTextResult!
   generateResearch(goalId: Int!): GenerateResearchResult!
   generateTherapeuticQuestions(goalId: Int!): GenerateQuestionsResult!
+  refreshClaimCard(id: ID!): ClaimCard!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
 }
@@ -201,7 +276,22 @@ type Note {
   userId: String!
 }
 
+type PaperCandidate {
+  abstract: String
+  authors: [String!]
+  doi: String
+  journal: String
+  oaStatus: String
+  oaUrl: String
+  source: String!
+  title: String!
+  url: String
+  year: Int
+}
+
 type Query {
+  claimCard(id: ID!): ClaimCard
+  claimCardsForNote(noteId: Int!): [ClaimCard!]!
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int!, userId: String!): Goal
@@ -232,6 +322,16 @@ type Research {
   updatedAt: String!
   url: String
   year: Int
+}
+
+enum ResearchSource {
+  ARXIV
+  CROSSREF
+  DATACITE
+  EUROPEPMC
+  OPENALEX
+  PUBMED
+  SEMANTIC_SCHOLAR
 }
 
 type Subscription {

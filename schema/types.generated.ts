@@ -12,7 +12,7 @@ export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?:
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
+  ID: { input: string; output: string | number; }
   String: { input: string; output: string; }
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
@@ -45,6 +45,59 @@ export type AudioSegmentInfo = {
   idx: Scalars['Int']['output'];
   url: Scalars['String']['output'];
 };
+
+export type BuildClaimCardsInput = {
+  claims?: InputMaybe<Array<Scalars['String']['input']>>;
+  perSourceLimit?: InputMaybe<Scalars['Int']['input']>;
+  sources?: InputMaybe<Array<ResearchSource>>;
+  text?: InputMaybe<Scalars['String']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  useLlmJudge?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type BuildClaimCardsResult = {
+  __typename?: 'BuildClaimCardsResult';
+  cards: Array<ClaimCard>;
+};
+
+export type ClaimCard = {
+  __typename?: 'ClaimCard';
+  claim: Scalars['String']['output'];
+  confidence: Scalars['Float']['output'];
+  createdAt: Scalars['String']['output'];
+  evidence: Array<EvidenceItem>;
+  id: Scalars['ID']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  provenance: ClaimProvenance;
+  queries: Array<Scalars['String']['output']>;
+  scope?: Maybe<ClaimScope>;
+  updatedAt: Scalars['String']['output'];
+  verdict: ClaimVerdict;
+};
+
+export type ClaimProvenance = {
+  __typename?: 'ClaimProvenance';
+  generatedBy: Scalars['String']['output'];
+  model?: Maybe<Scalars['String']['output']>;
+  sourceTools: Array<Scalars['String']['output']>;
+};
+
+export type ClaimScope = {
+  __typename?: 'ClaimScope';
+  comparator?: Maybe<Scalars['String']['output']>;
+  intervention?: Maybe<Scalars['String']['output']>;
+  outcome?: Maybe<Scalars['String']['output']>;
+  population?: Maybe<Scalars['String']['output']>;
+  setting?: Maybe<Scalars['String']['output']>;
+  timeframe?: Maybe<Scalars['String']['output']>;
+};
+
+export type ClaimVerdict =
+  | 'CONTRADICTED'
+  | 'INSUFFICIENT'
+  | 'MIXED'
+  | 'SUPPORTED'
+  | 'UNVERIFIED';
 
 export type CreateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
@@ -91,6 +144,29 @@ export type DeleteResearchResult = {
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
+
+export type EvidenceItem = {
+  __typename?: 'EvidenceItem';
+  excerpt?: Maybe<Scalars['String']['output']>;
+  locator?: Maybe<EvidenceLocator>;
+  paper: PaperCandidate;
+  polarity: EvidencePolarity;
+  rationale?: Maybe<Scalars['String']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+};
+
+export type EvidenceLocator = {
+  __typename?: 'EvidenceLocator';
+  page?: Maybe<Scalars['Int']['output']>;
+  section?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type EvidencePolarity =
+  | 'CONTRADICTS'
+  | 'IRRELEVANT'
+  | 'MIXED'
+  | 'SUPPORTS';
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -208,8 +284,10 @@ export type JobType =
 
 export type Mutation = {
   __typename?: 'Mutation';
+  buildClaimCards: BuildClaimCardsResult;
   createGoal: Goal;
   createNote: Note;
+  deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
@@ -218,8 +296,14 @@ export type Mutation = {
   generateLongFormText: GenerateLongFormTextResult;
   generateResearch: GenerateResearchResult;
   generateTherapeuticQuestions: GenerateQuestionsResult;
+  refreshClaimCard: ClaimCard;
   updateGoal: Goal;
   updateNote: Note;
+};
+
+
+export type MutationbuildClaimCardsArgs = {
+  input: BuildClaimCardsInput;
 };
 
 
@@ -230,6 +314,11 @@ export type MutationcreateGoalArgs = {
 
 export type MutationcreateNoteArgs = {
   input: CreateNoteInput;
+};
+
+
+export type MutationdeleteClaimCardArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -279,6 +368,11 @@ export type MutationgenerateTherapeuticQuestionsArgs = {
 };
 
 
+export type MutationrefreshClaimCardArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationupdateGoalArgs = {
   id: Scalars['Int']['input'];
   input: UpdateGoalInput;
@@ -306,8 +400,24 @@ export type Note = {
   userId: Scalars['String']['output'];
 };
 
+export type PaperCandidate = {
+  __typename?: 'PaperCandidate';
+  abstract?: Maybe<Scalars['String']['output']>;
+  authors?: Maybe<Array<Scalars['String']['output']>>;
+  doi?: Maybe<Scalars['String']['output']>;
+  journal?: Maybe<Scalars['String']['output']>;
+  oaStatus?: Maybe<Scalars['String']['output']>;
+  oaUrl?: Maybe<Scalars['String']['output']>;
+  source: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  year?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  claimCard?: Maybe<ClaimCard>;
+  claimCardsForNote: Array<ClaimCard>;
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
@@ -316,6 +426,16 @@ export type Query = {
   notes: Array<Note>;
   research: Array<Research>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
+};
+
+
+export type QueryclaimCardArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryclaimCardsForNoteArgs = {
+  noteId: Scalars['Int']['input'];
 };
 
 
@@ -389,6 +509,15 @@ export type Research = {
   url?: Maybe<Scalars['String']['output']>;
   year?: Maybe<Scalars['Int']['output']>;
 };
+
+export type ResearchSource =
+  | 'ARXIV'
+  | 'CROSSREF'
+  | 'DATACITE'
+  | 'EUROPEPMC'
+  | 'OPENALEX'
+  | 'PUBMED'
+  | 'SEMANTIC_SCHOLAR';
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -524,13 +653,23 @@ export type ResolversTypes = {
   AudioManifest: ResolverTypeWrapper<AudioManifest>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   AudioSegmentInfo: ResolverTypeWrapper<AudioSegmentInfo>;
+  BuildClaimCardsInput: BuildClaimCardsInput;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  BuildClaimCardsResult: ResolverTypeWrapper<Omit<BuildClaimCardsResult, 'cards'> & { cards: Array<ResolversTypes['ClaimCard']> }>;
+  ClaimCard: ResolverTypeWrapper<Omit<ClaimCard, 'evidence' | 'verdict'> & { evidence: Array<ResolversTypes['EvidenceItem']>, verdict: ResolversTypes['ClaimVerdict'] }>;
+  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  ClaimProvenance: ResolverTypeWrapper<ClaimProvenance>;
+  ClaimScope: ResolverTypeWrapper<ClaimScope>;
+  ClaimVerdict: ResolverTypeWrapper<'CONTRADICTED' | 'INSUFFICIENT' | 'MIXED' | 'SUPPORTED' | 'UNVERIFIED'>;
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
   DeleteGoalResult: ResolverTypeWrapper<DeleteGoalResult>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   DeleteNoteResult: ResolverTypeWrapper<DeleteNoteResult>;
   DeleteQuestionsResult: ResolverTypeWrapper<DeleteQuestionsResult>;
   DeleteResearchResult: ResolverTypeWrapper<DeleteResearchResult>;
+  EvidenceItem: ResolverTypeWrapper<Omit<EvidenceItem, 'polarity'> & { polarity: ResolversTypes['EvidencePolarity'] }>;
+  EvidenceLocator: ResolverTypeWrapper<EvidenceLocator>;
+  EvidencePolarity: ResolverTypeWrapper<'CONTRADICTS' | 'IRRELEVANT' | 'MIXED' | 'SUPPORTS'>;
   GenerateAudioResult: ResolverTypeWrapper<GenerateAudioResult>;
   GenerateLongFormTextResult: ResolverTypeWrapper<GenerateLongFormTextResult>;
   GenerateQuestionsResult: ResolverTypeWrapper<GenerateQuestionsResult>;
@@ -544,8 +683,10 @@ export type ResolversTypes = {
   JobType: ResolverTypeWrapper<'AUDIO' | 'RESEARCH' | 'QUESTIONS' | 'LONGFORM'>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Note: ResolverTypeWrapper<Note>;
+  PaperCandidate: ResolverTypeWrapper<PaperCandidate>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Research: ResolverTypeWrapper<Research>;
+  ResearchSource: ResolverTypeWrapper<'ARXIV' | 'CROSSREF' | 'DATACITE' | 'EUROPEPMC' | 'OPENALEX' | 'PUBMED' | 'SEMANTIC_SCHOLAR'>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   TextSegment: ResolverTypeWrapper<TextSegment>;
   TherapeuticQuestion: ResolverTypeWrapper<TherapeuticQuestion>;
@@ -561,13 +702,21 @@ export type ResolversParentTypes = {
   AudioManifest: AudioManifest;
   Float: Scalars['Float']['output'];
   AudioSegmentInfo: AudioSegmentInfo;
+  BuildClaimCardsInput: BuildClaimCardsInput;
+  Boolean: Scalars['Boolean']['output'];
+  BuildClaimCardsResult: Omit<BuildClaimCardsResult, 'cards'> & { cards: Array<ResolversParentTypes['ClaimCard']> };
+  ClaimCard: Omit<ClaimCard, 'evidence'> & { evidence: Array<ResolversParentTypes['EvidenceItem']> };
+  ID: Scalars['ID']['output'];
+  ClaimProvenance: ClaimProvenance;
+  ClaimScope: ClaimScope;
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
   DeleteGoalResult: DeleteGoalResult;
-  Boolean: Scalars['Boolean']['output'];
   DeleteNoteResult: DeleteNoteResult;
   DeleteQuestionsResult: DeleteQuestionsResult;
   DeleteResearchResult: DeleteResearchResult;
+  EvidenceItem: EvidenceItem;
+  EvidenceLocator: EvidenceLocator;
   GenerateAudioResult: GenerateAudioResult;
   GenerateLongFormTextResult: GenerateLongFormTextResult;
   GenerateQuestionsResult: GenerateQuestionsResult;
@@ -579,6 +728,7 @@ export type ResolversParentTypes = {
   JobResult: JobResult;
   Mutation: Record<PropertyKey, never>;
   Note: Note;
+  PaperCandidate: PaperCandidate;
   Query: Record<PropertyKey, never>;
   Research: Research;
   Subscription: Record<PropertyKey, never>;
@@ -612,6 +762,41 @@ export type AudioSegmentInfoResolvers<ContextType = GraphQLContext, ParentType e
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type BuildClaimCardsResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['BuildClaimCardsResult'] = ResolversParentTypes['BuildClaimCardsResult']> = {
+  cards?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType>;
+};
+
+export type ClaimCardResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ClaimCard'] = ResolversParentTypes['ClaimCard']> = {
+  claim?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  confidence?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  evidence?: Resolver<Array<ResolversTypes['EvidenceItem']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  provenance?: Resolver<ResolversTypes['ClaimProvenance'], ParentType, ContextType>;
+  queries?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  scope?: Resolver<Maybe<ResolversTypes['ClaimScope']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  verdict?: Resolver<ResolversTypes['ClaimVerdict'], ParentType, ContextType>;
+};
+
+export type ClaimProvenanceResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ClaimProvenance'] = ResolversParentTypes['ClaimProvenance']> = {
+  generatedBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  model?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  sourceTools?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type ClaimScopeResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ClaimScope'] = ResolversParentTypes['ClaimScope']> = {
+  comparator?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  intervention?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  outcome?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  population?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  setting?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  timeframe?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type ClaimVerdictResolvers = EnumResolverSignature<{ CONTRADICTED?: any, INSUFFICIENT?: any, MIXED?: any, SUPPORTED?: any, UNVERIFIED?: any }, ResolversTypes['ClaimVerdict']>;
+
 export type DeleteGoalResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['DeleteGoalResult'] = ResolversParentTypes['DeleteGoalResult']> = {
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -633,6 +818,23 @@ export type DeleteResearchResultResolvers<ContextType = GraphQLContext, ParentTy
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
+
+export type EvidenceItemResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['EvidenceItem'] = ResolversParentTypes['EvidenceItem']> = {
+  excerpt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  locator?: Resolver<Maybe<ResolversTypes['EvidenceLocator']>, ParentType, ContextType>;
+  paper?: Resolver<ResolversTypes['PaperCandidate'], ParentType, ContextType>;
+  polarity?: Resolver<ResolversTypes['EvidencePolarity'], ParentType, ContextType>;
+  rationale?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  score?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+};
+
+export type EvidenceLocatorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['EvidenceLocator'] = ResolversParentTypes['EvidenceLocator']> = {
+  page?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  section?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type EvidencePolarityResolvers = EnumResolverSignature<{ CONTRADICTS?: any, IRRELEVANT?: any, MIXED?: any, SUPPORTS?: any }, ResolversTypes['EvidencePolarity']>;
 
 export type GenerateAudioResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GenerateAudioResult'] = ResolversParentTypes['GenerateAudioResult']> = {
   audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -733,8 +935,10 @@ export type JobStatusResolvers = EnumResolverSignature<{ FAILED?: any, RUNNING?:
 export type JobTypeResolvers = EnumResolverSignature<{ AUDIO?: any, LONGFORM?: any, QUESTIONS?: any, RESEARCH?: any }, ResolversTypes['JobType']>;
 
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  buildClaimCards?: Resolver<ResolversTypes['BuildClaimCardsResult'], ParentType, ContextType, RequireFields<MutationbuildClaimCardsArgs, 'input'>>;
   createGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationcreateGoalArgs, 'input'>>;
   createNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
+  deleteClaimCard?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationdeleteClaimCardArgs, 'id'>>;
   deleteGoal?: Resolver<ResolversTypes['DeleteGoalResult'], ParentType, ContextType, RequireFields<MutationdeleteGoalArgs, 'id'>>;
   deleteNote?: Resolver<ResolversTypes['DeleteNoteResult'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'id'>>;
   deleteResearch?: Resolver<ResolversTypes['DeleteResearchResult'], ParentType, ContextType, RequireFields<MutationdeleteResearchArgs, 'goalId'>>;
@@ -743,6 +947,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   generateLongFormText?: Resolver<ResolversTypes['GenerateLongFormTextResult'], ParentType, ContextType, RequireFields<MutationgenerateLongFormTextArgs, 'goalId'>>;
   generateResearch?: Resolver<ResolversTypes['GenerateResearchResult'], ParentType, ContextType, RequireFields<MutationgenerateResearchArgs, 'goalId'>>;
   generateTherapeuticQuestions?: Resolver<ResolversTypes['GenerateQuestionsResult'], ParentType, ContextType, RequireFields<MutationgenerateTherapeuticQuestionsArgs, 'goalId'>>;
+  refreshClaimCard?: Resolver<ResolversTypes['ClaimCard'], ParentType, ContextType, RequireFields<MutationrefreshClaimCardArgs, 'id'>>;
   updateGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationupdateGoalArgs, 'id' | 'input'>>;
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
 };
@@ -762,7 +967,22 @@ export type NoteResolvers<ContextType = GraphQLContext, ParentType extends Resol
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type PaperCandidateResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['PaperCandidate'] = ResolversParentTypes['PaperCandidate']> = {
+  abstract?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  authors?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  doi?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  journal?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  oaStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  oaUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  source?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  claimCard?: Resolver<Maybe<ResolversTypes['ClaimCard']>, ParentType, ContextType, RequireFields<QueryclaimCardArgs, 'id'>>;
+  claimCardsForNote?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType, RequireFields<QueryclaimCardsForNoteArgs, 'noteId'>>;
   generationJob?: Resolver<Maybe<ResolversTypes['GenerationJob']>, ParentType, ContextType, RequireFields<QuerygenerationJobArgs, 'id'>>;
   generationJobs?: Resolver<Array<ResolversTypes['GenerationJob']>, ParentType, ContextType, Partial<QuerygenerationJobsArgs>>;
   goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType, RequireFields<QuerygoalArgs, 'id' | 'userId'>>;
@@ -795,6 +1015,8 @@ export type ResearchResolvers<ContextType = GraphQLContext, ParentType extends R
   year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
+export type ResearchSourceResolvers = EnumResolverSignature<{ ARXIV?: any, CROSSREF?: any, DATACITE?: any, EUROPEPMC?: any, OPENALEX?: any, PUBMED?: any, SEMANTIC_SCHOLAR?: any }, ResolversTypes['ResearchSource']>;
+
 export type SubscriptionResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   audioJobStatus?: SubscriptionResolver<ResolversTypes['GenerationJob'], "audioJobStatus", ParentType, ContextType, RequireFields<SubscriptionaudioJobStatusArgs, 'jobId'>>;
   researchJobStatus?: SubscriptionResolver<ResolversTypes['GenerationJob'], "researchJobStatus", ParentType, ContextType, RequireFields<SubscriptionresearchJobStatusArgs, 'jobId'>>;
@@ -825,10 +1047,18 @@ export type Resolvers<ContextType = GraphQLContext> = {
   AudioAsset?: AudioAssetResolvers<ContextType>;
   AudioManifest?: AudioManifestResolvers<ContextType>;
   AudioSegmentInfo?: AudioSegmentInfoResolvers<ContextType>;
+  BuildClaimCardsResult?: BuildClaimCardsResultResolvers<ContextType>;
+  ClaimCard?: ClaimCardResolvers<ContextType>;
+  ClaimProvenance?: ClaimProvenanceResolvers<ContextType>;
+  ClaimScope?: ClaimScopeResolvers<ContextType>;
+  ClaimVerdict?: ClaimVerdictResolvers;
   DeleteGoalResult?: DeleteGoalResultResolvers<ContextType>;
   DeleteNoteResult?: DeleteNoteResultResolvers<ContextType>;
   DeleteQuestionsResult?: DeleteQuestionsResultResolvers<ContextType>;
   DeleteResearchResult?: DeleteResearchResultResolvers<ContextType>;
+  EvidenceItem?: EvidenceItemResolvers<ContextType>;
+  EvidenceLocator?: EvidenceLocatorResolvers<ContextType>;
+  EvidencePolarity?: EvidencePolarityResolvers;
   GenerateAudioResult?: GenerateAudioResultResolvers<ContextType>;
   GenerateLongFormTextResult?: GenerateLongFormTextResultResolvers<ContextType>;
   GenerateQuestionsResult?: GenerateQuestionsResultResolvers<ContextType>;
@@ -842,8 +1072,10 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JobType?: JobTypeResolvers;
   Mutation?: MutationResolvers<ContextType>;
   Note?: NoteResolvers<ContextType>;
+  PaperCandidate?: PaperCandidateResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Research?: ResearchResolvers<ContextType>;
+  ResearchSource?: ResearchSourceResolvers;
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;
