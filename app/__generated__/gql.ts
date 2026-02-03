@@ -16,7 +16,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 type Documents = {
     "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    entityId\n    entityType\n    userId\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": typeof types.CreateNoteDocument,
     "mutation DeleteNote($id: Int!) {\n  deleteNote(id: $id) {\n    success\n    message\n  }\n}": typeof types.DeleteNoteDocument,
-    "mutation DeleteTherapyResearch($goalId: Int!) {\n  deleteTherapyResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}": typeof types.DeleteTherapyResearchDocument,
+    "mutation DeleteResearch($goalId: Int!) {\n  deleteResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}": typeof types.DeleteResearchDocument,
     "mutation GenerateAudio($goalId: Int!, $storyId: Int, $text: String, $language: String, $voice: String) {\n  generateAudio(\n    goalId: $goalId\n    storyId: $storyId\n    text: $text\n    language: $language\n    voice: $voice\n  ) {\n    success\n    message\n    jobId\n    audioUrl\n  }\n}": typeof types.GenerateAudioDocument,
     "mutation GenerateLongFormText($goalId: Int!, $language: String, $minutes: Int) {\n  generateLongFormText(goalId: $goalId, language: $language, minutes: $minutes) {\n    success\n    message\n    text\n    audioUrl\n    manifestUrl\n    segmentUrls\n  }\n}": typeof types.GenerateLongFormTextDocument,
     "mutation GenerateLongFormTextRomanian($goalId: Int!) {\n  generateLongFormText(goalId: $goalId, language: \"Romanian\") {\n    success\n    message\n    text\n    audioUrl\n    manifestUrl\n    segmentUrls\n  }\n}": typeof types.GenerateLongFormTextRomanianDocument,
@@ -28,7 +28,7 @@ type Documents = {
 const documents: Documents = {
     "mutation CreateNote($input: CreateNoteInput!) {\n  createNote(input: $input) {\n    id\n    entityId\n    entityType\n    userId\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": types.CreateNoteDocument,
     "mutation DeleteNote($id: Int!) {\n  deleteNote(id: $id) {\n    success\n    message\n  }\n}": types.DeleteNoteDocument,
-    "mutation DeleteTherapyResearch($goalId: Int!) {\n  deleteTherapyResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}": types.DeleteTherapyResearchDocument,
+    "mutation DeleteResearch($goalId: Int!) {\n  deleteResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}": types.DeleteResearchDocument,
     "mutation GenerateAudio($goalId: Int!, $storyId: Int, $text: String, $language: String, $voice: String) {\n  generateAudio(\n    goalId: $goalId\n    storyId: $storyId\n    text: $text\n    language: $language\n    voice: $voice\n  ) {\n    success\n    message\n    jobId\n    audioUrl\n  }\n}": types.GenerateAudioDocument,
     "mutation GenerateLongFormText($goalId: Int!, $language: String, $minutes: Int) {\n  generateLongFormText(goalId: $goalId, language: $language, minutes: $minutes) {\n    success\n    message\n    text\n    audioUrl\n    manifestUrl\n    segmentUrls\n  }\n}": types.GenerateLongFormTextDocument,
     "mutation GenerateLongFormTextRomanian($goalId: Int!) {\n  generateLongFormText(goalId: $goalId, language: \"Romanian\") {\n    success\n    message\n    text\n    audioUrl\n    manifestUrl\n    segmentUrls\n  }\n}": types.GenerateLongFormTextRomanianDocument,
@@ -63,7 +63,7 @@ export function gql(source: "mutation DeleteNote($id: Int!) {\n  deleteNote(id: 
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "mutation DeleteTherapyResearch($goalId: Int!) {\n  deleteTherapyResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}"): (typeof documents)["mutation DeleteTherapyResearch($goalId: Int!) {\n  deleteTherapyResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}"];
+export function gql(source: "mutation DeleteResearch($goalId: Int!) {\n  deleteResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}"): (typeof documents)["mutation DeleteResearch($goalId: Int!) {\n  deleteResearch(goalId: $goalId) {\n    success\n    message\n    deletedCount\n  }\n}"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

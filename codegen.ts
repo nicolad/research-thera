@@ -13,7 +13,7 @@ const config: CodegenConfig = {
     // Server-side: Generate typed resolvers
     schema: defineConfig({
       typesPluginsConfig: {
-        contextType: "./context#GraphQLContext",
+        contextType: "../app/apollo/context#GraphQLContext",
       },
     }),
     // Client-side: Generate typed queries/mutations with gql function and React hooks

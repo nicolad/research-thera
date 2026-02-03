@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphQLContext } from './context';
+import { GraphQLContext } from '../app/apollo/context';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -151,7 +151,7 @@ export type Goal = {
   notes: Array<Note>;
   priority: Scalars['String']['output'];
   questions: Array<TherapeuticQuestion>;
-  research: Array<TherapyResearch>;
+  research: Array<Research>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
   targetDate?: Maybe<Scalars['String']['output']>;
@@ -211,12 +211,12 @@ export type Mutation = {
   createNote: Note;
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
+  deleteResearch: DeleteResearchResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
-  deleteTherapyResearch: DeleteResearchResult;
   generateAudio: GenerateAudioResult;
   generateLongFormText: GenerateLongFormTextResult;
+  generateResearch: GenerateResearchResult;
   generateTherapeuticQuestions: GenerateQuestionsResult;
-  generateTherapyResearch: GenerateResearchResult;
   updateGoal: Goal;
   updateNote: Note;
 };
@@ -242,12 +242,12 @@ export type MutationdeleteNoteArgs = {
 };
 
 
-export type MutationdeleteTherapeuticQuestionsArgs = {
+export type MutationdeleteResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationdeleteTherapyResearchArgs = {
+export type MutationdeleteTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -268,12 +268,12 @@ export type MutationgenerateLongFormTextArgs = {
 };
 
 
-export type MutationgenerateTherapeuticQuestionsArgs = {
+export type MutationgenerateResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationgenerateTherapyResearchArgs = {
+export type MutationgenerateTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -297,7 +297,7 @@ export type Note = {
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
   id: Scalars['Int']['output'];
-  linkedResearch?: Maybe<Array<TherapyResearch>>;
+  linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['String']['output'];
@@ -312,8 +312,8 @@ export type Query = {
   goals: Array<Goal>;
   note?: Maybe<Note>;
   notes: Array<Note>;
+  research: Array<Research>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
-  therapyResearch: Array<TherapyResearch>;
 };
 
 
@@ -354,14 +354,37 @@ export type QuerynotesArgs = {
 };
 
 
+export type QueryresearchArgs = {
+  goalId: Scalars['Int']['input'];
+  userId: Scalars['String']['input'];
+};
+
+
 export type QuerytherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
-
-export type QuerytherapyResearchArgs = {
-  goalId: Scalars['Int']['input'];
-  userId: Scalars['String']['input'];
+export type Research = {
+  __typename?: 'Research';
+  abstract?: Maybe<Scalars['String']['output']>;
+  authors: Array<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  doi?: Maybe<Scalars['String']['output']>;
+  evidenceLevel?: Maybe<Scalars['String']['output']>;
+  extractedBy: Scalars['String']['output'];
+  extractionConfidence: Scalars['Float']['output'];
+  goal?: Maybe<Goal>;
+  goalId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  journal?: Maybe<Scalars['String']['output']>;
+  keyFindings: Array<Scalars['String']['output']>;
+  relevanceScore: Scalars['Float']['output'];
+  therapeuticGoalType: Scalars['String']['output'];
+  therapeuticTechniques: Array<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  year?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -401,29 +424,6 @@ export type TherapeuticQuestion = {
   researchId?: Maybe<Scalars['Int']['output']>;
   researchTitle?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
-};
-
-export type TherapyResearch = {
-  __typename?: 'TherapyResearch';
-  abstract?: Maybe<Scalars['String']['output']>;
-  authors: Array<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  doi?: Maybe<Scalars['String']['output']>;
-  evidenceLevel?: Maybe<Scalars['String']['output']>;
-  extractedBy: Scalars['String']['output'];
-  extractionConfidence: Scalars['Float']['output'];
-  goal?: Maybe<Goal>;
-  goalId: Scalars['Int']['output'];
-  id: Scalars['Int']['output'];
-  journal?: Maybe<Scalars['String']['output']>;
-  keyFindings: Array<Scalars['String']['output']>;
-  relevanceScore: Scalars['Float']['output'];
-  therapeuticGoalType: Scalars['String']['output'];
-  therapeuticTechniques: Array<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
-  year?: Maybe<Scalars['Int']['output']>;
 };
 
 export type UpdateGoalInput = {
@@ -542,10 +542,10 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Note: ResolverTypeWrapper<Note>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  Research: ResolverTypeWrapper<Research>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   TextSegment: ResolverTypeWrapper<TextSegment>;
   TherapeuticQuestion: ResolverTypeWrapper<TherapeuticQuestion>;
-  TherapyResearch: ResolverTypeWrapper<TherapyResearch>;
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
 };
@@ -577,10 +577,10 @@ export type ResolversParentTypes = {
   Mutation: Record<PropertyKey, never>;
   Note: Note;
   Query: Record<PropertyKey, never>;
+  Research: Research;
   Subscription: Record<PropertyKey, never>;
   TextSegment: TextSegment;
   TherapeuticQuestion: TherapeuticQuestion;
-  TherapyResearch: TherapyResearch;
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
 };
@@ -685,7 +685,7 @@ export type GoalResolvers<ContextType = GraphQLContext, ParentType extends Resol
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
   priority?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   questions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType>;
-  research?: Resolver<Array<ResolversTypes['TherapyResearch']>, ParentType, ContextType>;
+  research?: Resolver<Array<ResolversTypes['Research']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   stories?: Resolver<Array<ResolversTypes['GoalStory']>, ParentType, ContextType>;
   targetDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -734,12 +734,12 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   createNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
   deleteGoal?: Resolver<ResolversTypes['DeleteGoalResult'], ParentType, ContextType, RequireFields<MutationdeleteGoalArgs, 'id'>>;
   deleteNote?: Resolver<ResolversTypes['DeleteNoteResult'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'id'>>;
+  deleteResearch?: Resolver<ResolversTypes['DeleteResearchResult'], ParentType, ContextType, RequireFields<MutationdeleteResearchArgs, 'goalId'>>;
   deleteTherapeuticQuestions?: Resolver<ResolversTypes['DeleteQuestionsResult'], ParentType, ContextType, RequireFields<MutationdeleteTherapeuticQuestionsArgs, 'goalId'>>;
-  deleteTherapyResearch?: Resolver<ResolversTypes['DeleteResearchResult'], ParentType, ContextType, RequireFields<MutationdeleteTherapyResearchArgs, 'goalId'>>;
   generateAudio?: Resolver<ResolversTypes['GenerateAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioArgs, 'goalId'>>;
   generateLongFormText?: Resolver<ResolversTypes['GenerateLongFormTextResult'], ParentType, ContextType, RequireFields<MutationgenerateLongFormTextArgs, 'goalId'>>;
+  generateResearch?: Resolver<ResolversTypes['GenerateResearchResult'], ParentType, ContextType, RequireFields<MutationgenerateResearchArgs, 'goalId'>>;
   generateTherapeuticQuestions?: Resolver<ResolversTypes['GenerateQuestionsResult'], ParentType, ContextType, RequireFields<MutationgenerateTherapeuticQuestionsArgs, 'goalId'>>;
-  generateTherapyResearch?: Resolver<ResolversTypes['GenerateResearchResult'], ParentType, ContextType, RequireFields<MutationgenerateTherapyResearchArgs, 'goalId'>>;
   updateGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationupdateGoalArgs, 'id' | 'input'>>;
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
 };
@@ -751,7 +751,7 @@ export type NoteResolvers<ContextType = GraphQLContext, ParentType extends Resol
   entityId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   entityType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  linkedResearch?: Resolver<Maybe<Array<ResolversTypes['TherapyResearch']>>, ParentType, ContextType>;
+  linkedResearch?: Resolver<Maybe<Array<ResolversTypes['Research']>>, ParentType, ContextType>;
   noteType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -765,8 +765,30 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   goals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType, RequireFields<QuerygoalsArgs, 'userId'>>;
   note?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynoteArgs, 'id' | 'userId'>>;
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynotesArgs, 'entityId' | 'entityType' | 'userId'>>;
+  research?: Resolver<Array<ResolversTypes['Research']>, ParentType, ContextType, RequireFields<QueryresearchArgs, 'goalId' | 'userId'>>;
   therapeuticQuestions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType, RequireFields<QuerytherapeuticQuestionsArgs, 'goalId'>>;
-  therapyResearch?: Resolver<Array<ResolversTypes['TherapyResearch']>, ParentType, ContextType, RequireFields<QuerytherapyResearchArgs, 'goalId' | 'userId'>>;
+};
+
+export type ResearchResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Research'] = ResolversParentTypes['Research']> = {
+  abstract?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  authors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  doi?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  evidenceLevel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  extractedBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  extractionConfidence?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType>;
+  goalId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  journal?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  keyFindings?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  relevanceScore?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  therapeuticGoalType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  therapeuticTechniques?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -795,28 +817,6 @@ export type TherapeuticQuestionResolvers<ContextType = GraphQLContext, ParentTyp
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type TherapyResearchResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['TherapyResearch'] = ResolversParentTypes['TherapyResearch']> = {
-  abstract?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  authors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  doi?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  evidenceLevel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  extractedBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  extractionConfidence?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType>;
-  goalId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  journal?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  keyFindings?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  relevanceScore?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  therapeuticGoalType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  therapeuticTechniques?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-};
-
 export type Resolvers<ContextType = GraphQLContext> = {
   AudioAsset?: AudioAssetResolvers<ContextType>;
   AudioManifest?: AudioManifestResolvers<ContextType>;
@@ -839,9 +839,9 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Mutation?: MutationResolvers<ContextType>;
   Note?: NoteResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Research?: ResearchResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;
-  TherapyResearch?: TherapyResearchResolvers<ContextType>;
 };
 

@@ -148,7 +148,7 @@ export type Goal = {
   notes: Array<Note>;
   priority: Scalars['String']['output'];
   questions: Array<TherapeuticQuestion>;
-  research: Array<TherapyResearch>;
+  research: Array<Research>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
   targetDate?: Maybe<Scalars['String']['output']>;
@@ -210,12 +210,12 @@ export type Mutation = {
   createNote: Note;
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
+  deleteResearch: DeleteResearchResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
-  deleteTherapyResearch: DeleteResearchResult;
   generateAudio: GenerateAudioResult;
   generateLongFormText: GenerateLongFormTextResult;
+  generateResearch: GenerateResearchResult;
   generateTherapeuticQuestions: GenerateQuestionsResult;
-  generateTherapyResearch: GenerateResearchResult;
   updateGoal: Goal;
   updateNote: Note;
 };
@@ -241,12 +241,12 @@ export type MutationDeleteNoteArgs = {
 };
 
 
-export type MutationDeleteTherapeuticQuestionsArgs = {
+export type MutationDeleteResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationDeleteTherapyResearchArgs = {
+export type MutationDeleteTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -267,12 +267,12 @@ export type MutationGenerateLongFormTextArgs = {
 };
 
 
-export type MutationGenerateTherapeuticQuestionsArgs = {
+export type MutationGenerateResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationGenerateTherapyResearchArgs = {
+export type MutationGenerateTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -296,7 +296,7 @@ export type Note = {
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
   id: Scalars['Int']['output'];
-  linkedResearch?: Maybe<Array<TherapyResearch>>;
+  linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['String']['output'];
@@ -311,8 +311,8 @@ export type Query = {
   goals: Array<Goal>;
   note?: Maybe<Note>;
   notes: Array<Note>;
+  research: Array<Research>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
-  therapyResearch: Array<TherapyResearch>;
 };
 
 
@@ -353,14 +353,37 @@ export type QueryNotesArgs = {
 };
 
 
+export type QueryResearchArgs = {
+  goalId: Scalars['Int']['input'];
+  userId: Scalars['String']['input'];
+};
+
+
 export type QueryTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
-
-export type QueryTherapyResearchArgs = {
-  goalId: Scalars['Int']['input'];
-  userId: Scalars['String']['input'];
+export type Research = {
+  __typename?: 'Research';
+  abstract?: Maybe<Scalars['String']['output']>;
+  authors: Array<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  doi?: Maybe<Scalars['String']['output']>;
+  evidenceLevel?: Maybe<Scalars['String']['output']>;
+  extractedBy: Scalars['String']['output'];
+  extractionConfidence: Scalars['Float']['output'];
+  goal?: Maybe<Goal>;
+  goalId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  journal?: Maybe<Scalars['String']['output']>;
+  keyFindings: Array<Scalars['String']['output']>;
+  relevanceScore: Scalars['Float']['output'];
+  therapeuticGoalType: Scalars['String']['output'];
+  therapeuticTechniques: Array<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  year?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -402,29 +425,6 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
-export type TherapyResearch = {
-  __typename?: 'TherapyResearch';
-  abstract?: Maybe<Scalars['String']['output']>;
-  authors: Array<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  doi?: Maybe<Scalars['String']['output']>;
-  evidenceLevel?: Maybe<Scalars['String']['output']>;
-  extractedBy: Scalars['String']['output'];
-  extractionConfidence: Scalars['Float']['output'];
-  goal?: Maybe<Goal>;
-  goalId: Scalars['Int']['output'];
-  id: Scalars['Int']['output'];
-  journal?: Maybe<Scalars['String']['output']>;
-  keyFindings: Array<Scalars['String']['output']>;
-  relevanceScore: Scalars['Float']['output'];
-  therapeuticGoalType: Scalars['String']['output'];
-  therapeuticTechniques: Array<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
-  year?: Maybe<Scalars['Int']['output']>;
-};
-
 export type UpdateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   priority?: InputMaybe<Scalars['String']['input']>;
@@ -455,12 +455,12 @@ export type DeleteNoteMutationVariables = Exact<{
 
 export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote: { __typename?: 'DeleteNoteResult', success: boolean, message?: string | null } };
 
-export type DeleteTherapyResearchMutationVariables = Exact<{
+export type DeleteResearchMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
 }>;
 
 
-export type DeleteTherapyResearchMutation = { __typename?: 'Mutation', deleteTherapyResearch: { __typename?: 'DeleteResearchResult', success: boolean, message?: string | null, deletedCount: number } };
+export type DeleteResearchMutation = { __typename?: 'Mutation', deleteResearch: { __typename?: 'DeleteResearchResult', success: boolean, message?: string | null, deletedCount: number } };
 
 export type GenerateAudioMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
@@ -526,7 +526,7 @@ export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __type
 
 export const CreateNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateNoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"entityId"}},{"kind":"Field","name":{"kind":"Name","value":"entityType"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"noteType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateNoteMutation, CreateNoteMutationVariables>;
 export const DeleteNoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteNote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteNote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<DeleteNoteMutation, DeleteNoteMutationVariables>;
-export const DeleteTherapyResearchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTherapyResearch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteTherapyResearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"goalId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"deletedCount"}}]}}]}}]} as unknown as DocumentNode<DeleteTherapyResearchMutation, DeleteTherapyResearchMutationVariables>;
+export const DeleteResearchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteResearch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteResearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"goalId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"deletedCount"}}]}}]}}]} as unknown as DocumentNode<DeleteResearchMutation, DeleteResearchMutationVariables>;
 export const GenerateAudioDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"GenerateAudio"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"storyId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"text"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"language"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"voice"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"generateAudio"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"goalId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}}},{"kind":"Argument","name":{"kind":"Name","value":"storyId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"storyId"}}},{"kind":"Argument","name":{"kind":"Name","value":"text"},"value":{"kind":"Variable","name":{"kind":"Name","value":"text"}}},{"kind":"Argument","name":{"kind":"Name","value":"language"},"value":{"kind":"Variable","name":{"kind":"Name","value":"language"}}},{"kind":"Argument","name":{"kind":"Name","value":"voice"},"value":{"kind":"Variable","name":{"kind":"Name","value":"voice"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"jobId"}},{"kind":"Field","name":{"kind":"Name","value":"audioUrl"}}]}}]}}]} as unknown as DocumentNode<GenerateAudioMutation, GenerateAudioMutationVariables>;
 export const GenerateLongFormTextDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"GenerateLongFormText"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"language"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"minutes"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"generateLongFormText"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"goalId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}}},{"kind":"Argument","name":{"kind":"Name","value":"language"},"value":{"kind":"Variable","name":{"kind":"Name","value":"language"}}},{"kind":"Argument","name":{"kind":"Name","value":"minutes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"minutes"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"audioUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manifestUrl"}},{"kind":"Field","name":{"kind":"Name","value":"segmentUrls"}}]}}]}}]} as unknown as DocumentNode<GenerateLongFormTextMutation, GenerateLongFormTextMutationVariables>;
 export const GenerateLongFormTextRomanianDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"GenerateLongFormTextRomanian"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"generateLongFormText"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"goalId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"goalId"}}},{"kind":"Argument","name":{"kind":"Name","value":"language"},"value":{"kind":"StringValue","value":"Romanian","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"audioUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manifestUrl"}},{"kind":"Field","name":{"kind":"Name","value":"segmentUrls"}}]}}]}}]} as unknown as DocumentNode<GenerateLongFormTextRomanianMutation, GenerateLongFormTextRomanianMutationVariables>;

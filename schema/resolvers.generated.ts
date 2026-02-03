@@ -6,18 +6,18 @@ import    { goal as Query_goal } from './resolvers/Query/goal';
 import    { goals as Query_goals } from './resolvers/Query/goals';
 import    { note as Query_note } from './resolvers/Query/note';
 import    { notes as Query_notes } from './resolvers/Query/notes';
+import    { research as Query_research } from './resolvers/Query/research';
 import    { therapeuticQuestions as Query_therapeuticQuestions } from './resolvers/Query/therapeuticQuestions';
-import    { therapyResearch as Query_therapyResearch } from './resolvers/Query/therapyResearch';
 import    { createGoal as Mutation_createGoal } from './resolvers/Mutation/createGoal';
 import    { createNote as Mutation_createNote } from './resolvers/Mutation/createNote';
 import    { deleteGoal as Mutation_deleteGoal } from './resolvers/Mutation/deleteGoal';
 import    { deleteNote as Mutation_deleteNote } from './resolvers/Mutation/deleteNote';
+import    { deleteResearch as Mutation_deleteResearch } from './resolvers/Mutation/deleteResearch';
 import    { deleteTherapeuticQuestions as Mutation_deleteTherapeuticQuestions } from './resolvers/Mutation/deleteTherapeuticQuestions';
-import    { deleteTherapyResearch as Mutation_deleteTherapyResearch } from './resolvers/Mutation/deleteTherapyResearch';
 import    { generateAudio as Mutation_generateAudio } from './resolvers/Mutation/generateAudio';
 import    { generateLongFormText as Mutation_generateLongFormText } from './resolvers/Mutation/generateLongFormText';
+import    { generateResearch as Mutation_generateResearch } from './resolvers/Mutation/generateResearch';
 import    { generateTherapeuticQuestions as Mutation_generateTherapeuticQuestions } from './resolvers/Mutation/generateTherapeuticQuestions';
-import    { generateTherapyResearch as Mutation_generateTherapyResearch } from './resolvers/Mutation/generateTherapyResearch';
 import    { updateGoal as Mutation_updateGoal } from './resolvers/Mutation/updateGoal';
 import    { updateNote as Mutation_updateNote } from './resolvers/Mutation/updateNote';
 import    { audioJobStatus as Subscription_audioJobStatus } from './resolvers/Subscription/audioJobStatus';
@@ -39,12 +39,12 @@ import    { GoalStory } from './resolvers/GoalStory';
 import    { JobError } from './resolvers/JobError';
 import    { JobResult } from './resolvers/JobResult';
 import    { Note } from './resolvers/Note';
+import    { Research } from './resolvers/Research';
 import    { TextSegment } from './resolvers/TextSegment';
 import    { TherapeuticQuestion } from './resolvers/TherapeuticQuestion';
-import    { TherapyResearch } from './resolvers/TherapyResearch';
     export const resolvers: Resolvers = {
-      Query: { generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,note: Query_note,notes: Query_notes,therapeuticQuestions: Query_therapeuticQuestions,therapyResearch: Query_therapyResearch },
-      Mutation: { createGoal: Mutation_createGoal,createNote: Mutation_createNote,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,deleteTherapyResearch: Mutation_deleteTherapyResearch,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,generateTherapyResearch: Mutation_generateTherapyResearch,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote },
+      Query: { generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,note: Query_note,notes: Query_notes,research: Query_research,therapeuticQuestions: Query_therapeuticQuestions },
+      Mutation: { createGoal: Mutation_createGoal,createNote: Mutation_createNote,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote },
       Subscription: { audioJobStatus: Subscription_audioJobStatus,researchJobStatus: Subscription_researchJobStatus },
       AudioAsset: AudioAsset,
 AudioManifest: AudioManifest,
@@ -63,7 +63,7 @@ GoalStory: GoalStory,
 JobError: JobError,
 JobResult: JobResult,
 Note: Note,
+Research: Research,
 TextSegment: TextSegment,
-TherapeuticQuestion: TherapeuticQuestion,
-TherapyResearch: TherapyResearch
+TherapeuticQuestion: TherapeuticQuestion
     }

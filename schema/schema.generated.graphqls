@@ -117,7 +117,7 @@ type Goal {
   notes: [Note!]!
   priority: String!
   questions: [TherapeuticQuestion!]!
-  research: [TherapyResearch!]!
+  research: [Research!]!
   status: String!
   stories: [GoalStory!]!
   targetDate: String
@@ -175,12 +175,12 @@ type Mutation {
   createNote(input: CreateNoteInput!): Note!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteNote(id: Int!): DeleteNoteResult!
+  deleteResearch(goalId: Int!): DeleteResearchResult!
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
-  deleteTherapyResearch(goalId: Int!): DeleteResearchResult!
   generateAudio(goalId: Int!, language: String, storyId: Int, text: String, voice: String): GenerateAudioResult!
   generateLongFormText(goalId: Int!, language: String, minutes: Int): GenerateLongFormTextResult!
+  generateResearch(goalId: Int!): GenerateResearchResult!
   generateTherapeuticQuestions(goalId: Int!): GenerateQuestionsResult!
-  generateTherapyResearch(goalId: Int!): GenerateResearchResult!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
 }
@@ -192,7 +192,7 @@ type Note {
   entityId: Int!
   entityType: String!
   id: Int!
-  linkedResearch: [TherapyResearch!]
+  linkedResearch: [Research!]
   noteType: String
   tags: [String!]
   updatedAt: String!
@@ -206,8 +206,30 @@ type Query {
   goals(familyMemberId: Int, status: String, userId: String!): [Goal!]!
   note(id: Int!, userId: String!): Note
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!
+  research(goalId: Int!, userId: String!): [Research!]!
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
-  therapyResearch(goalId: Int!, userId: String!): [TherapyResearch!]!
+}
+
+type Research {
+  abstract: String
+  authors: [String!]!
+  createdAt: String!
+  doi: String
+  evidenceLevel: String
+  extractedBy: String!
+  extractionConfidence: Float!
+  goal: Goal
+  goalId: Int!
+  id: Int!
+  journal: String
+  keyFindings: [String!]!
+  relevanceScore: Float!
+  therapeuticGoalType: String!
+  therapeuticTechniques: [String!]!
+  title: String!
+  updatedAt: String!
+  url: String
+  year: Int
 }
 
 type Subscription {
@@ -234,28 +256,6 @@ type TherapeuticQuestion {
   researchId: Int
   researchTitle: String
   updatedAt: String!
-}
-
-type TherapyResearch {
-  abstract: String
-  authors: [String!]!
-  createdAt: String!
-  doi: String
-  evidenceLevel: String
-  extractedBy: String!
-  extractionConfidence: Float!
-  goal: Goal
-  goalId: Int!
-  id: Int!
-  journal: String
-  keyFindings: [String!]!
-  relevanceScore: Float!
-  therapeuticGoalType: String!
-  therapeuticTechniques: [String!]!
-  title: String!
-  updatedAt: String!
-  url: String
-  year: Int
 }
 
 input UpdateGoalInput {

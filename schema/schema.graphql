@@ -1,7 +1,7 @@
 type Query {
   goals(familyMemberId: Int, status: String, userId: String!): [Goal!]!
   goal(id: Int!, userId: String!): Goal
-  therapyResearch(goalId: Int!, userId: String!): [TherapyResearch!]!
+  research(goalId: Int!, userId: String!): [Research!]!
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!
   note(id: Int!, userId: String!): Note
@@ -16,8 +16,8 @@ type Mutation {
   deleteGoal(id: Int!): DeleteGoalResult!
 
   # Async generation workflows
-  generateTherapyResearch(goalId: Int!): GenerateResearchResult!
-  deleteTherapyResearch(goalId: Int!): DeleteResearchResult!
+  generateResearch(goalId: Int!): GenerateResearchResult!
+  deleteResearch(goalId: Int!): DeleteResearchResult!
   generateTherapeuticQuestions(goalId: Int!): GenerateQuestionsResult!
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
   generateLongFormText(
@@ -59,7 +59,7 @@ type Goal {
   priority: String!
   createdAt: String!
   updatedAt: String!
-  research: [TherapyResearch!]!
+  research: [Research!]!
   questions: [TherapeuticQuestion!]!
   stories: [GoalStory!]!
   notes: [Note!]!
@@ -89,7 +89,7 @@ type TextSegment {
   createdAt: String!
 }
 
-type TherapyResearch {
+type Research {
   id: Int!
   goalId: Int!
   therapeuticGoalType: String!
@@ -132,7 +132,7 @@ type Note {
   content: String!
   createdBy: String
   tags: [String!]
-  linkedResearch: [TherapyResearch!]
+  linkedResearch: [Research!]
   createdAt: String!
   updatedAt: String!
 }

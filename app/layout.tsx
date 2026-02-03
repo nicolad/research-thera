@@ -1,5 +1,6 @@
 import "@radix-ui/themes/styles.css";
 import type { Metadata } from "next";
+import { ApolloProvider } from "./providers/ApolloProvider";
 
 export const metadata: Metadata = {
   title: "AI Therapist",
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body>{children}</body>
+      <body>
+        <ApolloProvider>{children}</ApolloProvider>
+      </body>
     </html>
   );
 }

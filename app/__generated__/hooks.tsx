@@ -149,7 +149,7 @@ export type Goal = {
   notes: Array<Note>;
   priority: Scalars['String']['output'];
   questions: Array<TherapeuticQuestion>;
-  research: Array<TherapyResearch>;
+  research: Array<Research>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
   targetDate?: Maybe<Scalars['String']['output']>;
@@ -211,12 +211,12 @@ export type Mutation = {
   createNote: Note;
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
+  deleteResearch: DeleteResearchResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
-  deleteTherapyResearch: DeleteResearchResult;
   generateAudio: GenerateAudioResult;
   generateLongFormText: GenerateLongFormTextResult;
+  generateResearch: GenerateResearchResult;
   generateTherapeuticQuestions: GenerateQuestionsResult;
-  generateTherapyResearch: GenerateResearchResult;
   updateGoal: Goal;
   updateNote: Note;
 };
@@ -242,12 +242,12 @@ export type MutationDeleteNoteArgs = {
 };
 
 
-export type MutationDeleteTherapeuticQuestionsArgs = {
+export type MutationDeleteResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationDeleteTherapyResearchArgs = {
+export type MutationDeleteTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -268,12 +268,12 @@ export type MutationGenerateLongFormTextArgs = {
 };
 
 
-export type MutationGenerateTherapeuticQuestionsArgs = {
+export type MutationGenerateResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
 
 
-export type MutationGenerateTherapyResearchArgs = {
+export type MutationGenerateTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
@@ -297,7 +297,7 @@ export type Note = {
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
   id: Scalars['Int']['output'];
-  linkedResearch?: Maybe<Array<TherapyResearch>>;
+  linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['String']['output'];
@@ -312,8 +312,8 @@ export type Query = {
   goals: Array<Goal>;
   note?: Maybe<Note>;
   notes: Array<Note>;
+  research: Array<Research>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
-  therapyResearch: Array<TherapyResearch>;
 };
 
 
@@ -354,14 +354,37 @@ export type QueryNotesArgs = {
 };
 
 
+export type QueryResearchArgs = {
+  goalId: Scalars['Int']['input'];
+  userId: Scalars['String']['input'];
+};
+
+
 export type QueryTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
 
-
-export type QueryTherapyResearchArgs = {
-  goalId: Scalars['Int']['input'];
-  userId: Scalars['String']['input'];
+export type Research = {
+  __typename?: 'Research';
+  abstract?: Maybe<Scalars['String']['output']>;
+  authors: Array<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  doi?: Maybe<Scalars['String']['output']>;
+  evidenceLevel?: Maybe<Scalars['String']['output']>;
+  extractedBy: Scalars['String']['output'];
+  extractionConfidence: Scalars['Float']['output'];
+  goal?: Maybe<Goal>;
+  goalId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  journal?: Maybe<Scalars['String']['output']>;
+  keyFindings: Array<Scalars['String']['output']>;
+  relevanceScore: Scalars['Float']['output'];
+  therapeuticGoalType: Scalars['String']['output'];
+  therapeuticTechniques: Array<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  year?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -403,29 +426,6 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
-export type TherapyResearch = {
-  __typename?: 'TherapyResearch';
-  abstract?: Maybe<Scalars['String']['output']>;
-  authors: Array<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  doi?: Maybe<Scalars['String']['output']>;
-  evidenceLevel?: Maybe<Scalars['String']['output']>;
-  extractedBy: Scalars['String']['output'];
-  extractionConfidence: Scalars['Float']['output'];
-  goal?: Maybe<Goal>;
-  goalId: Scalars['Int']['output'];
-  id: Scalars['Int']['output'];
-  journal?: Maybe<Scalars['String']['output']>;
-  keyFindings: Array<Scalars['String']['output']>;
-  relevanceScore: Scalars['Float']['output'];
-  therapeuticGoalType: Scalars['String']['output'];
-  therapeuticTechniques: Array<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-  url?: Maybe<Scalars['String']['output']>;
-  year?: Maybe<Scalars['Int']['output']>;
-};
-
 export type UpdateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   priority?: InputMaybe<Scalars['String']['input']>;
@@ -456,12 +456,12 @@ export type DeleteNoteMutationVariables = Exact<{
 
 export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote: { __typename?: 'DeleteNoteResult', success: boolean, message?: string | null } };
 
-export type DeleteTherapyResearchMutationVariables = Exact<{
+export type DeleteResearchMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
 }>;
 
 
-export type DeleteTherapyResearchMutation = { __typename?: 'Mutation', deleteTherapyResearch: { __typename?: 'DeleteResearchResult', success: boolean, message?: string | null, deletedCount: number } };
+export type DeleteResearchMutation = { __typename?: 'Mutation', deleteResearch: { __typename?: 'DeleteResearchResult', success: boolean, message?: string | null, deletedCount: number } };
 
 export type GenerateAudioMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
@@ -601,41 +601,41 @@ export function useDeleteNoteMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteNoteMutationHookResult = ReturnType<typeof useDeleteNoteMutation>;
 export type DeleteNoteMutationResult = Apollo.MutationResult<DeleteNoteMutation>;
 export type DeleteNoteMutationOptions = Apollo.BaseMutationOptions<DeleteNoteMutation, DeleteNoteMutationVariables>;
-export const DeleteTherapyResearchDocument = gql`
-    mutation DeleteTherapyResearch($goalId: Int!) {
-  deleteTherapyResearch(goalId: $goalId) {
+export const DeleteResearchDocument = gql`
+    mutation DeleteResearch($goalId: Int!) {
+  deleteResearch(goalId: $goalId) {
     success
     message
     deletedCount
   }
 }
     `;
-export type DeleteTherapyResearchMutationFn = Apollo.MutationFunction<DeleteTherapyResearchMutation, DeleteTherapyResearchMutationVariables>;
+export type DeleteResearchMutationFn = Apollo.MutationFunction<DeleteResearchMutation, DeleteResearchMutationVariables>;
 
 /**
- * __useDeleteTherapyResearchMutation__
+ * __useDeleteResearchMutation__
  *
- * To run a mutation, you first call `useDeleteTherapyResearchMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteTherapyResearchMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteResearchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteResearchMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteTherapyResearchMutation, { data, loading, error }] = useDeleteTherapyResearchMutation({
+ * const [deleteResearchMutation, { data, loading, error }] = useDeleteResearchMutation({
  *   variables: {
  *      goalId: // value for 'goalId'
  *   },
  * });
  */
-export function useDeleteTherapyResearchMutation(baseOptions?: Apollo.MutationHookOptions<DeleteTherapyResearchMutation, DeleteTherapyResearchMutationVariables>) {
+export function useDeleteResearchMutation(baseOptions?: Apollo.MutationHookOptions<DeleteResearchMutation, DeleteResearchMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteTherapyResearchMutation, DeleteTherapyResearchMutationVariables>(DeleteTherapyResearchDocument, options);
+        return Apollo.useMutation<DeleteResearchMutation, DeleteResearchMutationVariables>(DeleteResearchDocument, options);
       }
-export type DeleteTherapyResearchMutationHookResult = ReturnType<typeof useDeleteTherapyResearchMutation>;
-export type DeleteTherapyResearchMutationResult = Apollo.MutationResult<DeleteTherapyResearchMutation>;
-export type DeleteTherapyResearchMutationOptions = Apollo.BaseMutationOptions<DeleteTherapyResearchMutation, DeleteTherapyResearchMutationVariables>;
+export type DeleteResearchMutationHookResult = ReturnType<typeof useDeleteResearchMutation>;
+export type DeleteResearchMutationResult = Apollo.MutationResult<DeleteResearchMutation>;
+export type DeleteResearchMutationOptions = Apollo.BaseMutationOptions<DeleteResearchMutation, DeleteResearchMutationVariables>;
 export const GenerateAudioDocument = gql`
     mutation GenerateAudio($goalId: Int!, $storyId: Int, $text: String, $language: String, $voice: String) {
   generateAudio(
