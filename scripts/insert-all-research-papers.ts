@@ -32,28 +32,6 @@ async function insertAllResearchPapers() {
   const noteId = noteResult.rows[0].id as number;
   console.log(`📝 Found note with ID: ${noteId}\n`);
 
-  // Check existing research count
-  const existing = await client.execute({
-    sql: `SELECT COUNT(*) as count FROM notes_research WHERE note_id = ?`,
-    args: [noteId],
-  });
-  const existingCount = existing.rows[0].count as number;
-
-  if (existingCount > 0) {
-    console.log(
-      `⚠️  Found ${existingCount} existing linked papers. Clearing them first...`,
-    );
-    await client.execute({
-      sql: `DELETE FROM notes_research WHERE note_id = ?`,
-      args: [noteId],
-    });
-    await client.execute({
-      sql: `DELETE FROM therapy_research WHERE goal_id = 0`,
-      args: [],
-    });
-    console.log("✅ Cleared existing papers\n");
-  }
-
   // Parse CSV
   const lines = csvData.trim().split("\n").slice(1); // Skip header
   const papers = lines
@@ -102,7 +80,9 @@ async function insertAllResearchPapers() {
       if (existingPaper.rows.length > 0) {
         // Paper already exists, use existing ID
         researchId = existingPaper.rows[0].id as number;
-        console.log(`⏭️  Skipping duplicate: ${paper!.title.substring(0, 50)}...`);
+        console.log(
+          `⏭️  Skipping duplicate: ${paper!.title.substring(0, 50)}...`,
+        );
       } else {
         // Insert new paper into therapy_research table
         const result = await client.execute({
