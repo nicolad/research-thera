@@ -152,6 +152,7 @@ function NotePageContent() {
                   >
                     <Accordion.Header style={{ all: "unset" }}>
                       <Accordion.Trigger
+                        className="AccordionTrigger"
                         style={{
                           all: "unset",
                           display: "flex",
@@ -183,6 +184,7 @@ function NotePageContent() {
                           </Flex>
                         </Flex>
                         <ChevronDownIcon
+                          className="AccordionChevron"
                           style={{
                             transition: "transform 300ms",
                           }}
@@ -191,6 +193,7 @@ function NotePageContent() {
                       </Accordion.Trigger>
                     </Accordion.Header>
                     <Accordion.Content
+                      className="AccordionContent"
                       style={{
                         overflow: "hidden",
                         fontSize: "14px",
