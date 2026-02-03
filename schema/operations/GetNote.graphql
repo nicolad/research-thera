@@ -1,10 +1,11 @@
-query GetNote($id: Int!, $userId: String!) {
-  note(id: $id, userId: $userId) {
+query GetNote($id: Int, $slug: String, $userId: String!) {
+  note(id: $id, slug: $slug, userId: $userId) {
     id
     entityId
     entityType
     userId
     noteType
+    slug
     content
     createdBy
     tags

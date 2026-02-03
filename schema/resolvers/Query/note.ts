@@ -6,13 +6,17 @@ export const note: NonNullable<QueryResolvers['note']> = async (
   args,
   _ctx,
 ) => {
-  const notes = await tursoTools.listNotesForEntity(
-    args.id,
-    "note",
-    args.userId,
-  );
+  let foundNote;
 
-  const foundNote = notes.find((n) => n.id === args.id);
+  if (args.slug) {
+    // Query by slug
+    foundNote = await tursoTools.getNoteBySlug(args.slug, args.userId);
+  } else if (args.id) {
+    // Query by ID
+    foundNote = await tursoTools.getNoteById(args.id, args.userId);
+  } else {
+    return null;
+  }
 
   if (!foundNote) {
     return null;
@@ -24,6 +28,7 @@ export const note: NonNullable<QueryResolvers['note']> = async (
     entityType: foundNote.entityType,
     userId: foundNote.userId,
     noteType: foundNote.noteType || null,
+    slug: foundNote.slug || null,
     content: foundNote.content,
     createdBy: foundNote.createdBy || null,
     tags: foundNote.tags || null,

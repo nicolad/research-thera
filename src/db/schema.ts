@@ -68,6 +68,7 @@ export const notes = sqliteTable("notes", {
   entityType: text("entity_type").notNull(),
   userId: text("user_id").notNull(),
   noteType: text("note_type"),
+  slug: text("slug").unique(),
   content: text("content").notNull(),
   createdBy: text("created_by"),
   tags: text("tags"), // JSON array

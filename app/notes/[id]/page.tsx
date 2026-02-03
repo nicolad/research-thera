@@ -25,16 +25,21 @@ import {
 function NotePageContent() {
   const router = useRouter();
   const params = useParams();
-  const noteId = parseInt(params.id as string);
+  const idParam = params.id as string;
   const userId = "demo-user";
+
+  // Determine if param is numeric id or slug
+  const isNumericId = /^\d+$/.test(idParam);
+  const noteId = isNumericId ? parseInt(idParam) : undefined;
+  const noteSlug = !isNumericId ? idParam : undefined;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [editTags, setEditTags] = useState("");
 
   const { data, loading, error } = useGetNoteQuery({
-    variables: { id: noteId, userId },
-    skip: !noteId,
+    variables: { id: noteId, slug: noteSlug, userId },
+    skip: !idParam,
   });
 
   const [updateNote, { loading: updating }] = useUpdateNoteMutation({
@@ -59,7 +64,7 @@ function NotePageContent() {
     try {
       await updateNote({
         variables: {
-          id: noteId,
+          id: note.id,
           input: {
             content: editContent,
             tags: editTags
@@ -80,7 +85,7 @@ function NotePageContent() {
 
     try {
       await deleteNote({
-        variables: { id: noteId },
+        variables: { id: note.id },
       });
       router.push("/notes");
     } catch (err) {

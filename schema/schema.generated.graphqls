@@ -37,6 +37,7 @@ input CreateNoteInput {
   entityType: String!
   linkedResearchIds: [Int!]
   noteType: String
+  slug: String
   tags: [String!]
   userId: String!
 }
@@ -194,6 +195,7 @@ type Note {
   id: Int!
   linkedResearch: [Research!]
   noteType: String
+  slug: String
   tags: [String!]
   updatedAt: String!
   userId: String!
@@ -204,7 +206,7 @@ type Query {
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int!, userId: String!): Goal
   goals(familyMemberId: Int, status: String, userId: String!): [Goal!]!
-  note(id: Int!, userId: String!): Note
+  note(id: Int, slug: String, userId: String!): Note
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!
   research(goalId: Int!, userId: String!): [Research!]!
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!

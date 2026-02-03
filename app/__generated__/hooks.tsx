@@ -59,6 +59,7 @@ export type CreateNoteInput = {
   entityType: Scalars['String']['input'];
   linkedResearchIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   noteType?: InputMaybe<Scalars['String']['input']>;
+  slug?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   userId: Scalars['String']['input'];
 };
@@ -299,6 +300,7 @@ export type Note = {
   id: Scalars['Int']['output'];
   linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
+  slug?: Maybe<Scalars['String']['output']>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
@@ -342,7 +344,8 @@ export type QueryGoalsArgs = {
 
 
 export type QueryNoteArgs = {
-  id: Scalars['Int']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  slug?: InputMaybe<Scalars['String']['input']>;
   userId: Scalars['String']['input'];
 };
 
@@ -500,12 +503,13 @@ export type GetGoalsQueryVariables = Exact<{
 export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, priority: string, targetDate?: string | null, familyMemberId: number, userId: string, createdAt: string, updatedAt: string }> };
 
 export type GetNoteQueryVariables = Exact<{
-  id: Scalars['Int']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  slug?: InputMaybe<Scalars['String']['input']>;
   userId: Scalars['String']['input'];
 }>;
 
 
-export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string } | null };
+export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string } | null };
 
 export type GetNotesQueryVariables = Exact<{
   entityId: Scalars['Int']['input'];
@@ -514,7 +518,7 @@ export type GetNotesQueryVariables = Exact<{
 }>;
 
 
-export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }> };
+export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }> };
 
 export type UpdateNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -815,13 +819,14 @@ export type GetGoalsLazyQueryHookResult = ReturnType<typeof useGetGoalsLazyQuery
 export type GetGoalsSuspenseQueryHookResult = ReturnType<typeof useGetGoalsSuspenseQuery>;
 export type GetGoalsQueryResult = Apollo.QueryResult<GetGoalsQuery, GetGoalsQueryVariables>;
 export const GetNoteDocument = gql`
-    query GetNote($id: Int!, $userId: String!) {
-  note(id: $id, userId: $userId) {
+    query GetNote($id: Int, $slug: String, $userId: String!) {
+  note(id: $id, slug: $slug, userId: $userId) {
     id
     entityId
     entityType
     userId
     noteType
+    slug
     content
     createdBy
     tags
@@ -844,6 +849,7 @@ export const GetNoteDocument = gql`
  * const { data, loading, error } = useGetNoteQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      slug: // value for 'slug'
  *      userId: // value for 'userId'
  *   },
  * });
@@ -875,6 +881,7 @@ export const GetNotesDocument = gql`
     entityType
     userId
     noteType
+    slug
     content
     createdBy
     tags

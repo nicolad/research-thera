@@ -4,7 +4,7 @@ type Query {
   research(goalId: Int!, userId: String!): [Research!]!
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!
-  note(id: Int!, userId: String!): Note
+  note(id: Int, slug: String, userId: String!): Note
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
 }
@@ -129,6 +129,7 @@ type Note {
   entityType: String!
   userId: String!
   noteType: String
+  slug: String
   content: String!
   createdBy: String
   tags: [String!]
@@ -233,6 +234,7 @@ input CreateNoteInput {
   entityType: String!
   userId: String!
   noteType: String
+  slug: String
   content: String!
   createdBy: String
   tags: [String!]

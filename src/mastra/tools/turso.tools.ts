@@ -238,6 +238,58 @@ export async function listTherapyResearch(goalId: number) {
 // Notes
 // ============================================
 
+export async function getNoteById(noteId: number, userId: string) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM notes WHERE id = ? AND user_id = ?`,
+    args: [noteId, userId],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    entityId: row.entity_id as number,
+    entityType: row.entity_type as string,
+    userId: row.user_id as string,
+    noteType: (row.note_type as string) || null,
+    slug: (row.slug as string) || null,
+    content: row.content as string,
+    createdBy: (row.created_by as string) || null,
+    tags: row.tags ? JSON.parse(row.tags as string) : [],
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function getNoteBySlug(slug: string, userId: string) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM notes WHERE slug = ? AND user_id = ?`,
+    args: [slug, userId],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    entityId: row.entity_id as number,
+    entityType: row.entity_type as string,
+    userId: row.user_id as string,
+    noteType: (row.note_type as string) || null,
+    slug: (row.slug as string) || null,
+    content: row.content as string,
+    createdBy: (row.created_by as string) || null,
+    tags: row.tags ? JSON.parse(row.tags as string) : [],
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
 export async function listNotesForEntity(
   entityId: number,
   entityType: string,
@@ -254,6 +306,7 @@ export async function listNotesForEntity(
     entityType: row.entity_type as string,
     userId: row.user_id as string,
     noteType: (row.note_type as string) || null,
+    slug: (row.slug as string) || null,
     content: row.content as string,
     createdBy: (row.created_by as string) || null,
     tags: row.tags ? JSON.parse(row.tags as string) : [],
@@ -380,6 +433,8 @@ export const tursoTools = {
   listGoals,
   upsertTherapyResearch,
   listTherapyResearch,
+  getNoteById,
+  getNoteBySlug,
   listNotesForEntity,
   createNote,
   createGenerationJob,

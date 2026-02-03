@@ -145,7 +145,7 @@ export default function NotesList({
             <Card
               key={note.id}
               style={{ cursor: "pointer" }}
-              onClick={() => router.push(`/notes/${note.id}`)}
+              onClick={() => router.push(`/notes/${note.slug || note.id}`)}
             >
               <Flex direction="column" gap="2" p="4">
                 <Flex justify="between" align="start">
