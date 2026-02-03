@@ -1,10 +1,11 @@
 import { createClient } from "@libsql/client";
 import { z } from "zod";
+import path from "path";
 
 const url =
   process.env.TURSO_DATABASE_URL ||
   process.env.DATABASE_URL ||
-  "file:./therapeutic.db";
+  `file:${path.join(process.cwd(), "therapeutic.db")}`;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const turso = createClient({

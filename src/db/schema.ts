@@ -13,8 +13,12 @@ export const goals = sqliteTable("goals", {
   therapeuticText: text("therapeutic_text"),
   therapeuticTextLanguage: text("therapeutic_text_language"),
   therapeuticTextGeneratedAt: text("therapeutic_text_generated_at"),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const therapyResearch = sqliteTable("therapy_research", {
@@ -34,8 +38,12 @@ export const therapyResearch = sqliteTable("therapy_research", {
   relevanceScore: integer("relevance_score").notNull(),
   extractedBy: text("extracted_by").notNull(),
   extractionConfidence: integer("extraction_confidence").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const therapeuticQuestions = sqliteTable("therapeutic_questions", {
@@ -46,8 +54,12 @@ export const therapeuticQuestions = sqliteTable("therapeutic_questions", {
   researchTitle: text("research_title"),
   rationale: text("rationale").notNull(),
   generatedAt: text("generated_at").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const notes = sqliteTable("notes", {
@@ -59,8 +71,12 @@ export const notes = sqliteTable("notes", {
   content: text("content").notNull(),
   createdBy: text("created_by"),
   tags: text("tags"), // JSON array
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const goalStories = sqliteTable("goal_stories", {
@@ -69,8 +85,12 @@ export const goalStories = sqliteTable("goal_stories", {
   language: text("language").notNull(),
   minutes: integer("minutes").notNull(),
   text: text("text").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const textSegments = sqliteTable("text_segments", {
@@ -79,7 +99,9 @@ export const textSegments = sqliteTable("text_segments", {
   storyId: integer("story_id"),
   idx: integer("idx").notNull(),
   text: text("text").notNull(),
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const generationJobs = sqliteTable("generation_jobs", {
@@ -92,8 +114,12 @@ export const generationJobs = sqliteTable("generation_jobs", {
   progress: integer("progress").notNull().default(0),
   result: text("result"), // JSON object
   error: text("error"), // JSON object
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const audioAssets = sqliteTable("audio_assets", {
@@ -105,5 +131,7 @@ export const audioAssets = sqliteTable("audio_assets", {
   voice: text("voice").notNull(),
   mimeType: text("mime_type").notNull(),
   manifest: text("manifest").notNull(), // JSON object
-  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });

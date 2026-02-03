@@ -30,7 +30,7 @@ export default function NotesPage() {
     >
       <Container size="3" style={{ padding: "2rem" }}>
         <Flex direction="column" gap="6">
-          <Flex align="center" gap="3">
+          <Flex align="end" gap="3">
             <Button
               variant="ghost"
               onClick={() => router.push("/")}
