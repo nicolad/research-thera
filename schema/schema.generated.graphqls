@@ -35,6 +35,7 @@ input CreateNoteInput {
   createdBy: String
   entityId: Int!
   entityType: String!
+  linkedResearchIds: [Int!]
   noteType: String
   tags: [String!]
   userId: String!
@@ -191,6 +192,7 @@ type Note {
   entityId: Int!
   entityType: String!
   id: Int!
+  linkedResearch: [TherapyResearch!]
   noteType: String
   tags: [String!]
   updatedAt: String!
@@ -267,6 +269,7 @@ input UpdateGoalInput {
 input UpdateNoteInput {
   content: String
   createdBy: String
+  linkedResearchIds: [Int!]
   noteType: String
   tags: [String!]
 }

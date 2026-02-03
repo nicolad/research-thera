@@ -57,6 +57,7 @@ export type CreateNoteInput = {
   createdBy?: InputMaybe<Scalars['String']['input']>;
   entityId: Scalars['Int']['input'];
   entityType: Scalars['String']['input'];
+  linkedResearchIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   userId: Scalars['String']['input'];
@@ -296,6 +297,7 @@ export type Note = {
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  linkedResearch?: Maybe<Array<TherapyResearch>>;
   noteType?: Maybe<Scalars['String']['output']>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['String']['output'];
@@ -435,6 +437,7 @@ export type UpdateGoalInput = {
 export type UpdateNoteInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   createdBy?: InputMaybe<Scalars['String']['input']>;
+  linkedResearchIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };

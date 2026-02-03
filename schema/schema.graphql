@@ -132,6 +132,7 @@ type Note {
   content: String!
   createdBy: String
   tags: [String!]
+  linkedResearch: [TherapyResearch!]
   createdAt: String!
   updatedAt: String!
 }
@@ -235,6 +236,7 @@ input CreateNoteInput {
   content: String!
   createdBy: String
   tags: [String!]
+  linkedResearchIds: [Int!]
 }
 
 input UpdateNoteInput {
@@ -242,6 +244,7 @@ input UpdateNoteInput {
   content: String
   createdBy: String
   tags: [String!]
+  linkedResearchIds: [Int!]
 }
 
 # ============================================
