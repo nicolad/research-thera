@@ -94,7 +94,7 @@ export default function NotesPage() {
                         router.push(
                           note.slug
                             ? `/notes/${note.slug}`
-                            : `/notes/${note.id}`
+                            : `/notes/${note.id}`,
                         )
                       }
                       style={{
@@ -102,13 +102,11 @@ export default function NotesPage() {
                         transition: "all 0.2s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--gray-3)";
+                        e.currentTarget.style.backgroundColor = "var(--gray-3)";
                         e.currentTarget.style.transform = "translateX(4px)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--gray-2)";
+                        e.currentTarget.style.backgroundColor = "var(--gray-2)";
                         e.currentTarget.style.transform = "translateX(0)";
                       }}
                     >
@@ -138,7 +136,7 @@ export default function NotesPage() {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </Text>
                         </Flex>

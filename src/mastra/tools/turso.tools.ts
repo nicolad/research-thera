@@ -544,7 +544,10 @@ export async function updateNote(
   });
 }
 
-export async function linkResearchToNote(noteId: number, researchIds: number[]) {
+export async function linkResearchToNote(
+  noteId: number,
+  researchIds: number[],
+) {
   // First, remove existing links
   await turso.execute({
     sql: `DELETE FROM notes_research WHERE note_id = ?`,

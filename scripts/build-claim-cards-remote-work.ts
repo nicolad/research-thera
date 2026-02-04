@@ -26,6 +26,93 @@ const client = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 
+type StorageDetection = {
+  table: string;
+  noteIdColumn: string;
+  claimColumn: string;
+} | null;
+
+async function listTables(): Promise<string[]> {
+  const res = await client.execute({
+    sql: `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`,
+    args: [],
+  });
+  return res.rows.map((r: any) => String(r.name));
+}
+
+async function tableColumns(table: string): Promise<string[]> {
+  const res = await client.execute({
+    sql: `PRAGMA table_info(${table})`,
+    args: [],
+  });
+  return res.rows.map((r: any) => String(r.name));
+}
+
+/**
+ * Auto-detect claim storage table by finding one with both note_id and claim columns
+ */
+async function detectClaimStorage(): Promise<StorageDetection> {
+  const tables = await listTables();
+
+  for (const table of tables) {
+    const cols = await tableColumns(table);
+
+    const noteIdColumn =
+      cols.find((c) => c.toLowerCase() === "note_id") ??
+      cols.find((c) => c.toLowerCase() === "noteid") ??
+      null;
+
+    if (!noteIdColumn) continue;
+
+    const claimColumn =
+      cols.find((c) => c.toLowerCase() === "claim") ??
+      cols.find((c) => c.toLowerCase() === "statement") ??
+      null;
+
+    if (!claimColumn) continue;
+
+    return { table, noteIdColumn, claimColumn };
+  }
+
+  return null;
+}
+
+async function claimExists(
+  storage: NonNullable<StorageDetection>,
+  noteId: number,
+  claim: string,
+): Promise<boolean> {
+  const sql = `SELECT 1 AS ok FROM ${storage.table} WHERE ${storage.noteIdColumn} = ? AND ${storage.claimColumn} = ? LIMIT 1`;
+  const res = await client.execute({ sql, args: [noteId, claim] });
+  return res.rows.length > 0;
+}
+
+async function verifyLinkTable(
+  noteId: number,
+  expectedCount: number,
+): Promise<void> {
+  const tables = await listTables();
+
+  // Check for notes_claims linking table
+  if (tables.includes("notes_claims")) {
+    const res = await client.execute({
+      sql: "SELECT COUNT(*) as count FROM notes_claims WHERE note_id = ?",
+      args: [noteId],
+    });
+    const linkCount = Number(res.rows[0]?.count ?? 0);
+
+    if (linkCount !== expectedCount) {
+      console.warn(
+        `⚠️  Link table mismatch: expected ${expectedCount} links, found ${linkCount}`,
+      );
+    } else {
+      console.log(
+        `✅ Verified ${linkCount} note-claim relationships in notes_claims`,
+      );
+    }
+  }
+}
+
 async function main() {
   console.log("🚀 Building claim cards for state-of-remote-work note...\n");
 
@@ -50,19 +137,32 @@ async function main() {
     console.log(`   Note ID: ${noteId}`);
     console.log(`   Content length: ${content.length} characters\n`);
 
-    // 2. Prepare the topic/question for claim extraction
+    // 2. Detect storage for verification
+    const storage = await detectClaimStorage();
+    if (storage) {
+      console.log(
+        `🔎 DB verify will check table "${storage.table}" (${storage.noteIdColumn}, ${storage.claimColumn})\n`,
+      );
+    } else {
+      console.warn(
+        "⚠️  Could not auto-detect claim storage table for verification\n",
+      );
+    }
+
+    // 3. Prepare the topic/question for claim extraction
     const topic =
       "State of remote work research and trends in the post-COVID labor market";
 
     console.log(`🔍 Topic: ${topic}\n`);
 
-    // 3. Call the buildClaimCards mutation
-    console.log("⚙️  Building claim cards (this may take 30-60 seconds)...");
+    // 4. Call the buildClaimCards mutation with persistence enabled
+    console.log("⚙️  Building claim cards + saving to DB...");
     console.log("   - Searching research APIs (Crossref, PubMed)");
     console.log(
       "   - Extracting evidence-based claims from research abstracts",
     );
-    console.log("   - Mapping evidence and calculating verdicts\n");
+    console.log("   - Mapping evidence and calculating verdicts");
+    console.log("   - Saving raw cards to DB (persist=true)\n");
 
     const result = await (buildClaimCards as any)(
       {},
@@ -75,6 +175,9 @@ async function main() {
           // Use only reliable sources (Crossref, PubMed)
           // Semantic Scholar excluded due to strict rate limits
           sources: ["CROSSREF", "PUBMED"],
+          // Enable persistence in resolver
+          persist: true,
+          noteId,
         },
       },
       {} as any,
@@ -84,55 +187,77 @@ async function main() {
 
     console.log(`✅ Generated ${cards.length} claim cards!\n`);
 
-    // 4. Display results
+    // 5. Display results
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i];
       console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
       console.log(`Claim ${i + 1}/${cards.length}`);
       console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
       console.log(`\n📌 ${card.claim}`);
-      console.log(`\n🎯 Verdict: ${card.verdict.toUpperCase()}`);
-      console.log(`💪 Confidence: ${Math.round(card.confidence * 100)}%`);
-      console.log(`\n📚 Evidence (${card.evidence.length} sources):`);
+      console.log(`\n🎯 Verdict: ${String(card.verdict).toUpperCase()}`);
+      console.log(
+        `💪 Confidence: ${Math.round(Number(card.confidence) * 100)}%`,
+      );
+      console.log(`\n📚 Evidence (${card.evidence?.length ?? 0} sources):`);
 
-      for (let j = 0; j < Math.min(3, card.evidence.length); j++) {
+      for (let j = 0; j < Math.min(3, card.evidence?.length ?? 0); j++) {
         const ev = card.evidence[j];
         const icon =
-          ev.polarity === "supports"
+          ev.polarity === "SUPPORTS"
             ? "✓"
-            : ev.polarity === "contradicts"
+            : ev.polarity === "CONTRADICTS"
               ? "✗"
-              : ev.polarity === "mixed"
+              : ev.polarity === "MIXED"
                 ? "~"
                 : "-";
         console.log(
-          `\n   ${icon} [${ev.polarity.toUpperCase()}] ${ev.paper.title}`,
+          `\n   ${icon} [${String(ev.polarity).toUpperCase()}] ${ev.paper?.title}`,
         );
-        if (ev.paper.year) console.log(`     Year: ${ev.paper.year}`);
+        if (ev.paper?.year) console.log(`     Year: ${ev.paper.year}`);
         if (ev.rationale) console.log(`     Rationale: ${ev.rationale}`);
-        if (ev.score) console.log(`     Score: ${Math.round(ev.score * 100)}%`);
+        if (ev.score != null)
+          console.log(`     Score: ${Math.round(ev.score * 100)}%`);
       }
 
-      if (card.evidence.length > 3) {
-        console.log(`\n   ... and ${card.evidence.length - 3} more sources`);
+      if ((card.evidence?.length ?? 0) > 3) {
+        console.log(
+          `\n   ... and ${(card.evidence?.length ?? 0) - 3} more sources`,
+        );
       }
     }
 
-    // 5. Optional: Save claim cards to database linked to the note
-    console.log("\n\n💾 Saving claim cards to database...");
+    // 6. Verify DB contains the claims
+    if (storage) {
+      console.log("\n\n🔐 Verifying claim cards exist in DB...");
 
-    const { claimCardsTools } =
-      await import("../src/mastra/tools/claim-cards.tools");
+      const missing: string[] = [];
+      for (const card of cards) {
+        const ok = await claimExists(storage, noteId, String(card.claim));
+        if (!ok) missing.push(String(card.claim));
+      }
 
-    for (const card of cards) {
-      await claimCardsTools.saveClaimCard(card, noteId);
+      if (missing.length > 0) {
+        console.error(
+          "❌ Verification failed: some claims were not found in DB.",
+        );
+        console.error(`Missing (${missing.length}/${cards.length}):`);
+        for (const m of missing.slice(0, 5))
+          console.error(`  - ${m.slice(0, 100)}...`);
+        if (missing.length > 5)
+          console.error(`  ... and ${missing.length - 5} more`);
+
+        process.exit(1);
+      }
+
+      console.log(
+        `✅ Verification passed: all ${cards.length} claims exist in DB.`,
+      );
+
+      // Verify link table relationships
+      await verifyLinkTable(noteId, cards.length);
     }
 
-    console.log(
-      `✅ Saved ${cards.length} claim cards and linked to note ${noteId}`,
-    );
-
-    // 6. Summary
+    // 7. Summary
     const verdictCounts = cards.reduce(
       (acc: Record<string, number>, card: any) => {
         acc[card.verdict] = (acc[card.verdict] || 0) + 1;
@@ -150,17 +275,19 @@ async function main() {
     }
 
     const avgConfidence =
-      cards.reduce((sum: number, card: any) => sum + card.confidence, 0) /
-      cards.length;
+      cards.reduce(
+        (sum: number, card: any) => sum + Number(card.confidence),
+        0,
+      ) / cards.length;
     console.log(`Average Confidence: ${Math.round(avgConfidence * 100)}%`);
 
     const totalEvidence = cards.reduce(
-      (sum: number, card: any) => sum + card.evidence.length,
+      (sum: number, card: any) => sum + (card.evidence?.length ?? 0),
       0,
     );
-    console.log(`Total Evidence Sources: ${totalEvidence}`);
+    console.log(`Total Evidence: ${totalEvidence} sources`);
 
-    console.log("\n✨ Done!");
+    console.log("\n✨ Done! Claims are saved and linked to the note.");
   } catch (error) {
     console.error("\n❌ Error:", error);
     if (error instanceof Error) {
@@ -170,5 +297,4 @@ async function main() {
   }
 }
 
-// Run the script
 main();

@@ -389,6 +389,10 @@ export async function refreshClaimCard(
 /**
  * Database persistence for claim cards
  */
+import { config } from "dotenv";
+// Load env vars at module import time to ensure they're available
+config();
+
 import { createClient } from "@libsql/client";
 import path from "path";
 

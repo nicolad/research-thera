@@ -24,11 +24,37 @@ const deepseek = createDeepSeek({
  * 3. This ensures claims are evidence-based and verifiable against real research
  * 4. Falls back to text-only extraction if no papers are found
  */
-export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> = async (_parent, { input }) => {
-  const { text, claims, perSourceLimit, topK, useLlmJudge, sources } = input;
+export const buildClaimCards: NonNullable<
+  MutationResolvers["buildClaimCards"]
+> = async (_parent, { input }) => {
+  const {
+    text,
+    claims,
+    perSourceLimit,
+    topK,
+    useLlmJudge,
+    sources,
+    // Extended params for persistence (passed by scripts)
+    persist: persistRaw,
+    noteId: noteIdRaw,
+  } = input as any;
+
+  const persist = Boolean(persistRaw);
+  const noteId =
+    noteIdRaw == null
+      ? null
+      : typeof noteIdRaw === "string"
+        ? Number(noteIdRaw)
+        : Number(noteIdRaw);
+
+  if (persist && (!Number.isFinite(noteId) || noteId == null)) {
+    console.warn(
+      "⚠️  persist=true was requested but noteId is missing/invalid; skipping DB save",
+    );
+  }
 
   // Map GraphQL enums to lowercase source names
-  const sourcesLowercase = sources?.map((s) => s.toLowerCase()) as any[];
+  const sourcesLowercase = sources?.map((s: any) => s.toLowerCase()) as any[];
   // Default sources: Crossref and PubMed (most reliable, no rate limits)
   // Semantic Scholar excluded due to strict rate limits
   const allowedSources = sourcesLowercase ?? ["crossref", "pubmed"];
@@ -213,6 +239,34 @@ Extract 5-12 high-quality claims that summarize the research findings.`,
   }
 
   console.log(`\n✅ Successfully built ${cards.length} claim cards\n`);
+
+  // ✅ Persist *raw* cards before GraphQL normalization
+  if (persist && noteId != null && Number.isFinite(noteId)) {
+    console.log(
+      `💾 Saving ${cards.length} claim cards into DB (noteId=${noteId})...`,
+    );
+    let saved = 0;
+
+    for (const card of cards) {
+      try {
+        await claimCardsTools.saveClaimCard(card, noteId);
+        saved++;
+      } catch (e: any) {
+        // Fail loudly to ensure persistence issues are visible
+        console.error("❌ Failed saving claim card:", {
+          noteId,
+          claimId: card?.id,
+          claim: card?.claim?.slice(0, 100),
+          error: e?.message ?? e,
+        });
+        throw e;
+      }
+    }
+
+    console.log(
+      `✅ Saved ${saved}/${cards.length} claim cards (noteId=${noteId})\n`,
+    );
+  }
 
   // Normalize output to ensure consistent GraphQL types for UI rendering
   const normalizedCards = toGqlClaimCards(cards);
