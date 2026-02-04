@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import * as Separator from "@radix-ui/react-separator";
-import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ExternalLinkIcon,
+  MagnifyingGlassIcon,
+} from "@radix-ui/react-icons";
 import {
   Theme,
   Container,
@@ -14,14 +19,15 @@ import {
   Card,
   Button,
   Badge,
-  TextArea,
   Spinner,
   Link,
-  IconButton,
   Grid,
+  ScrollArea,
+  TextField,
+  Tabs,
   Box,
 } from "@radix-ui/themes";
-import { ArrowLeftIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -58,66 +64,24 @@ function NotePageContent() {
   const slug = params.slug as string;
   const userId = "demo-user";
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
-  const [editTags, setEditTags] = useState("");
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // List UX state
+  const [researchQuery, setResearchQuery] = useState("");
+  const [claimsQuery, setClaimsQuery] = useState("");
+  const [openResearch, setOpenResearch] = useState<string[]>([]);
+  const [openClaims, setOpenClaims] = useState<string[]>([]);
 
   const { data, loading, error } = useGetNoteQuery({
     variables: { slug, userId },
     skip: !slug,
   });
 
-  const [updateNote, { loading: updating }] = useUpdateNoteMutation({
-    refetchQueries: ["GetNote"],
-  });
-
-  const [deleteNote, { loading: deleting }] = useDeleteNoteMutation();
+  // Keep your mutations (even if not shown in UI here)
+  const [updateNote] = useUpdateNoteMutation({ refetchQueries: ["GetNote"] });
+  const [deleteNote] = useDeleteNoteMutation();
 
   const note = data?.note;
-
-  const handleEdit = () => {
-    if (note) {
-      setEditContent(note.content);
-      setEditTags(note.tags?.join(", ") || "");
-      setIsEditing(true);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!note) return;
-
-    try {
-      await updateNote({
-        variables: {
-          id: note.id,
-          input: {
-            content: editContent,
-            tags: editTags
-              .split(",")
-              .map((t) => t.trim())
-              .filter((t) => t),
-          },
-        },
-      });
-      setIsEditing(false);
-    } catch (err) {
-      console.error("Failed to update note:", err);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!note || !confirm("Are you sure you want to delete this note?")) return;
-
-    try {
-      await deleteNote({
-        variables: { id: note.id },
-      });
-      router.push("/notes");
-    } catch (err) {
-      console.error("Failed to delete note:", err);
-    }
-  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
@@ -172,417 +136,457 @@ function NotePageContent() {
       ? note.goal?.description?.slice(0, 180) + "..."
       : note.goal?.description;
 
+  const linkedResearch = note.linkedResearch ?? [];
+  const claimCards = note.claimCards ?? [];
+
+  const filteredResearch = useMemo(() => {
+    const q = researchQuery.trim().toLowerCase();
+    if (!q) return linkedResearch;
+    return linkedResearch.filter((r) => {
+      const title = (r.title ?? "").toLowerCase();
+      const journal = (r.journal ?? "").toLowerCase();
+      const authors = (r.authors ?? []).join(", ").toLowerCase();
+      return title.includes(q) || journal.includes(q) || authors.includes(q);
+    });
+  }, [linkedResearch, researchQuery]);
+
+  const filteredClaims = useMemo(() => {
+    const q = claimsQuery.trim().toLowerCase();
+    if (!q) return claimCards;
+    return claimCards.filter((c) => {
+      const claim = (c.claim ?? "").toLowerCase();
+      return claim.includes(q);
+    });
+  }, [claimCards, claimsQuery]);
+
+  const researchMaxHeight = "calc(100vh - 320px)";
+  const claimsMaxHeight = "calc(100vh - 320px)";
+
   return (
-    <Grid
-      columns={{ initial: "1", md: "3fr 1fr" }}
-      gap="5"
-      style={{ alignItems: "start" }}
-    >
-      <Flex direction="column" gap="4">
-        {note.linkedResearch && note.linkedResearch.length > 0 && (
+    <Grid columns={{ initial: "1", md: "3fr 1.25fr" }} gap="5">
+      {/* MAIN COLUMN */}
+      <Flex direction="column" gap="4" style={{ minWidth: 0 }}>
+        {/* LINKED RESEARCH */}
+        {linkedResearch.length > 0 && (
           <Card>
             <Flex direction="column" gap="3">
-              <Heading size="4">
-                Linked Research ({note.linkedResearch.length})
-              </Heading>
-              <Accordion.Root type="multiple" style={{ width: "100%" }}>
-                {note.linkedResearch.map((research, idx) => (
-                  <Accordion.Item
-                    key={research.id}
-                    value={`research-${idx}`}
-                    style={{
-                      borderBottom: "1px solid var(--gray-6)",
-                      paddingBottom: "12px",
-                      marginBottom: "12px",
-                    }}
+              <Flex justify="between" align="center" gap="3" wrap="wrap">
+                <Heading size="4">
+                  Linked Research ({linkedResearch.length})
+                </Heading>
+
+                <Flex gap="2" align="center" wrap="wrap" justify="end">
+                  <TextField.Root
+                    size="2"
+                    placeholder="Search title, authors, journal…"
+                    value={researchQuery}
+                    onChange={(e) => setResearchQuery(e.target.value)}
+                    style={{ width: 320, maxWidth: "100%" }}
                   >
-                    <Accordion.Header style={{ all: "unset" }}>
-                      <Accordion.Trigger
-                        className="AccordionTrigger"
-                        style={{
-                          all: "unset",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          width: "100%",
-                          padding: "12px 0",
-                          cursor: "pointer",
-                          gap: "8px",
-                        }}
-                      >
-                        <Flex direction="column" gap="1" style={{ flex: 1 }}>
-                          <Text size="3" weight="medium">
-                            {research.title}
-                          </Text>
-                          <Flex gap="2" align="center">
-                            {research.year && (
-                              <Badge size="1" variant="soft">
-                                {research.year}
-                              </Badge>
-                            )}
-                            {research.authors &&
-                              research.authors.length > 0 && (
-                                <Text size="1" color="gray">
-                                  {research.authors.slice(0, 3).join(", ")}
-                                  {research.authors.length > 3 && " et al."}
+                    <TextField.Slot>
+                      <MagnifyingGlassIcon />
+                    </TextField.Slot>
+                  </TextField.Root>
+
+                  <Button
+                    size="1"
+                    variant="soft"
+                    onClick={() =>
+                      setOpenResearch(
+                        filteredResearch.map((r) => `research-${r.id}`),
+                      )
+                    }
+                  >
+                    Expand all
+                  </Button>
+                  <Button
+                    size="1"
+                    variant="ghost"
+                    onClick={() => setOpenResearch([])}
+                  >
+                    Collapse
+                  </Button>
+                </Flex>
+              </Flex>
+
+              <Separator.Root className="SectionDivider" />
+
+              <ScrollArea
+                type="auto"
+                scrollbars="vertical"
+                style={{ maxHeight: researchMaxHeight }}
+              >
+                <Accordion.Root
+                  type="multiple"
+                  value={openResearch}
+                  onValueChange={setOpenResearch}
+                  className="AccordionRoot"
+                >
+                  {filteredResearch.map((research) => (
+                    <Accordion.Item
+                      key={research.id}
+                      value={`research-${research.id}`}
+                      className="AccordionItem"
+                    >
+                      <Accordion.Header className="AccordionHeader">
+                        <Accordion.Trigger className="AccordionTrigger">
+                          <Flex
+                            direction="column"
+                            gap="1"
+                            style={{ minWidth: 0, flex: 1 }}
+                          >
+                            <Text
+                              size="3"
+                              weight="medium"
+                              className="LineClamp2"
+                            >
+                              {research.title}
+                            </Text>
+
+                            <Flex gap="2" align="center" wrap="wrap">
+                              {research.year && (
+                                <Badge size="1" variant="soft">
+                                  {research.year}
+                                </Badge>
+                              )}
+                              {research.journal && (
+                                <Text
+                                  size="1"
+                                  color="gray"
+                                  className="LineClamp1"
+                                >
+                                  {research.journal}
                                 </Text>
                               )}
+                              {research.authors?.length ? (
+                                <Text
+                                  size="1"
+                                  color="gray"
+                                  className="LineClamp1"
+                                >
+                                  {research.authors.slice(0, 3).join(", ")}
+                                  {research.authors.length > 3 ? " et al." : ""}
+                                </Text>
+                              ) : null}
+                            </Flex>
                           </Flex>
-                        </Flex>
-                        <ChevronDownIcon
-                          className="AccordionChevron"
-                          style={{
-                            transition: "transform 300ms",
-                          }}
-                          aria-hidden
-                        />
-                      </Accordion.Trigger>
-                    </Accordion.Header>
-                    <Accordion.Content className="AccordionContent">
-                      <div className="AccordionContentText">
-                        <Flex direction="column" gap="2">
-                          {research.journal && (
-                            <Text
-                              size="2"
-                              color="gray"
-                              style={{ fontStyle: "italic" }}
+
+                          <Flex gap="2" align="center">
+                            {research.url && (
+                              <Link
+                                href={research.url}
+                                target="_blank"
+                                onClick={(e) => e.stopPropagation()}
+                                className="RowIconLink"
+                                title="Open paper"
+                              >
+                                <ExternalLinkIcon />
+                              </Link>
+                            )}
+                            <ChevronDownIcon
+                              className="AccordionChevron"
+                              aria-hidden
+                            />
+                          </Flex>
+                        </Accordion.Trigger>
+                      </Accordion.Header>
+
+                      <Accordion.Content className="AccordionContent">
+                        <Box className="AccordionContentBox">
+                          <Flex direction="column" gap="2">
+                            {research.url ? (
+                              <Link
+                                href={research.url}
+                                target="_blank"
+                                size="2"
+                              >
+                                View paper →
+                              </Link>
+                            ) : (
+                              <Text size="2" color="gray">
+                                No link available.
+                              </Text>
+                            )}
+                          </Flex>
+                        </Box>
+                      </Accordion.Content>
+                    </Accordion.Item>
+                  ))}
+
+                  {filteredResearch.length === 0 && (
+                    <Box p="3">
+                      <Text size="2" color="gray">
+                        No results for "{researchQuery}".
+                      </Text>
+                    </Box>
+                  )}
+                </Accordion.Root>
+              </ScrollArea>
+            </Flex>
+          </Card>
+        )}
+
+        {/* CLAIM CARDS */}
+        {claimCards.length > 0 && (
+          <Card>
+            <Flex direction="column" gap="3">
+              <Flex justify="between" align="center" gap="3" wrap="wrap">
+                <Heading size="4">Claim Cards ({claimCards.length})</Heading>
+
+                <Flex gap="2" align="center" wrap="wrap" justify="end">
+                  <TextField.Root
+                    size="2"
+                    placeholder="Search claims…"
+                    value={claimsQuery}
+                    onChange={(e) => setClaimsQuery(e.target.value)}
+                    style={{ width: 320, maxWidth: "100%" }}
+                  >
+                    <TextField.Slot>
+                      <MagnifyingGlassIcon />
+                    </TextField.Slot>
+                  </TextField.Root>
+
+                  <Button
+                    size="1"
+                    variant="soft"
+                    onClick={() =>
+                      setOpenClaims(filteredClaims.map((c) => `claim-${c.id}`))
+                    }
+                  >
+                    Expand all
+                  </Button>
+                  <Button
+                    size="1"
+                    variant="ghost"
+                    onClick={() => setOpenClaims([])}
+                  >
+                    Collapse
+                  </Button>
+                </Flex>
+              </Flex>
+
+              <Separator.Root className="SectionDivider" />
+
+              <ScrollArea
+                type="auto"
+                scrollbars="vertical"
+                style={{ maxHeight: claimsMaxHeight }}
+              >
+                <Accordion.Root
+                  type="multiple"
+                  value={openClaims}
+                  onValueChange={setOpenClaims}
+                  className="AccordionRoot"
+                >
+                  {filteredClaims.map((card) => {
+                    const verdictColor =
+                      (
+                        {
+                          SUPPORTED: "green",
+                          CONTRADICTED: "red",
+                          MIXED: "orange",
+                          INSUFFICIENT: "gray",
+                          UNVERIFIED: "gray",
+                        } as const
+                      )[card.verdict] ?? "gray";
+
+                    const supportingEvidence = card.evidence.filter(
+                      (e) => e.polarity === "SUPPORTS",
+                    );
+                    const contradictingEvidence = card.evidence.filter(
+                      (e) => e.polarity === "CONTRADICTS",
+                    );
+                    const otherEvidence = card.evidence.filter(
+                      (e) =>
+                        e.polarity === "MIXED" ||
+                        e.polarity === "IRRELEVANT",
+                    );
+
+                    const defaultTab =
+                      supportingEvidence.length > 0
+                        ? "support"
+                        : contradictingEvidence.length > 0
+                          ? "contradict"
+                          : "other";
+
+                    return (
+                      <Accordion.Item
+                        key={card.id}
+                        value={`claim-${card.id}`}
+                        className="AccordionItem"
+                      >
+                        <Accordion.Header className="AccordionHeader">
+                          <Accordion.Trigger className="AccordionTrigger">
+                            <Flex
+                              direction="column"
+                              gap="2"
+                              style={{ minWidth: 0, flex: 1 }}
                             >
-                              {research.journal}
-                            </Text>
-                          )}
-                          {research.url && (
-                            <Link href={research.url} target="_blank" size="2">
-                              View Paper →
-                            </Link>
-                          )}
-                        </Flex>
-                      </div>
-                    </Accordion.Content>
-                  </Accordion.Item>
-                ))}
-              </Accordion.Root>
+                              <Text
+                                size="3"
+                                weight="medium"
+                                className="LineClamp3"
+                              >
+                                {card.claim}
+                              </Text>
+
+                              <Flex gap="2" align="center" wrap="wrap">
+                                <Badge color={verdictColor} variant="soft">
+                                  {card.verdict}
+                                </Badge>
+
+                                <Tooltip.Provider>
+                                  <Tooltip.Root>
+                                    <Tooltip.Trigger asChild>
+                                      <Badge variant="outline">
+                                        {Math.round(card.confidence * 100)}%
+                                      </Badge>
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                      <Tooltip.Content
+                                        sideOffset={6}
+                                        className="TooltipContent"
+                                      >
+                                        Confidence score
+                                        <Tooltip.Arrow className="TooltipArrow" />
+                                      </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                  </Tooltip.Root>
+                                </Tooltip.Provider>
+
+                                <Badge variant="surface" size="1">
+                                  {card.evidence.length}{" "}
+                                  {card.evidence.length === 1
+                                    ? "source"
+                                    : "sources"}
+                                </Badge>
+
+                                {/* Quick polarity breakdown for scanning */}
+                                {supportingEvidence.length > 0 && (
+                                  <Badge color="green" variant="soft" size="1">
+                                    ✓ {supportingEvidence.length}
+                                  </Badge>
+                                )}
+                                {contradictingEvidence.length > 0 && (
+                                  <Badge color="red" variant="soft" size="1">
+                                    ✗ {contradictingEvidence.length}
+                                  </Badge>
+                                )}
+                                {otherEvidence.length > 0 && (
+                                  <Badge color="gray" variant="soft" size="1">
+                                    ~ {otherEvidence.length}
+                                  </Badge>
+                                )}
+                              </Flex>
+                            </Flex>
+
+                            <ChevronDownIcon
+                              className="AccordionChevron"
+                              aria-hidden
+                            />
+                          </Accordion.Trigger>
+                        </Accordion.Header>
+
+                        <Accordion.Content className="AccordionContent">
+                          <Box className="AccordionContentBox">
+                            <Flex direction="column" gap="3">
+                              {/* Scope */}
+                              {card.scope && (
+                                <Box className="ScopeBox">
+                                  <Text size="2" weight="bold" color="gray">
+                                    Scope
+                                  </Text>
+                                  <Flex direction="column" gap="1" mt="2">
+                                    {card.scope.population && (
+                                      <Text size="1">
+                                        <strong>Population:</strong>{" "}
+                                        {card.scope.population}
+                                      </Text>
+                                    )}
+                                    {card.scope.intervention && (
+                                      <Text size="1">
+                                        <strong>Intervention:</strong>{" "}
+                                        {card.scope.intervention}
+                                      </Text>
+                                    )}
+                                    {card.scope.outcome && (
+                                      <Text size="1">
+                                        <strong>Outcome:</strong>{" "}
+                                        {card.scope.outcome}
+                                      </Text>
+                                    )}
+                                  </Flex>
+                                </Box>
+                              )}
+
+                              {/* Evidence Tabs */}
+                              <Tabs.Root defaultValue={defaultTab}>
+                                <Tabs.List>
+                                  <Tabs.Trigger value="support">
+                                    Support ({supportingEvidence.length})
+                                  </Tabs.Trigger>
+                                  <Tabs.Trigger value="contradict">
+                                    Contradict ({contradictingEvidence.length})
+                                  </Tabs.Trigger>
+                                  <Tabs.Trigger value="other">
+                                    Other ({otherEvidence.length})
+                                  </Tabs.Trigger>
+                                </Tabs.List>
+
+                                <Tabs.Content value="support">
+                                  <EvidenceList
+                                    tone="support"
+                                    evidence={supportingEvidence}
+                                    emptyText="No supporting evidence."
+                                  />
+                                </Tabs.Content>
+
+                                <Tabs.Content value="contradict">
+                                  <EvidenceList
+                                    tone="contradict"
+                                    evidence={contradictingEvidence}
+                                    emptyText="No contradicting evidence."
+                                  />
+                                </Tabs.Content>
+
+                                <Tabs.Content value="other">
+                                  <EvidenceList
+                                    tone="other"
+                                    evidence={otherEvidence}
+                                    emptyText="No other evidence."
+                                  />
+                                </Tabs.Content>
+                              </Tabs.Root>
+                            </Flex>
+                          </Box>
+                        </Accordion.Content>
+                      </Accordion.Item>
+                    );
+                  })}
+
+                  {filteredClaims.length === 0 && (
+                    <Box p="3">
+                      <Text size="2" color="gray">
+                        No results for "{claimsQuery}".
+                      </Text>
+                    </Box>
+                  )}
+                </Accordion.Root>
+              </ScrollArea>
             </Flex>
           </Card>
         )}
       </Flex>
 
-      {/* Claim Cards Section */}
-      {note.claimCards && note.claimCards.length > 0 && (
-        <Card>
-          <Flex direction="column" gap="3">
-            <Heading size="4">Claim Cards ({note.claimCards.length})</Heading>
-            <Accordion.Root type="multiple" style={{ width: "100%" }}>
-              {note.claimCards.map((card, idx) => {
-                const verdictColor = {
-                  SUPPORTED: "green",
-                  CONTRADICTED: "red",
-                  MIXED: "orange",
-                  INSUFFICIENT: "gray",
-                  UNVERIFIED: "gray",
-                }[card.verdict] as any;
-
-                const supportingEvidence = card.evidence.filter(
-                  (e) => e.polarity === "SUPPORTS",
-                );
-                const contradictingEvidence = card.evidence.filter(
-                  (e) => e.polarity === "CONTRADICTS",
-                );
-                const mixedEvidence = card.evidence.filter(
-                  (e) => e.polarity === "MIXED" || e.polarity === "IRRELEVANT",
-                );
-
-                return (
-                  <Accordion.Item
-                    key={card.id}
-                    value={`claim-${idx}`}
-                    style={{
-                      borderBottom: "1px solid var(--gray-6)",
-                      paddingBottom: "12px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <Accordion.Header style={{ all: "unset" }}>
-                      <Accordion.Trigger
-                        className="AccordionTrigger"
-                        style={{
-                          all: "unset",
-                          display: "flex",
-                          alignItems: "flex-start",
-                          justifyContent: "space-between",
-                          width: "100%",
-                          padding: "12px 0",
-                          cursor: "pointer",
-                          gap: "12px",
-                        }}
-                      >
-                        <Flex direction="column" gap="2" style={{ flex: 1 }}>
-                          <Text size="3" weight="medium">
-                            {card.claim}
-                          </Text>
-                          <Flex gap="2" align="center" wrap="wrap">
-                            <Badge color={verdictColor} variant="soft">
-                              {card.verdict}
-                            </Badge>
-                            <Tooltip.Provider>
-                              <Tooltip.Root>
-                                <Tooltip.Trigger asChild>
-                                  <Badge variant="outline">
-                                    {Math.round(card.confidence * 100)}%
-                                  </Badge>
-                                </Tooltip.Trigger>
-                                <Tooltip.Portal>
-                                  <Tooltip.Content
-                                    className="TooltipContent"
-                                    sideOffset={5}
-                                    style={{
-                                      backgroundColor: "var(--gray-12)",
-                                      color: "var(--gray-1)",
-                                      padding: "8px 12px",
-                                      borderRadius: "6px",
-                                      fontSize: "13px",
-                                      maxWidth: "200px",
-                                    }}
-                                  >
-                                    Confidence score
-                                    <Tooltip.Arrow
-                                      style={{
-                                        fill: "var(--gray-12)",
-                                      }}
-                                    />
-                                  </Tooltip.Content>
-                                </Tooltip.Portal>
-                              </Tooltip.Root>
-                            </Tooltip.Provider>
-                            <Badge variant="surface" size="1">
-                              {card.evidence.length}{" "}
-                              {card.evidence.length === 1
-                                ? "source"
-                                : "sources"}
-                            </Badge>
-                          </Flex>
-                        </Flex>
-                        <ChevronDownIcon
-                          className="AccordionChevron"
-                          style={{
-                            transition: "transform 300ms",
-                            marginTop: "4px",
-                          }}
-                          aria-hidden
-                        />
-                      </Accordion.Trigger>
-                    </Accordion.Header>
-                    <Accordion.Content className="AccordionContent">
-                      <div className="AccordionContentText">
-                        <Flex direction="column" gap="3">
-                          {/* Scope (if available) */}
-                          {card.scope && (
-                            <Flex
-                              direction="column"
-                              gap="2"
-                              p="3"
-                              style={{
-                                backgroundColor: "var(--gray-3)",
-                                borderRadius: "6px",
-                              }}
-                            >
-                              <Text size="2" weight="bold" color="gray">
-                                Scope
-                              </Text>
-                              {card.scope.population && (
-                                <Text size="1">
-                                  <strong>Population:</strong>{" "}
-                                  {card.scope.population}
-                                </Text>
-                              )}
-                              {card.scope.intervention && (
-                                <Text size="1">
-                                  <strong>Intervention:</strong>{" "}
-                                  {card.scope.intervention}
-                                </Text>
-                              )}
-                              {card.scope.outcome && (
-                                <Text size="1">
-                                  <strong>Outcome:</strong> {card.scope.outcome}
-                                </Text>
-                              )}
-                            </Flex>
-                          )}
-
-                          {/* Supporting Evidence */}
-                          {supportingEvidence.length > 0 && (
-                            <Flex direction="column" gap="2">
-                              <Text size="2" weight="bold" color="green">
-                                ✓ Supporting Evidence (
-                                {supportingEvidence.length})
-                              </Text>
-                              {supportingEvidence.map((evidence, evidx) => (
-                                <Flex
-                                  key={evidx}
-                                  direction="column"
-                                  gap="1"
-                                  p="2"
-                                  style={{
-                                    backgroundColor: "var(--green-2)",
-                                    borderLeft: "3px solid var(--green-9)",
-                                    borderRadius: "4px",
-                                  }}
-                                >
-                                  <Flex justify="between" align="start">
-                                    <Text size="2" weight="medium">
-                                      {evidence.paper.title}
-                                    </Text>
-                                    {evidence.score !== null &&
-                                      evidence.score !== undefined && (
-                                        <Badge size="1" variant="soft">
-                                          {(evidence.score * 100).toFixed(0)}%
-                                        </Badge>
-                                      )}
-                                  </Flex>
-                                  {evidence.paper.authors &&
-                                    evidence.paper.authors.length > 0 && (
-                                      <Text size="1" color="gray">
-                                        {evidence.paper.authors
-                                          .slice(0, 2)
-                                          .join(", ")}
-                                        {evidence.paper.authors.length > 2 &&
-                                          " et al."}
-                                        {evidence.paper.year &&
-                                          ` (${evidence.paper.year})`}
-                                      </Text>
-                                    )}
-                                  {evidence.excerpt && (
-                                    <Text
-                                      size="1"
-                                      style={{
-                                        fontStyle: "italic",
-                                        color: "var(--gray-11)",
-                                      }}
-                                    >
-                                      "{evidence.excerpt}"
-                                    </Text>
-                                  )}
-                                  {evidence.locator?.url && (
-                                    <Link
-                                      href={evidence.locator.url}
-                                      target="_blank"
-                                      size="1"
-                                    >
-                                      View source →
-                                    </Link>
-                                  )}
-                                </Flex>
-                              ))}
-                            </Flex>
-                          )}
-
-                          {/* Contradicting Evidence */}
-                          {contradictingEvidence.length > 0 && (
-                            <Flex direction="column" gap="2">
-                              <Text size="2" weight="bold" color="red">
-                                ✗ Contradicting Evidence (
-                                {contradictingEvidence.length})
-                              </Text>
-                              {contradictingEvidence.map((evidence, evidx) => (
-                                <Flex
-                                  key={evidx}
-                                  direction="column"
-                                  gap="1"
-                                  p="2"
-                                  style={{
-                                    backgroundColor: "var(--red-2)",
-                                    borderLeft: "3px solid var(--red-9)",
-                                    borderRadius: "4px",
-                                  }}
-                                >
-                                  <Flex justify="between" align="start">
-                                    <Text size="2" weight="medium">
-                                      {evidence.paper.title}
-                                    </Text>
-                                    {evidence.score !== null &&
-                                      evidence.score !== undefined && (
-                                        <Badge size="1" variant="soft">
-                                          {(evidence.score * 100).toFixed(0)}%
-                                        </Badge>
-                                      )}
-                                  </Flex>
-                                  {evidence.paper.authors &&
-                                    evidence.paper.authors.length > 0 && (
-                                      <Text size="1" color="gray">
-                                        {evidence.paper.authors
-                                          .slice(0, 2)
-                                          .join(", ")}
-                                        {evidence.paper.authors.length > 2 &&
-                                          " et al."}
-                                        {evidence.paper.year &&
-                                          ` (${evidence.paper.year})`}
-                                      </Text>
-                                    )}
-                                  {evidence.excerpt && (
-                                    <Text
-                                      size="1"
-                                      style={{
-                                        fontStyle: "italic",
-                                        color: "var(--gray-11)",
-                                      }}
-                                    >
-                                      "{evidence.excerpt}"
-                                    </Text>
-                                  )}
-                                  {evidence.locator?.url && (
-                                    <Link
-                                      href={evidence.locator.url}
-                                      target="_blank"
-                                      size="1"
-                                    >
-                                      View source →
-                                    </Link>
-                                  )}
-                                </Flex>
-                              ))}
-                            </Flex>
-                          )}
-
-                          {/* Mixed/Irrelevant Evidence (collapsed by default) */}
-                          {mixedEvidence.length > 0 && (
-                            <Flex direction="column" gap="2">
-                              <Text size="2" weight="bold" color="gray">
-                                Other Evidence ({mixedEvidence.length})
-                              </Text>
-                              <Text size="1" color="gray">
-                                Mixed or inconclusive findings
-                              </Text>
-                            </Flex>
-                          )}
-                        </Flex>
-                      </div>
-                    </Accordion.Content>
-                  </Accordion.Item>
-                );
-              })}
-            </Accordion.Root>
-          </Flex>
-        </Card>
-      )}
-
-      {/* Sidebar */}
-      <Flex direction="column" gap="4">
-        {/* Related Goal Card */}
+      {/* SIDEBAR */}
+      <Flex
+        direction="column"
+        gap="4"
+        style={{ position: "sticky", top: 24, alignSelf: "start" }}
+      >
         {note.goal && (
           <Card
-            style={{
-              backgroundColor: "var(--indigo-3)",
-              cursor: "pointer",
-              border: "1px solid var(--indigo-6)",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--indigo-4)";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--indigo-3)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
+            className="GoalCard"
             onClick={() => router.push(`/goals/${note.goal?.id}`)}
           >
             <Flex direction="column" gap="2">
@@ -592,14 +596,17 @@ function NotePageContent() {
                 </Badge>
                 <ChevronRightIcon width="16" height="16" />
               </Flex>
+
               <Heading size="3" style={{ lineHeight: "1.3" }}>
                 {note.goal.title}
               </Heading>
+
               {note.goal.description && (
                 <>
                   <Text size="1" color="gray" style={{ lineHeight: "1.5" }}>
                     {displayDescription}
                   </Text>
+
                   {shouldTruncateDescription && (
                     <Button
                       variant="ghost"
@@ -615,13 +622,9 @@ function NotePageContent() {
                   )}
                 </>
               )}
-              <Separator.Root
-                style={{
-                  height: "1px",
-                  backgroundColor: "var(--indigo-6)",
-                  margin: "4px 0",
-                }}
-              />
+
+              <Separator.Root className="GoalDivider" />
+
               <Flex gap="2" wrap="wrap" align="center">
                 <Badge
                   color={getStatusColor(note.goal.status)}
@@ -648,6 +651,75 @@ function NotePageContent() {
         )}
       </Flex>
     </Grid>
+  );
+}
+
+function EvidenceList({
+  tone,
+  evidence,
+  emptyText,
+}: {
+  tone: "support" | "contradict" | "other";
+  evidence: any[];
+  emptyText: string;
+}) {
+  if (!evidence.length) {
+    return (
+      <Box p="3">
+        <Text size="2" color="gray">
+          {emptyText}
+        </Text>
+      </Box>
+    );
+  }
+
+  const rowClass =
+    tone === "support"
+      ? "EvidenceRow EvidenceSupport"
+      : tone === "contradict"
+        ? "EvidenceRow EvidenceContradict"
+        : "EvidenceRow EvidenceOther";
+
+  return (
+    <Flex direction="column" gap="2" mt="3">
+      {evidence.map((ev, idx) => (
+        <Box key={idx} className={rowClass}>
+          <Flex direction="column" gap="1">
+            <Flex justify="between" align="start" gap="2">
+              <Text size="2" weight="medium" className="LineClamp2">
+                {ev.paper.title}
+              </Text>
+
+              {ev.score !== null && ev.score !== undefined && (
+                <Badge size="1" variant="soft">
+                  {(ev.score * 100).toFixed(0)}%
+                </Badge>
+              )}
+            </Flex>
+
+            {ev.paper.authors?.length ? (
+              <Text size="1" color="gray" className="LineClamp1">
+                {ev.paper.authors.slice(0, 2).join(", ")}
+                {ev.paper.authors.length > 2 ? " et al." : ""}
+                {ev.paper.year ? ` (${ev.paper.year})` : ""}
+              </Text>
+            ) : null}
+
+            {ev.excerpt && (
+              <Text size="1" className="EvidenceExcerpt">
+                "{ev.excerpt}"
+              </Text>
+            )}
+
+            {ev.locator?.url && (
+              <Link href={ev.locator.url} target="_blank" size="1">
+                View source →
+              </Link>
+            )}
+          </Flex>
+        </Box>
+      ))}
+    </Flex>
   );
 }
 
