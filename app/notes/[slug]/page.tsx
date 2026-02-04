@@ -398,8 +398,7 @@ function NotePageContent() {
                     );
                     const otherEvidence = card.evidence.filter(
                       (e) =>
-                        e.polarity === "MIXED" ||
-                        e.polarity === "IRRELEVANT",
+                        e.polarity === "MIXED" || e.polarity === "IRRELEVANT",
                     );
 
                     const defaultTab =

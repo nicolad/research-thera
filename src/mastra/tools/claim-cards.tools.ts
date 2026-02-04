@@ -258,6 +258,27 @@ export async function buildClaimCardsFromClaims(
       | "arxiv"
       | "europepmc"
     )[];
+
+    /**
+     * NEW: If provided, we will NOT call search APIs per-claim.
+     * Instead we rank evidence from this pool (e.g., your 182 linked papers).
+     *
+     * Best practice: pool items should already include abstracts;
+     * if not, we'll enrich them (slow) unless you pre-backfill to DB.
+     */
+    paperPool?: PaperCandidate[];
+
+    /**
+     * NEW: Controls how aggressively we enrich the pool (if abstracts missing).
+     * Keep low to avoid hammering upstream APIs.
+     */
+    poolConcurrency?: number;
+
+    /**
+     * NEW: If true, we attempt to enrich pool items missing abstracts
+     * by calling fetchPaperDetails. If false, we rank on title-only.
+     */
+    enrichPool?: boolean;
   },
 ): Promise<ClaimCard[]> {
   const perSourceLimit = opts?.perSourceLimit ?? 10;
@@ -265,52 +286,131 @@ export async function buildClaimCardsFromClaims(
   const useLlmJudge = opts?.useLlmJudge ?? false;
   const sources = opts?.sources ?? ["crossref", "pubmed", "semantic_scholar"];
 
+  const paperPool = opts?.paperPool;
+  const poolConcurrency = Math.max(1, Math.min(8, opts?.poolConcurrency ?? 3));
+  const enrichPool = opts?.enrichPool ?? true;
+
+  // Small in-memory cache to avoid repeated fetches within one run.
+  const detailsCache = new Map<string, PaperDetails>();
+
+  const cacheKeyFor = (p: PaperCandidate) => {
+    const doi = sourceTools.normalizeDoi(p.doi);
+    if (doi) return `doi:${doi}`;
+    const t = (p.title || "").trim();
+    if (t) return `t:${sourceTools.titleFingerprint(t)}`;
+    return `u:${p.url ?? Math.random().toString()}`;
+  };
+
+  const fetchDetailsCached = async (
+    p: PaperCandidate,
+  ): Promise<PaperDetails> => {
+    const key = cacheKeyFor(p);
+    const cached = detailsCache.get(key);
+    if (cached) return cached;
+
+    const d = await sourceTools.fetchPaperDetails(p);
+    detailsCache.set(key, d);
+    return d;
+  };
+
+  const rankPoolForClaim = (claim: string, pool: PaperDetails[]) => {
+    // Prefer abstract-aware scoring, fallback to title-only.
+    const scored = pool.map((p) => {
+      const score = basicScore(claim, p); // uses title + abstract (if present)
+      return { p, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((x) => x.p);
+  };
+
   const cards: ClaimCard[] = [];
+
+  // If a pool is provided, enrich it once (optional) and reuse for every claim.
+  let poolDetails: PaperDetails[] | null = null;
+  if (paperPool?.length) {
+    const dedupedPool = sourceTools.dedupeCandidates(paperPool);
+
+    if (!enrichPool) {
+      // Keep as-is; ensure shape matches PaperDetails as best as possible.
+      poolDetails = dedupedPool.map((p) => ({
+        ...p,
+        abstract: p.abstract ?? "Abstract not available",
+        authors: p.authors ?? [],
+        doi: sourceTools.normalizeDoi(p.doi),
+      }));
+    } else {
+      // Enrich missing abstracts / normalize metadata with limited concurrency.
+      poolDetails = await sourceTools.mapLimit(
+        dedupedPool,
+        poolConcurrency,
+        async (p) => {
+          // If the pool already has an abstract, still normalize DOI/JATS.
+          if (p.abstract && sourceTools.stripJats(p.abstract)?.length) {
+            return {
+              ...p,
+              abstract: sourceTools.stripJats(p.abstract) ?? p.abstract,
+              authors: p.authors ?? [],
+              doi: sourceTools.normalizeDoi(p.doi),
+            } as PaperDetails;
+          }
+          return fetchDetailsCached(p);
+        },
+      );
+    }
+  }
 
   for (const claim of claims) {
     const queries = [claim];
 
-    // Build search promises based on requested sources
-    const searchPromises: Promise<PaperCandidate[]>[] = [];
-    const sourceNames: string[] = [];
+    let enriched: PaperDetails[] = [];
+    let sourceNames: string[] = [];
 
-    if (sources.includes("crossref")) {
-      searchPromises.push(sourceTools.searchCrossref(claim, perSourceLimit));
-      sourceNames.push("crossref");
-    }
-    if (sources.includes("pubmed")) {
-      searchPromises.push(sourceTools.searchPubMed(claim, perSourceLimit));
-      sourceNames.push("pubmed");
-    }
-    if (sources.includes("semantic_scholar")) {
-      searchPromises.push(
-        sourceTools.searchSemanticScholar(claim, perSourceLimit),
-      );
-      sourceNames.push("semantic_scholar");
-    }
-    if (sources.includes("openalex")) {
-      searchPromises.push(sourceTools.searchOpenAlex(claim, perSourceLimit));
-      sourceNames.push("openalex");
-    }
-    if (sources.includes("arxiv")) {
-      searchPromises.push(sourceTools.searchArxiv(claim, perSourceLimit));
-      sourceNames.push("arxiv");
-    }
-    if (sources.includes("europepmc")) {
-      searchPromises.push(sourceTools.searchEuropePmc(claim, perSourceLimit));
-      sourceNames.push("europepmc");
-    }
+    if (poolDetails?.length) {
+      // ✅ Pool-driven evidence selection (your 182).
+      const ranked = rankPoolForClaim(claim, poolDetails);
+      enriched = ranked.slice(0, topK);
+      sourceNames = ["linked_pool"];
+    } else {
+      // ✅ Existing behavior: per-claim external search.
+      const searchPromises: Promise<PaperCandidate[]>[] = [];
+      sourceNames = [];
 
-    // Search all sources in parallel
-    const results = await Promise.all(searchPromises);
-    const allCandidates = results.flat();
-    const candidates = sourceTools.dedupeCandidates(allCandidates);
+      if (sources.includes("crossref")) {
+        searchPromises.push(sourceTools.searchCrossref(claim, perSourceLimit));
+        sourceNames.push("crossref");
+      }
+      if (sources.includes("pubmed")) {
+        searchPromises.push(sourceTools.searchPubMed(claim, perSourceLimit));
+        sourceNames.push("pubmed");
+      }
+      if (sources.includes("semantic_scholar")) {
+        searchPromises.push(
+          sourceTools.searchSemanticScholar(claim, perSourceLimit),
+        );
+        sourceNames.push("semantic_scholar");
+      }
+      if (sources.includes("openalex")) {
+        searchPromises.push(sourceTools.searchOpenAlex(claim, perSourceLimit));
+        sourceNames.push("openalex");
+      }
+      if (sources.includes("arxiv")) {
+        searchPromises.push(sourceTools.searchArxiv(claim, perSourceLimit));
+        sourceNames.push("arxiv");
+      }
+      if (sources.includes("europepmc")) {
+        searchPromises.push(sourceTools.searchEuropePmc(claim, perSourceLimit));
+        sourceNames.push("europepmc");
+      }
 
-    // Take topK and enrich with details
-    const enriched: PaperDetails[] = [];
-    for (const c of candidates.slice(0, topK)) {
-      const details = await sourceTools.fetchPaperDetails(c);
-      enriched.push(details);
+      const results = await Promise.all(searchPromises);
+      const allCandidates = results.flat();
+      const candidates = sourceTools.dedupeCandidates(allCandidates);
+
+      for (const c of candidates.slice(0, topK)) {
+        const details = await sourceTools.fetchPaperDetails(c);
+        enriched.push(details);
+      }
     }
 
     // Judge evidence vs claim
