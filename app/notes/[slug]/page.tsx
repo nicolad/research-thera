@@ -83,6 +83,30 @@ function NotePageContent() {
 
   const note = data?.note;
 
+  // Move all derived state and memos BEFORE conditional returns to avoid hook order violations
+  const linkedResearch = note?.linkedResearch ?? [];
+  const claimCards = note?.claimCards ?? [];
+
+  const filteredResearch = useMemo(() => {
+    const q = researchQuery.trim().toLowerCase();
+    if (!q) return linkedResearch;
+    return linkedResearch.filter((r) => {
+      const title = (r.title ?? "").toLowerCase();
+      const journal = (r.journal ?? "").toLowerCase();
+      const authors = (r.authors ?? []).join(", ").toLowerCase();
+      return title.includes(q) || journal.includes(q) || authors.includes(q);
+    });
+  }, [linkedResearch, researchQuery]);
+
+  const filteredClaims = useMemo(() => {
+    const q = claimsQuery.trim().toLowerCase();
+    if (!q) return claimCards;
+    return claimCards.filter((c) => {
+      const claim = (c.claim ?? "").toLowerCase();
+      return claim.includes(q);
+    });
+  }, [claimCards, claimsQuery]);
+
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
       case "high":
@@ -135,29 +159,6 @@ function NotePageContent() {
     shouldTruncateDescription && !showFullDescription
       ? note.goal?.description?.slice(0, 180) + "..."
       : note.goal?.description;
-
-  const linkedResearch = note.linkedResearch ?? [];
-  const claimCards = note.claimCards ?? [];
-
-  const filteredResearch = useMemo(() => {
-    const q = researchQuery.trim().toLowerCase();
-    if (!q) return linkedResearch;
-    return linkedResearch.filter((r) => {
-      const title = (r.title ?? "").toLowerCase();
-      const journal = (r.journal ?? "").toLowerCase();
-      const authors = (r.authors ?? []).join(", ").toLowerCase();
-      return title.includes(q) || journal.includes(q) || authors.includes(q);
-    });
-  }, [linkedResearch, researchQuery]);
-
-  const filteredClaims = useMemo(() => {
-    const q = claimsQuery.trim().toLowerCase();
-    if (!q) return claimCards;
-    return claimCards.filter((c) => {
-      const claim = (c.claim ?? "").toLowerCase();
-      return claim.includes(q);
-    });
-  }, [claimCards, claimsQuery]);
 
   const researchMaxHeight = "calc(100vh - 320px)";
   const claimsMaxHeight = "calc(100vh - 320px)";

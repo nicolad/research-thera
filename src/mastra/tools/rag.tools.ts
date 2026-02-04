@@ -1,9 +1,10 @@
 import { LibSQLVector } from "@mastra/libsql";
 
-const url =
-  process.env.TURSO_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  "file:./therapeutic.db";
+if (!process.env.TURSO_DATABASE_URL) {
+  throw new Error("TURSO_DATABASE_URL environment variable is required");
+}
+
+const url = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 /**

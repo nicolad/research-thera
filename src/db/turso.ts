@@ -1,9 +1,10 @@
 import { createClient } from "@libsql/client";
 
-const url =
-  process.env.TURSO_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  "file:./therapeutic.db";
+if (!process.env.TURSO_DATABASE_URL) {
+  throw new Error("TURSO_DATABASE_URL environment variable is required");
+}
+
+const url = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 export const turso = createClient({
@@ -94,6 +95,8 @@ export async function initializeDatabase() {
       entity_type TEXT NOT NULL,
       user_id TEXT NOT NULL,
       note_type TEXT,
+      slug TEXT UNIQUE,
+      title TEXT,
       content TEXT NOT NULL,
       created_by TEXT,
       tags TEXT,
@@ -206,6 +209,48 @@ export async function initializeDatabase() {
 
   await turso.execute(`
     CREATE INDEX IF NOT EXISTS idx_audio_segments_asset ON audio_segments(asset_id, idx);
+  `);
+
+  // Claim cards table
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS claim_cards (
+      id TEXT PRIMARY KEY,
+      note_id INTEGER,
+      claim TEXT NOT NULL,
+      scope TEXT,
+      verdict TEXT NOT NULL,
+      confidence REAL NOT NULL,
+      evidence TEXT NOT NULL,
+      queries TEXT,
+      provenance TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  await turso.execute(`
+    CREATE INDEX IF NOT EXISTS idx_claim_cards_note ON claim_cards(note_id);
+  `);
+
+  // Notes-claims join table
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS notes_claims (
+      note_id INTEGER NOT NULL,
+      claim_id TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (note_id, claim_id),
+      FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+      FOREIGN KEY (claim_id) REFERENCES claim_cards(id) ON DELETE CASCADE
+    );
+  `);
+
+  await turso.execute(`
+    CREATE INDEX IF NOT EXISTS idx_notes_claims_note ON notes_claims(note_id);
+  `);
+
+  await turso.execute(`
+    CREATE INDEX IF NOT EXISTS idx_notes_claims_claim ON notes_claims(claim_id);
   `);
 
   console.log("✅ Database initialized");

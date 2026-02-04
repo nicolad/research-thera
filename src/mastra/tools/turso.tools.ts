@@ -2,10 +2,11 @@ import { createClient } from "@libsql/client";
 import { z } from "zod";
 import path from "path";
 
-const url =
-  process.env.TURSO_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  `file:${path.join(process.cwd(), "therapeutic.db")}`;
+if (!process.env.TURSO_DATABASE_URL) {
+  throw new Error("TURSO_DATABASE_URL environment variable is required");
+}
+
+const url = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const turso = createClient({

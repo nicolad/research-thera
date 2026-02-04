@@ -20,9 +20,9 @@ dotenv.config();
 if (typeof globalThis !== "undefined") {
   (globalThis as any).AI_SDK_LOG_WARNINGS = false;
 }
-    
+
 const client = createClient({
-  url: process.env.DATABASE_URL!,
+  url: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 

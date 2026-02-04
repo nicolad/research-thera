@@ -10,10 +10,14 @@ const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
+if (!process.env.TURSO_DATABASE_URL) {
+  throw new Error("TURSO_DATABASE_URL environment variable is required");
+}
+
 // Agent-level storage for conversation history
 const agentStorage = new LibSQLStore({
   id: "agent-memory-storage",
-  url: process.env.DATABASE_URL || "file:./therapeutic.db",
+  url: process.env.TURSO_DATABASE_URL,
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 

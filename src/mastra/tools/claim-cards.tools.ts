@@ -489,28 +489,31 @@ export async function refreshClaimCard(
 /**
  * Database persistence for claim cards
  */
-import { config } from "dotenv";
-// Load env vars at module import time to ensure they're available
-config();
-
 import { createClient } from "@libsql/client";
+import type { Client } from "@libsql/client";
 import path from "path";
 
-const url =
-  process.env.TURSO_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  `file:${path.join(process.cwd(), "therapeutic.db")}`;
-const authToken = process.env.TURSO_AUTH_TOKEN;
+let tursoClient: Client | null = null;
 
-const turso = createClient({
-  url: url!,
-  authToken: authToken!,
-});
+function getTursoClient(): Client {
+  if (!tursoClient) {
+    if (!process.env.TURSO_DATABASE_URL) {
+      throw new Error("TURSO_DATABASE_URL environment variable is required");
+    }
+
+    tursoClient = createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  return tursoClient;
+}
 
 export async function saveClaimCard(
   card: ClaimCard,
   noteId?: number,
 ): Promise<void> {
+  const turso = getTursoClient();
   const confidenceInt = Math.round(card.confidence * 100);
 
   await turso.execute({
@@ -543,6 +546,7 @@ export async function saveClaimCard(
 }
 
 export async function getClaimCard(claimId: string): Promise<ClaimCard | null> {
+  const turso = getTursoClient();
   const result = await turso.execute({
     sql: `SELECT * FROM claim_cards WHERE id = ?`,
     args: [claimId],
@@ -569,6 +573,7 @@ export async function getClaimCard(claimId: string): Promise<ClaimCard | null> {
 export async function getClaimCardsForNote(
   noteId: number,
 ): Promise<ClaimCard[]> {
+  const turso = getTursoClient();
   const result = await turso.execute({
     sql: `SELECT cc.* FROM claim_cards cc
       INNER JOIN notes_claims nc ON cc.id = nc.claim_id
@@ -593,6 +598,7 @@ export async function getClaimCardsForNote(
 }
 
 export async function deleteClaimCard(claimId: string): Promise<void> {
+  const turso = getTursoClient();
   await turso.execute({
     sql: `DELETE FROM notes_claims WHERE claim_id = ?`,
     args: [claimId],
