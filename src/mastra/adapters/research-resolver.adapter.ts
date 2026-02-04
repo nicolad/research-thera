@@ -1,6 +1,6 @@
 /**
  * Research Source Resolver Adapter
- * 
+ *
  * Implements Resolver interface for the existing sourceTools.
  * Converts LinkedSourceRef -> SourceDetails using multi-source lookup.
  */
@@ -62,14 +62,22 @@ export function createResearchSourceResolver(): Resolver {
   return {
     name: "sourceTools@v1",
 
-    async resolve(ref: LinkedSourceRef, opts?: ResolveOptions): Promise<SourceDetails | null> {
+    async resolve(
+      ref: LinkedSourceRef,
+      opts?: ResolveOptions,
+    ): Promise<SourceDetails | null> {
       // Strategy:
       // 1. If we have a DOI/ID, try direct lookup
       // 2. Otherwise, search by title across multiple sources
       // 3. Return the best match with full details
 
       const hints = opts?.resolutionHints as { sources?: string[] } | undefined;
-      const allowedSources = hints?.sources ?? ["semantic_scholar", "crossref", "pubmed", "openalex"];
+      const allowedSources = hints?.sources ?? [
+        "semantic_scholar",
+        "crossref",
+        "pubmed",
+        "openalex",
+      ];
 
       // Try direct ID lookups first
       if (ref.doi) {
@@ -92,7 +100,10 @@ export function createResearchSourceResolver(): Resolver {
         }
       }
 
-      if (ref.semanticScholarId && allowedSources.includes("semantic_scholar")) {
+      if (
+        ref.semanticScholarId &&
+        allowedSources.includes("semantic_scholar")
+      ) {
         try {
           // Fetch directly using S2 ID (assumes sourceTools can handle this)
           const candidate: PaperCandidate = {
@@ -105,7 +116,10 @@ export function createResearchSourceResolver(): Resolver {
           const details = await fetchPaperDetails(candidate);
           return paperToSource(details);
         } catch (error) {
-          console.warn(`Failed to resolve S2 ID ${ref.semanticScholarId}:`, error);
+          console.warn(
+            `Failed to resolve S2 ID ${ref.semanticScholarId}:`,
+            error,
+          );
         }
       }
 
@@ -147,7 +161,7 @@ export function createResearchSourceResolver(): Resolver {
         .sort((a, b) => b.score - a.score);
 
       const best = scoredCandidates[0];
-      
+
       // Only accept high-confidence matches
       if (best.score < 0.6) {
         return null;

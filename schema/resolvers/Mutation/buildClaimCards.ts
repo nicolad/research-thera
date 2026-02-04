@@ -5,13 +5,18 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { generateObject } from "ai";
 import { z } from "zod";
 
+// Suppress AI SDK warnings
+if (typeof globalThis !== "undefined") {
+  (globalThis as any).AI_SDK_LOG_WARNINGS = false;
+}
+
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
 /**
  * Build Claim Cards Resolver
- * 
+ *
  * Enhanced to ensure claims are grounded in actual research content:
  * 1. When text is provided, first searches for relevant research papers
  * 2. Extracts claims from the papers' abstracts (not just the input text)
@@ -23,34 +28,83 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
 
   // Map GraphQL enums to lowercase source names
   const sourcesLowercase = sources?.map((s) => s.toLowerCase()) as any[];
-  const allowedSources = sourcesLowercase ?? ["semantic_scholar", "crossref", "pubmed"];
+  // Default sources: Crossref and PubMed (most reliable, no rate limits)
+  // Semantic Scholar excluded due to strict rate limits
+  const allowedSources = sourcesLowercase ?? ["crossref", "pubmed"];
 
   let cards;
-  
+
   if (text) {
     // Enhanced text processing: Search research first, then extract claims from actual papers
     const searchLimit = perSourceLimit ?? 15;
-    
+
     // 1. Search for relevant papers across multiple sources
-    const searchPromises: Promise<any[]>[] = [];
-    
-    if (allowedSources.includes("semantic_scholar")) {
-      searchPromises.push(sourceTools.searchSemanticScholar(text, searchLimit).catch(() => []));
-    }
+    // Search sequentially with delays to avoid rate limits
+    const allResults: any[] = [];
+
+    // Helper to retry on rate limit with longer delay
+    const searchWithRetry = async (
+      searchFn: () => Promise<any[]>,
+      name: string,
+    ) => {
+      try {
+        return await searchFn();
+      } catch (error: any) {
+        const status = error?.status || error?.response?.status;
+        if (status === 429 || error?.message?.includes("429")) {
+          console.log(`⏳ ${name} rate limit hit, waiting 5s and retrying...`);
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          try {
+            return await searchFn();
+          } catch (retryError) {
+            console.warn(`⚠️  ${name} failed after retry, skipping`);
+            return [];
+          }
+        }
+        console.warn(`⚠️  ${name} error:`, error?.message || error);
+        return [];
+      }
+    };
+
+    // Search sources sequentially with 1.5s delay between each to avoid rate limits
     if (allowedSources.includes("crossref")) {
-      searchPromises.push(sourceTools.searchCrossref(text, searchLimit).catch(() => []));
+      const results = await searchWithRetry(
+        () => sourceTools.searchCrossref(text, searchLimit),
+        "Crossref",
+      );
+      allResults.push(results);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
+
     if (allowedSources.includes("pubmed")) {
-      searchPromises.push(sourceTools.searchPubMed(text, searchLimit).catch(() => []));
+      const results = await searchWithRetry(
+        () => sourceTools.searchPubMed(text, searchLimit),
+        "PubMed",
+      );
+      allResults.push(results);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
-    if (allowedSources.includes("openalex")) {
-      searchPromises.push(sourceTools.searchOpenAlex(text, searchLimit).catch(() => []));
+
+    if (allowedSources.includes("semantic_scholar")) {
+      const results = await searchWithRetry(
+        () => sourceTools.searchSemanticScholar(text, searchLimit),
+        "Semantic Scholar",
+      );
+      allResults.push(results);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
-    
-    const allResults = await Promise.all(searchPromises);
+
+    if (allowedSources.includes("openalex") && process.env.OPENALEX_API_KEY) {
+      const results = await searchWithRetry(
+        () => sourceTools.searchOpenAlex(text, searchLimit),
+        "OpenAlex",
+      );
+      allResults.push(results);
+    }
+
     const allPapers = allResults.flat();
     const deduped = sourceTools.dedupeCandidates(allPapers);
-    
+
     // 2. Fetch full details for top papers
     const topPapers = deduped.slice(0, Math.min(20, searchLimit * 2));
     const papersWithDetails = await Promise.all(
@@ -60,24 +114,26 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
         } catch {
           return p;
         }
-      })
+      }),
     );
-    
+
     // 3. Extract claims from the research papers' content (not just the user text)
     const papersContext = papersWithDetails
-      .filter(p => p.abstract)
+      .filter((p) => p.abstract)
       .slice(0, 10) // Use top 10 papers with abstracts
-      .map(p => `Title: ${p.title}\nAbstract: ${p.abstract}`)
+      .map((p) => `Title: ${p.title}\nAbstract: ${p.abstract}`)
       .join("\n\n---\n\n");
-    
+
     if (papersContext) {
       // Extract research-grounded claims
       const claimsSchema = z.object({
-        claims: z.array(z.string()).describe(
-          "Atomic, testable claims extracted from the research papers. Each claim should be grounded in the actual research content."
-        ),
+        claims: z
+          .array(z.string())
+          .describe(
+            "Atomic, testable claims extracted from the research papers. Each claim should be grounded in the actual research content.",
+          ),
       });
-      
+
       const result = await generateObject({
         model: deepseek("deepseek-chat"),
         schema: claimsSchema,
@@ -96,9 +152,9 @@ Task: Extract atomic, testable claims that:
 
 Extract 5-12 high-quality claims that summarize the research findings.`,
       });
-      
+
       const extractedClaims = result.object.claims;
-      
+
       // Build claim cards from these research-grounded claims
       cards = await claimCardsTools.buildClaimCardsFromClaims(extractedClaims, {
         perSourceLimit: perSourceLimit ?? undefined,

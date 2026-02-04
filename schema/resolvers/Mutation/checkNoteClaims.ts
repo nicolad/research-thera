@@ -6,11 +6,7 @@ import { createResearchSourceResolver } from "@/src/mastra/adapters/research-res
 import { createTursoStorageAdapter } from "@/src/mastra/adapters/turso-storage.adapter";
 import type { LinkedSourceRef } from "@/src/mastra/tools/generic-claim-cards.tools";
 
-export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> = async (
-  _parent,
-  { input },
-  _ctx,
-) => {
+export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> = async (_parent, { input }, _ctx) => {
   const {
     noteId,
     maxClaims = 12,
@@ -51,7 +47,8 @@ export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> 
     if (linkedResearch.length === 0) {
       return {
         success: false,
-        message: "No linked research found for this note. Add research papers to enable claim checking.",
+        message:
+          "No linked research found for this note. Add research papers to enable claim checking.",
         cards: [],
         noteId,
       };
@@ -60,7 +57,11 @@ export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> 
     // 3. Convert research papers to LinkedSourceRef format
     const linkedSources: LinkedSourceRef[] = linkedResearch.map((r) => ({
       title: r.title,
-      authors: Array.isArray(r.authors) ? r.authors : (r.authors ? JSON.parse(r.authors as string) : []),
+      authors: Array.isArray(r.authors)
+        ? r.authors
+        : r.authors
+          ? JSON.parse(r.authors as string)
+          : [],
       year: r.year ?? undefined,
       url: r.url ?? undefined,
       doi: r.doi ?? undefined,
@@ -109,7 +110,8 @@ export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> 
     console.error("Error checking note claims:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Unknown error occurred",
+      message:
+        error instanceof Error ? error.message : "Unknown error occurred",
       cards: [],
       noteId,
     };

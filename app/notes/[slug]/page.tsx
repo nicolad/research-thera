@@ -112,6 +112,39 @@ function NotePageContent() {
 
   return (
     <Flex direction="column" gap="4">
+      {note.goal && (
+        <Card style={{ backgroundColor: "var(--indigo-3)" }}>
+          <Flex direction="column" gap="3">
+            <Flex align="center" gap="2">
+              <Badge color="indigo" size="2">
+                Related Goal
+              </Badge>
+            </Flex>
+            <Heading size="5">{note.goal.title}</Heading>
+            {note.goal.description && (
+              <Text size="2" color="gray">
+                {note.goal.description}
+              </Text>
+            )}
+            <Flex gap="3" wrap="wrap">
+              <Flex align="center" gap="2">
+                <Badge color="green" variant="soft">
+                  {note.goal.status}
+                </Badge>
+                <Badge color="orange" variant="soft">
+                  {note.goal.priority} priority
+                </Badge>
+              </Flex>
+              {note.goal.targetDate && (
+                <Text size="1" color="gray">
+                  Target: {new Date(note.goal.targetDate).toLocaleDateString()}
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+        </Card>
+      )}
+      
       <Card>
         <Flex direction="column" gap="4">
           <Flex direction="column" gap="2">

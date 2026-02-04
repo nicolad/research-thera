@@ -145,6 +145,7 @@ type Note {
   tags: [String!]
   linkedResearch: [Research!]
   claimCards: [ClaimCard!]
+  goal: Goal
   createdAt: String!
   updatedAt: String!
 }

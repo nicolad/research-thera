@@ -154,6 +154,13 @@ export default function NotesList({
               }}
             >
               <Flex direction="column" gap="2" p="4">
+                {note.goal && (
+                  <Flex gap="2" align="center" mb="1">
+                    <Badge color="indigo" variant="soft" size="1">
+                      Goal: {note.goal.title}
+                    </Badge>
+                  </Flex>
+                )}
                 <Flex justify="between" align="start">
                   <Text
                     style={{

@@ -9,6 +9,15 @@ query GetNote($id: Int, $slug: String, $userId: String!) {
     content
     createdBy
     tags
+    goal {
+      id
+      title
+      description
+      status
+      priority
+      targetDate
+      createdAt
+    }
     linkedResearch {
       id
       title

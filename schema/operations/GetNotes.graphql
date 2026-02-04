@@ -9,6 +9,14 @@ query GetNotes($entityId: Int!, $entityType: String!, $userId: String!) {
     content
     createdBy
     tags
+    goal {
+      id
+      title
+      description
+      status
+      priority
+      targetDate
+    }
     createdAt
     updatedAt
   }

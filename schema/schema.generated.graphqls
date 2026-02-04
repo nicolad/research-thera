@@ -285,6 +285,7 @@ type Note {
   createdBy: String
   entityId: Int!
   entityType: String!
+  goal: Goal
   id: Int!
   linkedResearch: [Research!]
   noteType: String

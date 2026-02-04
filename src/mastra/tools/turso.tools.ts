@@ -86,6 +86,83 @@ export async function listGoals(
   }));
 }
 
+export async function createGoal(params: {
+  familyMemberId: number;
+  userId: string;
+  title: string;
+  description?: string | null;
+  targetDate?: string | null;
+  priority?: string;
+}) {
+  const priority = params.priority || "medium";
+  const status = "active";
+
+  const result = await turso.execute({
+    sql: `INSERT INTO goals (family_member_id, user_id, title, description, target_date, status, priority)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+          RETURNING id`,
+    args: [
+      params.familyMemberId,
+      params.userId,
+      params.title,
+      params.description || null,
+      params.targetDate || null,
+      status,
+      priority,
+    ],
+  });
+
+  return result.rows[0].id as number;
+}
+
+export async function updateGoal(
+  goalId: number,
+  userId: string,
+  updates: {
+    title?: string;
+    description?: string | null;
+    targetDate?: string | null;
+    status?: string;
+    priority?: string;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.title !== undefined) {
+    fields.push("title = ?");
+    args.push(updates.title);
+  }
+
+  if (updates.description !== undefined) {
+    fields.push("description = ?");
+    args.push(updates.description);
+  }
+
+  if (updates.targetDate !== undefined) {
+    fields.push("target_date = ?");
+    args.push(updates.targetDate);
+  }
+
+  if (updates.status !== undefined) {
+    fields.push("status = ?");
+    args.push(updates.status);
+  }
+
+  if (updates.priority !== undefined) {
+    fields.push("priority = ?");
+    args.push(updates.priority);
+  }
+
+  fields.push("updated_at = datetime('now')");
+  args.push(goalId, userId);
+
+  await turso.execute({
+    sql: `UPDATE goals SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
 // ============================================
 // Therapy Research
 // ============================================
@@ -388,6 +465,76 @@ export async function createNote(params: {
   return result.rows[0].id as number;
 }
 
+export async function updateNote(
+  noteId: number,
+  userId: string,
+  updates: {
+    entityId?: number;
+    entityType?: string;
+    noteType?: string | null;
+    content?: string;
+    createdBy?: string | null;
+    tags?: string[];
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.entityId !== undefined) {
+    fields.push("entity_id = ?");
+    args.push(updates.entityId);
+  }
+
+  if (updates.entityType !== undefined) {
+    fields.push("entity_type = ?");
+    args.push(updates.entityType);
+  }
+
+  if (updates.noteType !== undefined) {
+    fields.push("note_type = ?");
+    args.push(updates.noteType);
+  }
+
+  if (updates.content !== undefined) {
+    fields.push("content = ?");
+    args.push(updates.content);
+  }
+
+  if (updates.createdBy !== undefined) {
+    fields.push("created_by = ?");
+    args.push(updates.createdBy);
+  }
+
+  if (updates.tags !== undefined) {
+    fields.push("tags = ?");
+    args.push(JSON.stringify(updates.tags));
+  }
+
+  fields.push("updated_at = datetime('now')");
+  args.push(noteId, userId);
+
+  await turso.execute({
+    sql: `UPDATE notes SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function linkResearchToNote(noteId: number, researchIds: number[]) {
+  // First, remove existing links
+  await turso.execute({
+    sql: `DELETE FROM notes_research WHERE note_id = ?`,
+    args: [noteId],
+  });
+
+  // Then add new links
+  for (const researchId of researchIds) {
+    await turso.execute({
+      sql: `INSERT INTO notes_research (note_id, research_id) VALUES (?, ?)`,
+      args: [noteId, researchId],
+    });
+  }
+}
+
 // ============================================
 // Generation Jobs
 // ============================================
@@ -477,6 +624,8 @@ export const tursoTools = {
   turso, // Expose turso client for direct access
   getGoal,
   listGoals,
+  createGoal,
+  updateGoal,
   upsertTherapyResearch,
   listTherapyResearch,
   getResearchForNote,
@@ -484,6 +633,8 @@ export const tursoTools = {
   getNoteBySlug,
   listNotesForEntity,
   createNote,
+  updateNote,
+  linkResearchToNote,
   createGenerationJob,
   updateGenerationJob,
   getGenerationJob,

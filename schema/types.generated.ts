@@ -415,6 +415,7 @@ export type Note = {
   createdBy?: Maybe<Scalars['String']['output']>;
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
+  goal?: Maybe<Goal>;
   id: Scalars['Int']['output'];
   linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
@@ -708,7 +709,7 @@ export type ResolversTypes = {
   JobStatus: ResolverTypeWrapper<'RUNNING' | 'SUCCEEDED' | 'FAILED'>;
   JobType: ResolverTypeWrapper<'AUDIO' | 'RESEARCH' | 'QUESTIONS' | 'LONGFORM'>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
-  Note: ResolverTypeWrapper<Omit<Note, 'claimCards' | 'linkedResearch'> & { claimCards?: Maybe<Array<ResolversTypes['ClaimCard']>>, linkedResearch?: Maybe<Array<ResolversTypes['Research']>> }>;
+  Note: ResolverTypeWrapper<Omit<Note, 'claimCards' | 'goal' | 'linkedResearch'> & { claimCards?: Maybe<Array<ResolversTypes['ClaimCard']>>, goal?: Maybe<ResolversTypes['Goal']>, linkedResearch?: Maybe<Array<ResolversTypes['Research']>> }>;
   PaperCandidate: ResolverTypeWrapper<PaperCandidate>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Research: ResolverTypeWrapper<Omit<Research, 'goal'> & { goal?: Maybe<ResolversTypes['Goal']> }>;
@@ -755,7 +756,7 @@ export type ResolversParentTypes = {
   JobError: JobError;
   JobResult: JobResult;
   Mutation: Record<PropertyKey, never>;
-  Note: Omit<Note, 'claimCards' | 'linkedResearch'> & { claimCards?: Maybe<Array<ResolversParentTypes['ClaimCard']>>, linkedResearch?: Maybe<Array<ResolversParentTypes['Research']>> };
+  Note: Omit<Note, 'claimCards' | 'goal' | 'linkedResearch'> & { claimCards?: Maybe<Array<ResolversParentTypes['ClaimCard']>>, goal?: Maybe<ResolversParentTypes['Goal']>, linkedResearch?: Maybe<Array<ResolversParentTypes['Research']>> };
   PaperCandidate: PaperCandidate;
   Query: Record<PropertyKey, never>;
   Research: Omit<Research, 'goal'> & { goal?: Maybe<ResolversParentTypes['Goal']> };
@@ -995,6 +996,7 @@ export type NoteResolvers<ContextType = GraphQLContext, ParentType extends Resol
   createdBy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   entityId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   entityType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   linkedResearch?: Resolver<Maybe<Array<ResolversTypes['Research']>>, ParentType, ContextType>;
   noteType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

@@ -8,6 +8,13 @@ query GetGoals($familyMemberId: Int, $status: String, $userId: String!) {
     targetDate
     familyMemberId
     userId
+    notes {
+      id
+      slug
+      noteType
+      tags
+      createdAt
+    }
     createdAt
     updatedAt
   }

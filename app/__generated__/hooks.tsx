@@ -417,6 +417,7 @@ export type Note = {
   createdBy?: Maybe<Scalars['String']['output']>;
   entityId: Scalars['Int']['output'];
   entityType: Scalars['String']['output'];
+  goal?: Maybe<Goal>;
   id: Scalars['Int']['output'];
   linkedResearch?: Maybe<Array<Research>>;
   noteType?: Maybe<Scalars['String']['output']>;
@@ -693,7 +694,7 @@ export type GetGoalsQueryVariables = Exact<{
 }>;
 
 
-export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, priority: string, targetDate?: string | null, familyMemberId: number, userId: string, createdAt: string, updatedAt: string }> };
+export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, priority: string, targetDate?: string | null, familyMemberId: number, userId: string, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
 
 export type GetNoteQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
@@ -702,7 +703,7 @@ export type GetNoteQueryVariables = Exact<{
 }>;
 
 
-export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string, linkedResearch?: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null, therapeuticGoalType: string, relevanceScore: number }> | null } | null };
+export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, priority: string, targetDate?: string | null, createdAt: string } | null, linkedResearch?: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null, therapeuticGoalType: string, relevanceScore: number }> | null } | null };
 
 export type GetNotesQueryVariables = Exact<{
   entityId: Scalars['Int']['input'];
@@ -711,7 +712,7 @@ export type GetNotesQueryVariables = Exact<{
 }>;
 
 
-export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }> };
+export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, userId: string, noteType?: string | null, slug?: string | null, content: string, createdBy?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, priority: string, targetDate?: string | null } | null }> };
 
 export type UpdateNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1354,6 +1355,13 @@ export const GetGoalsDocument = gql`
     targetDate
     familyMemberId
     userId
+    notes {
+      id
+      slug
+      noteType
+      tags
+      createdAt
+    }
     createdAt
     updatedAt
   }
@@ -1409,6 +1417,15 @@ export const GetNoteDocument = gql`
     content
     createdBy
     tags
+    goal {
+      id
+      title
+      description
+      status
+      priority
+      targetDate
+      createdAt
+    }
     linkedResearch {
       id
       title
@@ -1474,6 +1491,14 @@ export const GetNotesDocument = gql`
     content
     createdBy
     tags
+    goal {
+      id
+      title
+      description
+      status
+      priority
+      targetDate
+    }
     createdAt
     updatedAt
   }
