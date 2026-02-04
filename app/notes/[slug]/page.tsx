@@ -270,9 +270,7 @@ function NotePageContent() {
       {note.claimCards && note.claimCards.length > 0 && (
         <Card>
           <Flex direction="column" gap="3">
-            <Heading size="4">
-              Claim Cards ({note.claimCards.length})
-            </Heading>
+            <Heading size="4">Claim Cards ({note.claimCards.length})</Heading>
             <Accordion.Root type="multiple" style={{ width: "100%" }}>
               {note.claimCards.map((card, idx) => {
                 const verdictColor = {
@@ -284,13 +282,13 @@ function NotePageContent() {
                 }[card.verdict] as any;
 
                 const supportingEvidence = card.evidence.filter(
-                  (e) => e.polarity === "SUPPORTS"
+                  (e) => e.polarity === "SUPPORTS",
                 );
                 const contradictingEvidence = card.evidence.filter(
-                  (e) => e.polarity === "CONTRADICTS"
+                  (e) => e.polarity === "CONTRADICTS",
                 );
                 const mixedEvidence = card.evidence.filter(
-                  (e) => e.polarity === "MIXED" || e.polarity === "IRRELEVANT"
+                  (e) => e.polarity === "MIXED" || e.polarity === "IRRELEVANT",
                 );
 
                 return (
@@ -357,7 +355,9 @@ function NotePageContent() {
                             </Tooltip.Provider>
                             <Badge variant="surface" size="1">
                               {card.evidence.length}{" "}
-                              {card.evidence.length === 1 ? "source" : "sources"}
+                              {card.evidence.length === 1
+                                ? "source"
+                                : "sources"}
                             </Badge>
                           </Flex>
                         </Flex>
@@ -412,7 +412,8 @@ function NotePageContent() {
                           {supportingEvidence.length > 0 && (
                             <Flex direction="column" gap="2">
                               <Text size="2" weight="bold" color="green">
-                                ✓ Supporting Evidence ({supportingEvidence.length})
+                                ✓ Supporting Evidence (
+                                {supportingEvidence.length})
                               </Text>
                               {supportingEvidence.map((evidence, evidx) => (
                                 <Flex
@@ -430,18 +431,23 @@ function NotePageContent() {
                                     <Text size="2" weight="medium">
                                       {evidence.paper.title}
                                     </Text>
-                                    {evidence.score !== null && evidence.score !== undefined && (
-                                      <Badge size="1" variant="soft">
-                                        {(evidence.score * 100).toFixed(0)}%
-                                      </Badge>
-                                    )}
+                                    {evidence.score !== null &&
+                                      evidence.score !== undefined && (
+                                        <Badge size="1" variant="soft">
+                                          {(evidence.score * 100).toFixed(0)}%
+                                        </Badge>
+                                      )}
                                   </Flex>
                                   {evidence.paper.authors &&
                                     evidence.paper.authors.length > 0 && (
                                       <Text size="1" color="gray">
-                                        {evidence.paper.authors.slice(0, 2).join(", ")}
-                                        {evidence.paper.authors.length > 2 && " et al."}
-                                        {evidence.paper.year && ` (${evidence.paper.year})`}
+                                        {evidence.paper.authors
+                                          .slice(0, 2)
+                                          .join(", ")}
+                                        {evidence.paper.authors.length > 2 &&
+                                          " et al."}
+                                        {evidence.paper.year &&
+                                          ` (${evidence.paper.year})`}
                                       </Text>
                                     )}
                                   {evidence.excerpt && (
@@ -473,7 +479,8 @@ function NotePageContent() {
                           {contradictingEvidence.length > 0 && (
                             <Flex direction="column" gap="2">
                               <Text size="2" weight="bold" color="red">
-                                ✗ Contradicting Evidence ({contradictingEvidence.length})
+                                ✗ Contradicting Evidence (
+                                {contradictingEvidence.length})
                               </Text>
                               {contradictingEvidence.map((evidence, evidx) => (
                                 <Flex
@@ -491,18 +498,23 @@ function NotePageContent() {
                                     <Text size="2" weight="medium">
                                       {evidence.paper.title}
                                     </Text>
-                                    {evidence.score !== null && evidence.score !== undefined && (
-                                      <Badge size="1" variant="soft">
-                                        {(evidence.score * 100).toFixed(0)}%
-                                      </Badge>
-                                    )}
+                                    {evidence.score !== null &&
+                                      evidence.score !== undefined && (
+                                        <Badge size="1" variant="soft">
+                                          {(evidence.score * 100).toFixed(0)}%
+                                        </Badge>
+                                      )}
                                   </Flex>
                                   {evidence.paper.authors &&
                                     evidence.paper.authors.length > 0 && (
                                       <Text size="1" color="gray">
-                                        {evidence.paper.authors.slice(0, 2).join(", ")}
-                                        {evidence.paper.authors.length > 2 && " et al."}
-                                        {evidence.paper.year && ` (${evidence.paper.year})`}
+                                        {evidence.paper.authors
+                                          .slice(0, 2)
+                                          .join(", ")}
+                                        {evidence.paper.authors.length > 2 &&
+                                          " et al."}
+                                        {evidence.paper.year &&
+                                          ` (${evidence.paper.year})`}
                                       </Text>
                                     )}
                                   {evidence.excerpt && (

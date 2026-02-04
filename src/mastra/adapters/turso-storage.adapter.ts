@@ -127,7 +127,7 @@ export function createTursoStorageAdapter(): StorageAdapter {
         .where(eq(notesClaims.noteId, noteId));
 
       const rawCards = rows.map((r: any) => deserializeClaimCard(r.card));
-      
+
       // Normalize to ensure consistent GraphQL output
       return toGqlClaimCards(rawCards) as any;
     },

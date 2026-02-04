@@ -7,7 +7,12 @@ type GqlClaimCard = {
   id: string;
   claim: string;
   scope?: any;
-  verdict: "UNVERIFIED" | "SUPPORTED" | "CONTRADICTED" | "MIXED" | "INSUFFICIENT";
+  verdict:
+    | "UNVERIFIED"
+    | "SUPPORTED"
+    | "CONTRADICTED"
+    | "MIXED"
+    | "INSUFFICIENT";
   confidence: number;
   evidence: Array<{
     paper: {
@@ -26,12 +31,20 @@ type GqlClaimCard = {
     excerpt?: string | null;
     rationale?: string | null;
     score?: number | null;
-    locator?: { section?: string | null; page?: number | null; url?: string | null } | null;
+    locator?: {
+      section?: string | null;
+      page?: number | null;
+      url?: string | null;
+    } | null;
   }>;
   queries: string[];
   createdAt: string;
   updatedAt: string;
-  provenance: { generatedBy: string; model?: string | null; sourceTools: string[] };
+  provenance: {
+    generatedBy: string;
+    model?: string | null;
+    sourceTools: string[];
+  };
   notes?: string | null;
 };
 
@@ -49,7 +62,9 @@ const normalizeVerdict = (v: unknown): GqlClaimCard["verdict"] => {
   return "UNVERIFIED";
 };
 
-const normalizePolarity = (p: unknown): GqlClaimCard["evidence"][number]["polarity"] => {
+const normalizePolarity = (
+  p: unknown,
+): GqlClaimCard["evidence"][number]["polarity"] => {
   const s = (typeof p === "string" ? p : "").toUpperCase().trim();
   if (s === "SUPPORTS") return "SUPPORTS";
   if (s === "CONTRADICTS") return "CONTRADICTS";
@@ -61,7 +76,10 @@ const normalizePolarity = (p: unknown): GqlClaimCard["evidence"][number]["polari
  * Convert whatever claimCardsTools returns into your GraphQL ClaimCard shape.
  * Call this right before returning from the resolver.
  */
-export function toGqlClaimCards(rawCards: any[], nowIso = new Date().toISOString()): GqlClaimCard[] {
+export function toGqlClaimCards(
+  rawCards: any[],
+  nowIso = new Date().toISOString(),
+): GqlClaimCard[] {
   return (rawCards ?? []).map((c: any, idx: number) => {
     const evidenceRaw = Array.isArray(c?.evidence) ? c.evidence : [];
 
@@ -69,8 +87,14 @@ export function toGqlClaimCards(rawCards: any[], nowIso = new Date().toISOString
       const paperRaw = e?.paper ?? e?.document ?? e?.source ?? {};
 
       // Ensure required fields for PaperCandidate
-      const title = (paperRaw?.title ?? e?.title ?? "").toString().trim() || `Untitled source ${idx + 1}`;
-      const source = (paperRaw?.source ?? e?.sourceName ?? "unknown").toString();
+      const title =
+        (paperRaw?.title ?? e?.title ?? "").toString().trim() ||
+        `Untitled source ${idx + 1}`;
+      const source = (
+        paperRaw?.source ??
+        e?.sourceName ??
+        "unknown"
+      ).toString();
 
       // Locator url fallback: prefer OA url, then url, then doi resolver
       const doi = paperRaw?.doi ?? null;
@@ -120,7 +144,9 @@ export function toGqlClaimCards(rawCards: any[], nowIso = new Date().toISOString
       provenance: {
         generatedBy: c?.provenance?.generatedBy ?? "claimCardsTools",
         model: c?.provenance?.model ?? null,
-        sourceTools: Array.isArray(c?.provenance?.sourceTools) ? c.provenance.sourceTools : [],
+        sourceTools: Array.isArray(c?.provenance?.sourceTools)
+          ? c.provenance.sourceTools
+          : [],
       },
       notes: c?.notes ?? null,
     };
