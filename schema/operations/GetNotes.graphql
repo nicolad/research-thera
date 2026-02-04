@@ -6,6 +6,7 @@ query GetNotes($entityId: Int!, $entityType: String!, $userId: String!) {
     userId
     noteType
     slug
+    title
     content
     createdBy
     tags

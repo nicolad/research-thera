@@ -23,10 +23,9 @@ async function createGoal() {
   try {
     console.log("🎯 Creating goal in remote database...\n");
     
-    const result = await turso.execute({
+    await turso.execute({
       sql: `INSERT INTO goals (family_member_id, user_id, title, description, status, priority, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-            RETURNING id, title, status, priority`,
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       args: [
         1, // family_member_id
         "demo-user", // user_id
@@ -37,9 +36,16 @@ async function createGoal() {
       ],
     });
 
+    console.log("✅ Goal created successfully!");
+    
+    // Verify
+    const result = await turso.execute({
+      sql: `SELECT id, title, status, priority FROM goals WHERE user_id = ? ORDER BY id DESC LIMIT 1`,
+      args: ["demo-user"],
+    });
+    
     if (result.rows.length > 0) {
       const goal = result.rows[0];
-      console.log("✅ Goal created successfully!");
       console.log(`   ID: ${goal.id}`);
       console.log(`   Title: ${goal.title}`);
       console.log(`   Status: ${goal.status}`);

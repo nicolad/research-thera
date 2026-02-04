@@ -1,0 +1,34 @@
+query GetGoal($id: Int!, $userId: String!) {
+  goal(id: $id, userId: $userId) {
+    id
+    title
+    description
+    status
+    priority
+    targetDate
+    familyMemberId
+    userId
+    therapeuticText
+    therapeuticTextLanguage
+    therapeuticTextGeneratedAt
+    notes {
+      id
+      slug
+      content
+      noteType
+      tags
+      createdAt
+      updatedAt
+    }
+    research {
+      id
+      title
+      authors
+      year
+      journal
+      url
+    }
+    createdAt
+    updatedAt
+  }
+}

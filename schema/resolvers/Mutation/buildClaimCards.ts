@@ -38,6 +38,12 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
     // Enhanced text processing: Search research first, then extract claims from actual papers
     const searchLimit = perSourceLimit ?? 15;
 
+    console.log(
+      `📡 Starting research paper search across ${allowedSources.length} source(s)...`,
+    );
+    console.log(`   Sources: ${allowedSources.join(", ")}`);
+    console.log(`   Limit per source: ${searchLimit}\n`);
+
     // 1. Search for relevant papers across multiple sources
     // Search sequentially with delays to avoid rate limits
     const allResults: any[] = [];
@@ -68,19 +74,23 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
 
     // Search sources sequentially with 1.5s delay between each to avoid rate limits
     if (allowedSources.includes("crossref")) {
+      console.log("🔍 Searching Crossref...");
       const results = await searchWithRetry(
         () => sourceTools.searchCrossref(text, searchLimit),
         "Crossref",
       );
+      console.log(`   ✓ Found ${results.length} papers from Crossref`);
       allResults.push(results);
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
     if (allowedSources.includes("pubmed")) {
+      console.log("🔍 Searching PubMed...");
       const results = await searchWithRetry(
         () => sourceTools.searchPubMed(text, searchLimit),
         "PubMed",
       );
+      console.log(`   ✓ Found ${results.length} papers from PubMed`);
       allResults.push(results);
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
@@ -103,10 +113,15 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
     }
 
     const allPapers = allResults.flat();
+    console.log(`\n📚 Total papers found: ${allPapers.length}`);
     const deduped = sourceTools.dedupeCandidates(allPapers);
+    console.log(`   After deduplication: ${deduped.length} unique papers\n`);
 
     // 2. Fetch full details for top papers
     const topPapers = deduped.slice(0, Math.min(20, searchLimit * 2));
+    console.log(
+      `📄 Fetching full details for top ${topPapers.length} papers...`,
+    );
     const papersWithDetails = await Promise.all(
       topPapers.map(async (p) => {
         try {
@@ -116,6 +131,7 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
         }
       }),
     );
+    console.log(`   ✓ Fetched details for ${papersWithDetails.length} papers`);
 
     // 3. Extract claims from the research papers' content (not just the user text)
     const papersContext = papersWithDetails
@@ -124,7 +140,16 @@ export const buildClaimCards: NonNullable<MutationResolvers['buildClaimCards']> 
       .map((p) => `Title: ${p.title}\nAbstract: ${p.abstract}`)
       .join("\n\n---\n\n");
 
+    const papersWithAbstracts = papersWithDetails.filter(
+      (p) => p.abstract,
+    ).length;
+    console.log(`\n📝 Papers with abstracts: ${papersWithAbstracts}`);
+    console.log(`   Using top 10 for claim extraction\n`);
+
     if (papersContext) {
+      console.log(
+        `🤖 Extracting claims from research abstracts using DeepSeek...`,
+      );
       // Extract research-grounded claims
       const claimsSchema = z.object({
         claims: z
@@ -154,6 +179,9 @@ Extract 5-12 high-quality claims that summarize the research findings.`,
       });
 
       const extractedClaims = result.object.claims;
+      console.log(`   ✓ Extracted ${extractedClaims.length} claims\n`);
+      console.log(`🔬 Building claim cards with evidence mapping...`);
+      console.log(`   This involves searching for evidence for each claim\n`);
 
       // Build claim cards from these research-grounded claims
       cards = await claimCardsTools.buildClaimCardsFromClaims(extractedClaims, {
@@ -182,6 +210,8 @@ Extract 5-12 high-quality claims that summarize the research findings.`,
   } else {
     throw new Error("Must provide either text or claims");
   }
+
+  console.log(`\n✅ Successfully built ${cards.length} claim cards\n`);
 
   return { cards } as any;
 };

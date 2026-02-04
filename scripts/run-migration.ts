@@ -15,27 +15,38 @@ async function runMigration() {
 
   const migrationSQL = readFileSync("drizzle/0001_claim_cards.sql", "utf-8");
 
-  // Split by semicolons and execute each statement
-  const statements = migrationSQL
+  // Remove comments and split by semicolons, handling multi-line statements
+  const cleanedSQL = migrationSQL
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("--"))
+    .join("\n");
+
+  const statements = cleanedSQL
     .split(";")
     .map((s) => s.trim())
-    .filter((s) => s && !s.startsWith("--"));
+    .filter((s) => s.length > 0);
 
   console.log(`🔄 Executing ${statements.length} SQL statements...`);
 
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
-    console.log(
-      `  [${i + 1}/${statements.length}] Executing: ${stmt.substring(0, 60)}...`,
-    );
+    const preview =
+      stmt.length > 60
+        ? `${stmt.substring(0, 60)}...`
+        : stmt.substring(0, 60);
+    console.log(`  [${i + 1}/${statements.length}] ${preview}`);
     try {
       await client.execute(stmt);
       console.log(`  ✅ Success`);
     } catch (error: any) {
-      if (error.message?.includes("already exists")) {
+      if (
+        error.message?.includes("already exists") ||
+        error.message?.includes("duplicate")
+      ) {
         console.log(`  ⚠️  Already exists, skipping`);
       } else {
         console.error(`  ❌ Error: ${error.message}`);
+        console.error(`  Statement: ${stmt}`);
         throw error;
       }
     }

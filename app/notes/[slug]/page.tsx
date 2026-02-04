@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import * as Separator from "@radix-ui/react-separator";
+import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import {
   Theme,
   Container,
@@ -15,6 +17,9 @@ import {
   TextArea,
   Spinner,
   Link,
+  IconButton,
+  Grid,
+  Box,
 } from "@radix-ui/themes";
 import { ArrowLeftIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
@@ -26,6 +31,27 @@ import {
 } from "@/app/__generated__/hooks";
 import "./accordion.css";
 
+// Utility to format relative time
+function getRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function NotePageContent() {
   const router = useRouter();
   const params = useParams();
@@ -35,6 +61,7 @@ function NotePageContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [editTags, setEditTags] = useState("");
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const { data, loading, error } = useGetNoteQuery({
     variables: { slug, userId },
@@ -92,6 +119,34 @@ function NotePageContent() {
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority?.toLowerCase()) {
+      case "high":
+        return "red";
+      case "medium":
+        return "orange";
+      case "low":
+        return "blue";
+      default:
+        return "gray";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "green";
+      case "completed":
+        return "blue";
+      case "paused":
+        return "orange";
+      case "archived":
+        return "gray";
+      default:
+        return "gray";
+    }
+  };
+
   if (loading) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: "200px" }}>
@@ -110,64 +165,21 @@ function NotePageContent() {
     );
   }
 
+  const shouldTruncateDescription =
+    note.goal?.description && note.goal.description.length > 180;
+  const displayDescription = shouldTruncateDescription && !showFullDescription
+    ? note.goal?.description?.slice(0, 180) + "..."
+    : note.goal?.description;
+
   return (
-    <Flex direction="column" gap="4">
-      {note.goal && (
-        <Card style={{ backgroundColor: "var(--indigo-3)" }}>
-          <Flex direction="column" gap="3">
-            <Flex align="center" gap="2">
-              <Badge color="indigo" size="2">
-                Related Goal
-              </Badge>
-            </Flex>
-            <Heading size="5">{note.goal.title}</Heading>
-            {note.goal.description && (
-              <Text size="2" color="gray">
-                {note.goal.description}
-              </Text>
-            )}
-            <Flex gap="3" wrap="wrap">
-              <Flex align="center" gap="2">
-                <Badge color="green" variant="soft">
-                  {note.goal.status}
-                </Badge>
-                <Badge color="orange" variant="soft">
-                  {note.goal.priority} priority
-                </Badge>
-              </Flex>
-              {note.goal.targetDate && (
-                <Text size="1" color="gray">
-                  Target: {new Date(note.goal.targetDate).toLocaleDateString()}
-                </Text>
-              )}
-            </Flex>
-          </Flex>
-        </Card>
-      )}
-      
-      <Card>
-        <Flex direction="column" gap="4">
-          <Flex direction="column" gap="2">
-            <Flex align="center" gap="2">
-              <Badge color="blue">{note.noteType || "General"}</Badge>
-              <Text size="1" color="gray">
-                Created {new Date(note.createdAt).toLocaleDateString()}
-              </Text>
-            </Flex>
-            {note.tags && note.tags.length > 0 && (
-              <Flex gap="2" wrap="wrap">
-                {note.tags.map((tag, idx) => (
-                  <Badge key={idx} variant="soft">
-                    {tag}
-                  </Badge>
-                ))}
-              </Flex>
-            )}
-          </Flex>
-
-          <Text style={{ whiteSpace: "pre-wrap" }}>{note.content}</Text>
-
-          {note.linkedResearch && note.linkedResearch.length > 0 && (
+    <Grid
+      columns={{ initial: "1", md: "3fr 1fr" }}
+      gap="5"
+      style={{ alignItems: "start" }}
+    >
+      <Flex direction="column" gap="4">
+        {note.linkedResearch && note.linkedResearch.length > 0 && (
+          <Card>
             <Flex direction="column" gap="3">
               <Heading size="4">
                 Linked Research ({note.linkedResearch.length})
@@ -249,16 +261,217 @@ function NotePageContent() {
                 ))}
               </Accordion.Root>
             </Flex>
-          )}
+          </Card>
+        )}
+      </Flex>
 
-          {note.updatedAt !== note.createdAt && (
-            <Text size="1" color="gray">
-              Last updated {new Date(note.updatedAt).toLocaleDateString()}
-            </Text>
-          )}
-        </Flex>
-      </Card>
-    </Flex>
+      {/* Sidebar */}
+      <Flex direction="column" gap="4">
+        {/* Related Goal Card */}
+        {note.goal && (
+          <Card
+            style={{
+              backgroundColor: "var(--indigo-3)",
+              cursor: "pointer",
+              border: "1px solid var(--indigo-6)",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--indigo-4)";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--indigo-3)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+            onClick={() => router.push(`/goals/${note.goal?.id}`)}
+          >
+            <Flex direction="column" gap="2">
+              <Flex justify="between" align="center">
+                <Badge color="indigo" size="1">
+                  Related Goal
+                </Badge>
+                <ChevronRightIcon width="16" height="16" />
+              </Flex>
+              <Heading size="3" style={{ lineHeight: "1.3" }}>
+                {note.goal.title}
+              </Heading>
+              {note.goal.description && (
+                <>
+                  <Text size="1" color="gray" style={{ lineHeight: "1.5" }}>
+                    {displayDescription}
+                  </Text>
+                  {shouldTruncateDescription && (
+                    <Button
+                      variant="ghost"
+                      size="1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFullDescription(!showFullDescription);
+                      }}
+                      style={{ alignSelf: "flex-start", padding: "0" }}
+                    >
+                      {showFullDescription ? "Show less" : "Show more"}
+                    </Button>
+                  )}
+                </>
+              )}
+              <Separator.Root
+                style={{
+                  height: "1px",
+                  backgroundColor: "var(--indigo-6)",
+                  margin: "4px 0",
+                }}
+              />
+              <Flex gap="2" wrap="wrap" align="center">
+                <Badge
+                  color={getStatusColor(note.goal.status)}
+                  variant="solid"
+                  size="1"
+                >
+                  {note.goal.status}
+                </Badge>
+                <Badge
+                  color={getPriorityColor(note.goal.priority)}
+                  variant="outline"
+                  size="1"
+                >
+                  {note.goal.priority}
+                </Badge>
+                {note.goal.targetDate && (
+                  <Text size="1" color="gray">
+                    Due {getRelativeTime(note.goal.targetDate)}
+                  </Text>
+                )}
+              </Flex>
+            </Flex>
+          </Card>
+        )}
+
+        {/* Metadata Card */}
+        <Card>
+          <Flex direction="column" gap="3">
+            <Heading size="3">Details</Heading>
+            <Separator.Root
+              style={{
+                height: "1px",
+                backgroundColor: "var(--gray-6)",
+                margin: "0",
+              }}
+            />
+            
+            {/* Type */}
+            <Flex direction="column" gap="1">
+              <Text size="1" color="gray" weight="medium">
+                Type
+              </Text>
+              <Badge color="blue" size="1" variant="soft">
+                {note.noteType || "General"}
+              </Badge>
+            </Flex>
+
+            {/* Created */}
+            <Flex direction="column" gap="1">
+              <Text size="1" color="gray" weight="medium">
+                Created
+              </Text>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Text size="2" style={{ cursor: "help" }}>
+                      {getRelativeTime(note.createdAt)}
+                    </Text>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content
+                      style={{
+                        backgroundColor: "var(--gray-12)",
+                        color: "var(--gray-1)",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                      }}
+                      sideOffset={5}
+                    >
+                      {new Date(note.createdAt).toLocaleString("en-GB", {
+                        dateStyle: "full",
+                        timeStyle: "short",
+                      })}
+                      <Tooltip.Arrow
+                        style={{ fill: "var(--gray-12)" }}
+                      />
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
+            </Flex>
+
+            {/* Updated */}
+            {note.updatedAt !== note.createdAt && (
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray" weight="medium">
+                  Last updated
+                </Text>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Text size="2" style={{ cursor: "help" }}>
+                        {getRelativeTime(note.updatedAt)}
+                      </Text>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        style={{
+                          backgroundColor: "var(--gray-12)",
+                          color: "var(--gray-1)",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                        }}
+                        sideOffset={5}
+                      >
+                        {new Date(note.updatedAt).toLocaleString("en-GB", {
+                          dateStyle: "full",
+                          timeStyle: "short",
+                        })}
+                        <Tooltip.Arrow
+                          style={{ fill: "var(--gray-12)" }}
+                        />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
+              </Flex>
+            )}
+
+            {/* Tags */}
+            {note.tags && note.tags.length > 0 && (
+              <>
+                <Separator.Root
+                  style={{
+                    height: "1px",
+                    backgroundColor: "var(--gray-6)",
+                    margin: "4px 0",
+                  }}
+                />
+                <Flex direction="column" gap="2">
+                  <Text size="1" color="gray" weight="medium">
+                    Tags
+                  </Text>
+                  <Flex gap="1" wrap="wrap">
+                    {note.tags.map((tag, idx) => (
+                      <Badge key={idx} variant="soft" color="gray" size="1">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </Flex>
+                </Flex>
+              </>
+            )}
+          </Flex>
+        </Card>
+      </Flex>
+    </Grid>
   );
 }
 
@@ -268,6 +481,16 @@ const DynamicNotePageContent = dynamic(() => Promise.resolve(NotePageContent), {
 
 export default function NotePage() {
   const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string;
+  const userId = "demo-user";
+
+  const { data } = useGetNoteQuery({
+    variables: { slug, userId },
+    skip: !slug,
+  });
+
+  const note = data?.note;
 
   return (
     <Theme
@@ -277,18 +500,29 @@ export default function NotePage() {
       radius="medium"
       scaling="100%"
     >
-      <Container size="3" style={{ padding: "2rem" }}>
-        <Flex direction="column" gap="6">
-          <Flex align="center" gap="3">
+      <Container size="4" style={{ padding: "2rem" }}>
+        <Flex direction="column" gap="5">
+          {/* Header */}
+          <Flex direction="column" gap="1">
             <Button
               variant="ghost"
               onClick={() => router.push("/notes")}
-              style={{ cursor: "pointer" }}
+              style={{ alignSelf: "flex-start", padding: "0" }}
             >
-              <ArrowLeftIcon width="18" height="18" />
-              Back to Notes
+              <ArrowLeftIcon width="14" height="14" />
+              <Text size="2" color="gray">
+                Back to Notes
+              </Text>
             </Button>
-            <Heading size="8">Note Details</Heading>
+            {note?.title ? (
+              <>
+                <Heading size="7">{note.title}</Heading>
+              </>
+            ) : (
+              <Heading size="6" style={{ marginTop: "8px" }}>
+                Note details
+              </Heading>
+            )}
           </Flex>
 
           <DynamicNotePageContent />

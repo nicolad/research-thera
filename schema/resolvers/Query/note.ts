@@ -29,6 +29,7 @@ export const note: NonNullable<QueryResolvers['note']> = async (
     userId: foundNote.userId,
     noteType: foundNote.noteType || null,
     slug: foundNote.slug || null,
+    title: foundNote.title || null,
     content: foundNote.content,
     createdBy: foundNote.createdBy || null,
     tags: foundNote.tags || null,

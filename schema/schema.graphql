@@ -140,6 +140,7 @@ type Note {
   userId: String!
   noteType: String
   slug: String
+  title: String
   content: String!
   createdBy: String
   tags: [String!]
@@ -247,6 +248,7 @@ input CreateNoteInput {
   userId: String!
   noteType: String
   slug: String
+  title: String
   content: String!
   createdBy: String
   tags: [String!]
@@ -255,6 +257,7 @@ input CreateNoteInput {
 
 input UpdateNoteInput {
   noteType: String
+  title: String
   content: String
   createdBy: String
   tags: [String!]

@@ -1,7 +1,7 @@
 import type { MutationResolvers } from "./../../types.generated";
 import { tursoTools } from "@/src/mastra/tools/turso.tools";
 
-export const updateNote: NonNullable<MutationResolvers["updateNote"]> = async (
+export const updateNote: NonNullable<MutationResolvers['updateNote']> = async (
   _parent,
   args,
   ctx,

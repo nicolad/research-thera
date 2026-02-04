@@ -105,6 +105,7 @@ input CreateNoteInput {
   noteType: String
   slug: String
   tags: [String!]
+  title: String
   userId: String!
 }
 
@@ -291,6 +292,7 @@ type Note {
   noteType: String
   slug: String
   tags: [String!]
+  title: String
   updatedAt: String!
   userId: String!
 }
@@ -393,4 +395,5 @@ input UpdateNoteInput {
   linkedResearchIds: [Int!]
   noteType: String
   tags: [String!]
+  title: String
 }
