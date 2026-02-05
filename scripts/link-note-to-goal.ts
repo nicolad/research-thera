@@ -7,7 +7,7 @@
  *   tsx scripts/link-note-to-goal.ts --noteId=<id> --goalTitle="Goal Title"
  */
 
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools, getTurso } from "@/src/mastra/tools/turso.tools";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -51,7 +51,8 @@ async function main() {
     console.log("❌ No note specified. Use --noteSlug or --noteId");
     console.log("\nListing all existing notes:\n");
     
-    const result = await tursoTools.turso.execute({
+    const turso = getTurso();
+    const result = await turso.execute({
       sql: `SELECT id, slug, entity_type, entity_id, content, tags, created_at FROM notes WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
       args: [userId],
     });

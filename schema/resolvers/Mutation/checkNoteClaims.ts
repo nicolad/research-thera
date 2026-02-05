@@ -1,5 +1,5 @@
 import type { MutationResolvers } from "../../types.generated";
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools, getTurso } from "@/src/mastra/tools/turso.tools";
 import { buildClaimCardsFromItem } from "@/src/mastra/tools/generic-claim-cards.tools";
 import { createDeepSeekAdapters } from "@/src/mastra/adapters/deepseek.adapter";
 import { createResearchSourceResolver } from "@/src/mastra/adapters/research-resolver.adapter";
@@ -18,7 +18,8 @@ export const checkNoteClaims: NonNullable<MutationResolvers['checkNoteClaims']> 
 
   try {
     // 1. Fetch the note
-    const noteResult = await tursoTools.turso.execute({
+    const turso = getTurso();
+    const noteResult = await turso.execute({
       sql: `SELECT * FROM notes WHERE id = ?`,
       args: [noteId],
     });

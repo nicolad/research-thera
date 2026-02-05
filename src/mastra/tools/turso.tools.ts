@@ -667,7 +667,6 @@ export async function getGenerationJob(id: string) {
 }
 
 export const tursoTools = {
-  turso, // Expose turso client for direct access
   getGoal,
   listGoals,
   createGoal,
@@ -686,3 +685,7 @@ export const tursoTools = {
   updateGenerationJob,
   getGenerationJob,
 };
+
+// Export getTurso for internal use only (scripts, direct DB access)
+// DO NOT export turso proxy directly to avoid serialization issues
+export { getTurso };
