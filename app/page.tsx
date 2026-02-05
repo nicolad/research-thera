@@ -25,9 +25,9 @@ export default function Home() {
       <Container size="3" style={{ padding: "2rem" }}>
         <Flex direction="column" gap="6">
           <Flex direction="column" gap="2">
-            <Heading size="8">AI Therapist</Heading>
+            <Heading size="8">ResearchThera</Heading>
             <Text size="4" color="gray">
-              Research-backed therapy
+              Research-backed therapy notes and reflections powered by AI
             </Text>
           </Flex>
 

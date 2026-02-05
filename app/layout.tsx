@@ -3,9 +3,8 @@ import type { Metadata } from "next";
 import { ApolloProvider } from "./providers/ApolloProvider";
 
 export const metadata: Metadata = {
-  title: "AI Therapist",
-  description:
-    "Evidence-based therapeutic goal management and audio content generation",
+  title: "ResearchThera.com",
+  description: "Research-based therapeutic notes and reflections powered by AI",
 };
 
 export default function RootLayout({
