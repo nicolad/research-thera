@@ -7,49 +7,58 @@
  */
 
 import "dotenv/config";
-
-// Suppress AI SDK warnings
-(globalThis as any).AI_SDK_LOG_WARNINGS = false;
-
 import { tursoTools } from "@/src/db";
 import { generateTherapyResearchWorkflow } from "@/src/workflows/generateTherapyResearch.workflow";
 
-async function main() {
-  const userId = "demo-user";
-  const goalSlug = "advocating-for-yourself-in-interviews";
+const DEMO_USER_ID = "demo-user";
+const DEFAULT_GOAL_SLUG = "advocating-for-yourself-in-interviews";
 
-  console.log(`🔍 Generating therapy research for goal: "${goalSlug}"\n`);
+async function main() {
+  console.log(
+    `🔍 Generating therapy research for goal: "${DEFAULT_GOAL_SLUG}"\n`,
+  );
 
   try {
-    // Get the goal
-    const goal = await tursoTools.getGoalBySlug(goalSlug, userId);
+    // Fetch the goal
+    const goal = await tursoTools.getGoalBySlug(
+      DEFAULT_GOAL_SLUG,
+      DEMO_USER_ID,
+    );
+    if (!goal) {
+      throw new Error(`Goal not found: ${DEFAULT_GOAL_SLUG}`);
+    }
+
     console.log(`📌 Goal: ${goal.title}`);
     console.log(`   Description: ${goal.description?.substring(0, 100)}...\n`);
 
-    // Run the workflow
+    // Run the research generation workflow
     console.log("🔬 Running research generation workflow...\n");
     const run = await generateTherapyResearchWorkflow.createRun();
     const result = await run.start({
       inputData: {
-        userId,
+        userId: DEMO_USER_ID,
         goalId: goal.id,
       },
     });
 
     console.log("✅ Workflow completed!");
     console.log(`   Status: ${result.status}`);
-    if (result.status === "success") {
-      console.log(`   Message: ${result.result?.message || "No message"}`);
-      console.log(`   Papers found: ${result.result?.count || 0}\n`);
 
-      // Fetch and display the research that was saved
-      if (result.result?.count && result.result.count > 0) {
+    if (result.status === "success") {
+      const message = result.result?.message || "Workflow succeeded";
+      const count = result.result?.count || 0;
+
+      console.log(`   Message: ${message}`);
+      console.log(`   Papers found: ${count}\n`);
+
+      // Display found research papers
+      if (count > 0) {
         console.log("📚 Found research papers:\n");
         const research = await tursoTools.listTherapyResearch(goal.id);
 
         research.forEach((paper, index) => {
           console.log(`${index + 1}. ${paper.title}`);
-          console.log(`   Authors: ${paper.authors}`);
+          if (paper.authors) console.log(`   Authors: ${paper.authors}`);
           if (paper.year) console.log(`   Year: ${paper.year}`);
           if (paper.journal) console.log(`   Journal: ${paper.journal}`);
           if (paper.doi) console.log(`   DOI: ${paper.doi}`);
@@ -57,16 +66,17 @@ async function main() {
           console.log("");
         });
       }
+    } else if (result.status === "failed") {
+      const errorMsg = (result as any).error?.message || "Unknown error";
+      throw new Error(`Workflow failed: ${errorMsg}`);
     } else {
-      console.log(`   Error: Workflow did not complete successfully`);
-      if (result.status === "failed") {
-        console.log(
-          `   Failure: ${(result as any).error?.message || "Unknown error"}`,
-        );
-      }
+      throw new Error(
+        `Workflow completed with unexpected status: ${result.status}`,
+      );
     }
-  } catch (err: any) {
-    console.error("❌ Error:", err.message);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("❌ Error:", errorMessage);
     process.exit(1);
   }
 }
