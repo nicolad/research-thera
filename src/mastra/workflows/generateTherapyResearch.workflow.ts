@@ -8,7 +8,7 @@ import {
   createCompletenessScorer,
   createContextRelevanceScorerLLM,
 } from "@mastra/evals/scorers/prebuilt";
-import { tursoTools } from "../tools/turso.tools";
+import { tursoTools } from "@/src/db";
 import { ragTools } from "../tools/rag.tools";
 import { sourceTools } from "../tools/sources.tools";
 import { extractorTools } from "../tools/extractor.tools";
@@ -46,6 +46,8 @@ const loadContextStep = createStep({
   id: "load-context",
   inputSchema,
   outputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
     goal: z.object({
       id: z.number().int(),
       title: z.string(),
@@ -62,6 +64,8 @@ const loadContextStep = createStep({
     );
 
     return {
+      userId: inputData.userId,
+      goalId: inputData.goalId,
       goal: {
         id: goal.id,
         title: goal.title,
@@ -76,21 +80,32 @@ const loadContextStep = createStep({
 const planQueryStep = createStep({
   id: "plan-query",
   inputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
   }),
   outputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    goal: z.object({ title: z.string(), description: z.string().nullable() }),
+    notes: z.array(z.object({ content: z.string() })),
     therapeuticGoalType: z.string(),
     keywords: z.array(z.string()),
     inclusion: z.array(z.string()),
     exclusion: z.array(z.string()),
   }),
   execute: async ({ inputData }) => {
-    return extractorTools.plan({
+    const plan = await extractorTools.plan({
       title: inputData.goal.title,
       description: inputData.goal.description ?? "",
       notes: inputData.notes.map((n) => n.content),
     });
+    
+    return {
+      ...inputData,
+      ...plan,
+    };
   },
 });
 
@@ -98,10 +113,20 @@ const planQueryStep = createStep({
 const searchStep = createStep({
   id: "search",
   inputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    goal: z.any(),
+    notes: z.any(),
     therapeuticGoalType: z.string(),
     keywords: z.array(z.string()),
   }),
   outputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    goal: z.any(),
+    notes: z.any(),
+    therapeuticGoalType: z.string(),
+    keywords: z.array(z.string()),
     candidates: z.array(
       z.object({
         title: z.string(),
@@ -128,7 +153,10 @@ const searchStep = createStep({
       ...semantic,
     ]);
 
-    return { candidates };
+    return { 
+      ...inputData,
+      candidates 
+    };
   },
 });
 
@@ -338,17 +366,6 @@ export const generateTherapyResearchWorkflow = createWorkflow({
   outputSchema,
 })
   .then(loadContextStep)
-  .then(
-    createStep({
-      id: "prep-plan",
-      inputSchema: z.any(),
-      outputSchema: z.any(),
-      execute: async ({ inputData }) => ({
-        goal: inputData.goal,
-        notes: inputData.notes,
-      }),
-    }),
-  )
   .then(planQueryStep)
   .then(
     createStep({
@@ -358,6 +375,10 @@ export const generateTherapyResearchWorkflow = createWorkflow({
       execute: async ({ inputData }) => ({
         therapeuticGoalType: inputData.therapeuticGoalType,
         keywords: inputData.keywords,
+        userId: inputData.userId,
+        goalId: inputData.goalId,
+        goal: inputData.goal,
+        notes: inputData.notes,
       }),
     }),
   )
@@ -368,9 +389,17 @@ export const generateTherapyResearchWorkflow = createWorkflow({
       inputSchema: z.any(),
       outputSchema: z.any(),
       execute: async ({ inputData }) => ({
-        context: inputData["load-context"],
-        plan: inputData["plan-query"],
-        search: inputData.search,
+        context: {
+          goal: inputData.goal,
+          notes: inputData.notes,
+        },
+        plan: {
+          therapeuticGoalType: inputData.therapeuticGoalType,
+          keywords: inputData.keywords,
+        },
+        search: { candidates: inputData.candidates },
+        userId: inputData.userId,
+        goalId: inputData.goalId,
       }),
     }),
   )
@@ -381,14 +410,10 @@ export const generateTherapyResearchWorkflow = createWorkflow({
       inputSchema: z.any(),
       outputSchema: z.any(),
       execute: async ({ inputData }) => {
-        // Access the workflow's original input via inputData
-        const workflowInput = (inputData as any)?.userId
-          ? inputData
-          : { userId: "unknown", goalId: 0 };
         return {
-          userId: workflowInput.userId,
-          goalId: workflowInput.goalId,
-          results: inputData["extract-all"]?.results || [],
+          userId: inputData.userId,
+          goalId: inputData.goalId,
+          results: inputData.results || [],
         };
       },
     }),

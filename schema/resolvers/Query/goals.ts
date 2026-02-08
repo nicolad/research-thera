@@ -1,5 +1,5 @@
 import type { QueryResolvers } from "./../../types.generated";
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools } from "@/src/db";
 
 export const goals: NonNullable<QueryResolvers['goals']> = async (
   _parent,

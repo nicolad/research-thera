@@ -7,7 +7,7 @@
  *   tsx scripts/link-note-to-goal.ts --noteId=<id> --goalTitle="Goal Title"
  */
 
-import { tursoTools, turso } from "@/src/mastra/tools/turso.tools";
+import { tursoTools, turso } from "@/src/db";
 
 async function main() {
   const args = process.argv.slice(2);

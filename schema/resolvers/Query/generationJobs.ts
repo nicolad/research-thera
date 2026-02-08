@@ -1,5 +1,5 @@
 import type { QueryResolvers } from "./../../types.generated";
-import { turso } from "@/src/mastra/tools/turso.tools";
+import { turso } from "@/src/db";
 
 export const generationJobs: NonNullable<QueryResolvers['generationJobs']> = async (_parent, args, _ctx) => {
   let sql = `SELECT * FROM generation_jobs`;

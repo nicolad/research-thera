@@ -1,5 +1,5 @@
 import type { GoalResolvers } from "./../types.generated";
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools } from "@/src/db";
 
 export const Goal: GoalResolvers = {
   research: async (parent, _args, _ctx) => {

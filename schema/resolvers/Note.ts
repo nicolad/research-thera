@@ -1,5 +1,5 @@
 import type { NoteResolvers } from "./../types.generated";
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools } from "@/src/db";
 import { createTursoStorageAdapter } from "@/src/mastra/adapters/turso-storage.adapter";
 
 export const Note: NoteResolvers = {

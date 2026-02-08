@@ -1,5 +1,5 @@
 import type { MutationResolvers } from "./../../types.generated";
-import { turso } from "@/src/mastra/tools/turso.tools";
+import { turso } from "@/src/db";
 
 export const deleteGoal: NonNullable<MutationResolvers['deleteGoal']> = async (
   _parent,

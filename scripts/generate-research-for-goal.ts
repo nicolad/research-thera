@@ -7,7 +7,7 @@
  */
 
 import "dotenv/config";
-import { tursoTools } from "@/src/mastra/tools/turso.tools";
+import { tursoTools } from "@/src/db";
 import { generateTherapyResearchWorkflow } from "@/src/mastra/workflows/generateTherapyResearch.workflow";
 
 async function main() {

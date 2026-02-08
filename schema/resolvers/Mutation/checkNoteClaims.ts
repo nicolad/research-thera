@@ -1,5 +1,5 @@
 import type { MutationResolvers } from "../../types.generated";
-import { tursoTools, turso } from "@/src/mastra/tools/turso.tools";
+import { tursoTools, turso } from "@/src/db";
 import { buildClaimCardsFromItem } from "@/src/mastra/tools/generic-claim-cards.tools";
 import { createDeepSeekAdapters } from "@/src/mastra/adapters/deepseek.adapter";
 import { createResearchSourceResolver } from "@/src/mastra/adapters/research-resolver.adapter";
