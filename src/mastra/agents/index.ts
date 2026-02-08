@@ -2,9 +2,10 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { elevenlabs } from "@ai-sdk/elevenlabs";
 import { Agent } from "@mastra/core/agent";
 import { CompositeVoice } from "@mastra/core/voice";
-import { ElevenLabsVoice } from "@mastra/voice-elevenlabs";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
+
+import { createElevenLabsVoice } from "../../voice";
 
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
@@ -97,12 +98,7 @@ export const storyTellerAgent = new Agent({
   name: "Story Teller Agent",
   instructions: storyInstructions,
   model: deepseek("deepseek-chat"),
-  voice: new ElevenLabsVoice({
-    speechModel: {
-      apiKey: process.env.ELEVENLABS_API_KEY,
-    },
-    speaker: "JBFqnCBsd6RMkjVDRZzb", // George - Professional, calm voice
-  }),
+  voice: createElevenLabsVoice("george"), // Professional, calm voice
   memory: new Memory({
     storage: agentStorage,
   }),
@@ -177,12 +173,7 @@ export const therapeuticAgent = new Agent({
   name: "Therapeutic Audio Agent",
   instructions: therapeuticInstructions,
   model: deepseek("deepseek-chat"),
-  voice: new ElevenLabsVoice({
-    speechModel: {
-      apiKey: process.env.ELEVENLABS_API_KEY,
-    },
-    speaker: "JBFqnCBsd6RMkjVDRZzb", // George - Professional, calm voice
-  }),
+  voice: createElevenLabsVoice("george"), // Professional, calm voice
   memory: new Memory({
     storage: agentStorage,
   }),
