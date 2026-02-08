@@ -1,6 +1,8 @@
 import { createWorkflow, createStep } from "@mastra/core/workflows";
 import { z } from "zod";
 import { createDeepSeek } from "@ai-sdk/deepseek";
+import { generateObject } from "ai";
+import { Langfuse } from "langfuse";
 import { createResearchGroundingScorer } from "@/src/scorers";
 import {
   createFaithfulnessScorer,
@@ -15,6 +17,12 @@ import { extractorTools } from "@/src/tools/extractor.tools";
 
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
+});
+
+const langfuse = new Langfuse({
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+  secretKey: process.env.LANGFUSE_SECRET_KEY!,
+  baseUrl: process.env.LANGFUSE_BASE_URL!,
 });
 
 /**
@@ -76,7 +84,127 @@ const loadContextStep = createStep({
   },
 });
 
-// Step 2: Plan query
+// Step 2: Generate and save Langfuse prompts
+const generateLangfusePromptsStep = createStep({
+  id: "generate-langfuse-prompts",
+  inputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    goal: z.object({
+      id: z.number().int(),
+      title: z.string(),
+      description: z.string().nullable(),
+    }),
+    notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+  }),
+  outputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    goal: z.object({
+      id: z.number().int(),
+      title: z.string(),
+      description: z.string().nullable(),
+    }),
+    notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+    promptNames: z.object({
+      planner: z.string(),
+      extractor: z.string(),
+    }),
+  }),
+  execute: async ({ inputData }) => {
+    const goalSlug = inputData.goal.title
+      .toLowerCase()
+      .trim()
+      .replace(/['"]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const baseName = `goal/${goalSlug}`;
+    const plannerName = `${baseName}/planner`;
+    const extractorName = `${baseName}/extractor`;
+
+    console.log(
+      `\n🧠 Generating Langfuse prompts for: "${inputData.goal.title}"`,
+    );
+
+    const notesText = inputData.notes.map((n) => n.content).join("\n");
+
+    // Generate both prompts in parallel
+    const [{ object: plannerObj }, { object: extractorObj }] =
+      await Promise.all([
+        generateObject({
+          model: deepseek("deepseek-chat"),
+          schema: z.object({
+            prompt: z.string(),
+          }),
+          temperature: 0.2,
+          prompt: `Generate a Langfuse planner prompt for this goal.
+Goal: ${inputData.goal.title}
+Description: ${inputData.goal.description}
+Notes: ${notesText}
+
+The prompt must use Langfuse variables: {{goalTitle}}, {{goalDescription}}, {{notes}}
+Output a JSON plan with: track, mustHavePhrases, exclusionTerms, clusters, queries, relevanceRubric.
+Return only valid JSON with "prompt" key containing the prompt text.`,
+        }),
+        generateObject({
+          model: deepseek("deepseek-chat"),
+          schema: z.object({
+            prompt: z.string(),
+          }),
+          temperature: 0.2,
+          prompt: `Generate a Langfuse extractor prompt for this goal.
+Goal: ${inputData.goal.title}
+Description: ${inputData.goal.description}
+
+The prompt must use Langfuse variables: {{goalTitle}}, {{goalDescription}}, {{paperTitle}}, {{paperAbstract}}, {{paperAuthors}}
+Output a structured extraction schema: track, studyType, keyFindings, practicalTakeaways, relevanceScore, confidence.
+Domain: Career interview self-advocacy only. Exclude: forensic, legal, police, child, court, medical diagnostic.
+Return only valid JSON with "prompt" key containing the prompt text.`,
+        }),
+      ]);
+
+    // Save to Langfuse
+    try {
+      await langfuse.createPrompt({
+        name: plannerName,
+        type: "text",
+        prompt: plannerObj.prompt,
+        labels: ["staging", "generated", "career-interview"],
+        config: { model: "deepseek-chat", temperature: 0.2 },
+      });
+      console.log(`✅ Saved planner prompt: ${plannerName}`);
+    } catch (err) {
+      console.warn(`⚠️ Could not save planner prompt: ${err}`);
+    }
+
+    try {
+      await langfuse.createPrompt({
+        name: extractorName,
+        type: "text",
+        prompt: extractorObj.prompt,
+        labels: ["staging", "generated", "career-interview"],
+        config: { model: "deepseek-chat", temperature: 0.2 },
+      });
+      console.log(`✅ Saved extractor prompt: ${extractorName}`);
+    } catch (err) {
+      console.warn(`⚠️ Could not save extractor prompt: ${err}`);
+    }
+
+    return {
+      userId: inputData.userId,
+      goalId: inputData.goalId,
+      goal: inputData.goal,
+      notes: inputData.notes,
+      promptNames: {
+        planner: plannerName,
+        extractor: extractorName,
+      },
+    };
+  },
+});
+
+// Step 3: Plan query
 const planQueryStep = createStep({
   id: "plan-query",
   inputSchema: z.object({
@@ -84,12 +212,24 @@ const planQueryStep = createStep({
     goalId: z.number().int(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
+    promptNames: z
+      .object({
+        planner: z.string(),
+        extractor: z.string(),
+      })
+      .optional(),
   }),
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
+    promptNames: z
+      .object({
+        planner: z.string(),
+        extractor: z.string(),
+      })
+      .optional(),
     therapeuticGoalType: z.string(),
     keywords: z.array(z.string()),
     inclusion: z.array(z.string()),
@@ -109,7 +249,7 @@ const planQueryStep = createStep({
   },
 });
 
-// Step 3: Multi-source search
+// Step 4: Multi-source search
 const searchStep = createStep({
   id: "search",
   inputSchema: z.object({
@@ -117,6 +257,7 @@ const searchStep = createStep({
     goalId: z.number().int(),
     goal: z.any(),
     notes: z.any(),
+    promptNames: z.any().optional(),
     therapeuticGoalType: z.string(),
     keywords: z.array(z.string()),
   }),
@@ -125,6 +266,7 @@ const searchStep = createStep({
     goalId: z.number().int(),
     goal: z.any(),
     notes: z.any(),
+    promptNames: z.any().optional(),
     therapeuticGoalType: z.string(),
     keywords: z.array(z.string()),
     candidates: z.array(
@@ -149,7 +291,9 @@ const searchStep = createStep({
       sourceTools.searchSemanticScholar(q, 15),
     ]);
 
-    console.log(`📚 Raw results: Crossref(${crossref.length}), PubMed(${pubmed.length}), Semantic(${semantic.length})`);
+    console.log(
+      `📚 Raw results: Crossref(${crossref.length}), PubMed(${pubmed.length}), Semantic(${semantic.length})`,
+    );
 
     // Deduplicate
     const deduped = sourceTools.dedupeCandidates([
@@ -174,7 +318,7 @@ const searchStep = createStep({
   },
 });
 
-// Step 4: Extract one paper with eval gating
+// Step 5: Extract one paper with eval gating
 const extractOneStep = createStep({
   id: "extract-one",
   inputSchema: z.object({
@@ -280,7 +424,7 @@ const extractOneStep = createStep({
   },
 });
 
-// Step 5: Extract all candidates
+// Step 6: Extract all candidates
 const extractAllStep = createStep({
   id: "extract-all",
   inputSchema: z.object({
@@ -289,10 +433,12 @@ const extractAllStep = createStep({
     context: z.any(),
     plan: z.any(),
     search: z.any(),
+    promptNames: z.any().optional(),
   }),
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    promptNames: z.any().optional(),
     results: z.array(z.any()),
   }),
   execute: async ({ inputData }) => {
@@ -327,12 +473,13 @@ const extractAllStep = createStep({
     return {
       userId: inputData.userId,
       goalId: inputData.goalId,
+      promptNames: inputData.promptNames,
       results,
     };
   },
 });
 
-// Step 6: Persist results + embed
+// Step 7: Persist results + embed
 const persistStep = createStep({
   id: "persist",
   inputSchema: z.object({
@@ -349,26 +496,32 @@ const persistStep = createStep({
       .filter((r) => r.ok && r.research)
       .filter((r) => {
         const research = r.research;
-        
+
         // Gate on relevance score
         if (research.relevanceScore < 0.6) {
-          console.log(`❌ Rejected (low relevance ${research.relevanceScore}): "${research.title}"`);
+          console.log(
+            `❌ Rejected (low relevance ${research.relevanceScore}): "${research.title}"`,
+          );
           return false;
         }
-        
+
         // Gate on key findings
         if (!research.keyFindings || research.keyFindings.length === 0) {
           console.log(`❌ Rejected (no key findings): "${research.title}"`);
           return false;
         }
-        
+
         // Gate on extraction confidence
         if (research.extractionConfidence < 0.5) {
-          console.log(`❌ Rejected (low confidence ${research.extractionConfidence}): "${research.title}"`);
+          console.log(
+            `❌ Rejected (low confidence ${research.extractionConfidence}): "${research.title}"`,
+          );
           return false;
         }
-        
-        console.log(`✅ Accepted (${research.relevanceScore.toFixed(2)} relevance, ${research.extractionConfidence.toFixed(2)} confidence): "${research.title}"`);
+
+        console.log(
+          `✅ Accepted (${research.relevanceScore.toFixed(2)} relevance, ${research.extractionConfidence.toFixed(2)} confidence): "${research.title}"`,
+        );
         return true;
       })
       .sort((a, b) => b.score - a.score);
@@ -417,6 +570,7 @@ export const generateTherapyResearchWorkflow = createWorkflow({
   outputSchema,
 })
   .then(loadContextStep)
+  .then(generateLangfusePromptsStep)
   .then(planQueryStep)
   .then(searchStep)
   .then(
@@ -427,6 +581,7 @@ export const generateTherapyResearchWorkflow = createWorkflow({
       execute: async ({ inputData }) => ({
         userId: inputData.userId,
         goalId: inputData.goalId,
+        promptNames: inputData.promptNames,
         context: {
           goal: inputData.goal,
           notes: inputData.notes,
