@@ -268,9 +268,30 @@ export async function upsertTherapyResearch(
     }
   }
 
-  const authorsJson = JSON.stringify(research.authors);
-  const keyFindingsJson = JSON.stringify(research.keyFindings);
-  const techniquesJson = JSON.stringify(research.therapeuticTechniques);
+  const authorsJson = JSON.stringify(
+    (research.authors || []).filter((a: any) => typeof a === "string"),
+  );
+  const keyFindingsJson = JSON.stringify(
+    (research.keyFindings || []).filter((k: any) => typeof k === "string"),
+  );
+  const techniquesJson = JSON.stringify(
+    (research.therapeuticTechniques || []).filter(
+      (t: any) => typeof t === "string",
+    ),
+  );
+
+  // Validate and sanitize numeric values - SQLite doesn't support NaN or Infinity
+  const sanitizeNumber = (
+    value: number | undefined | null,
+    defaultValue: number = 0,
+  ): number | null => {
+    if (value === null || value === undefined) return null;
+    if (!Number.isFinite(value)) return defaultValue;
+    return value;
+  };
+
+  const relevanceScore = sanitizeNumber(research.relevanceScore, 0);
+  const extractionConfidence = sanitizeNumber(research.extractionConfidence, 0);
 
   if (existingId) {
     // Update existing
@@ -302,9 +323,9 @@ export async function upsertTherapyResearch(
         keyFindingsJson,
         techniquesJson,
         research.evidenceLevel || null,
-        research.relevanceScore,
+        relevanceScore,
         research.extractedBy,
-        research.extractionConfidence,
+        extractionConfidence,
         existingId,
       ],
     });
@@ -330,9 +351,9 @@ export async function upsertTherapyResearch(
         keyFindingsJson,
         techniquesJson,
         research.evidenceLevel || null,
-        research.relevanceScore,
+        relevanceScore,
         research.extractedBy,
-        research.extractionConfidence,
+        extractionConfidence,
       ],
     });
     return Number(result.lastInsertRowid);

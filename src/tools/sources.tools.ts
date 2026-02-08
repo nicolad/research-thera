@@ -118,6 +118,51 @@ export function titleFingerprint(title: string): string {
 }
 
 /**
+ * Retry fetch with exponential backoff for rate limiting
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  maxRetries: number = 3,
+): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+
+      // If rate limited, wait and retry
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("retry-after");
+        const waitMs = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.min(1000 * Math.pow(2, attempt), 10000); // Exponential backoff, max 10s
+
+        console.log(
+          `Rate limited (429). Waiting ${waitMs}ms before retry ${attempt + 1}/${maxRetries}...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (attempt < maxRetries - 1) {
+        const waitMs = Math.min(1000 * Math.pow(2, attempt), 10000);
+        console.log(
+          `Fetch error. Waiting ${waitMs}ms before retry ${attempt + 1}/${maxRetries}...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+      }
+    }
+  }
+
+  throw lastError || new Error("Max retries exceeded");
+}
+
+/**
  * Score a candidate match against a target paper
  */
 export function scoreCandidate(
@@ -265,7 +310,7 @@ export async function searchPubMed(
     searchUrl.searchParams.set("retmax", limit.toString());
     searchUrl.searchParams.set("retmode", "json");
 
-    const searchResponse = await fetch(searchUrl.toString());
+    const searchResponse = await fetchWithRetry(searchUrl.toString());
     if (!searchResponse.ok) {
       console.error(`PubMed search error: ${searchResponse.status}`);
       return [];
@@ -286,7 +331,7 @@ export async function searchPubMed(
     summaryUrl.searchParams.set("id", idList.join(","));
     summaryUrl.searchParams.set("retmode", "json");
 
-    const summaryResponse = await fetch(summaryUrl.toString());
+    const summaryResponse = await fetchWithRetry(summaryUrl.toString());
     if (!summaryResponse.ok) {
       console.error(`PubMed summary error: ${summaryResponse.status}`);
       return [];
@@ -338,7 +383,7 @@ export async function searchSemanticScholar(
       "title,abstract,year,authors,externalIds,journal,url",
     );
 
-    const response = await fetch(url.toString());
+    const response = await fetchWithRetry(url.toString());
 
     if (!response.ok) {
       console.error(`Semantic Scholar API error: ${response.status}`);
@@ -725,6 +770,19 @@ export async function fetchPaperDetails(
   candidate: PaperCandidate,
 ): Promise<PaperDetails> {
   try {
+    // First, check if we have enriched data from OpenAlex (attached during enrichment step)
+    const enriched = candidate as any;
+    if (enriched._enrichedAbstract) {
+      return {
+        ...candidate,
+        abstract: enriched._enrichedAbstract,
+        year: candidate.year || enriched._enrichedYear,
+        journal: candidate.journal || enriched._enrichedVenue,
+        authors: candidate.authors || enriched._enrichedAuthors || [],
+        doi: normalizeDoi(candidate.doi),
+      };
+    }
+
     // Try to enrich from Crossref if we have a DOI
     if (candidate.doi) {
       const url = `https://api.crossref.org/works/${encodeURIComponent(candidate.doi)}`;

@@ -1,17 +1,115 @@
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { Langfuse } from "langfuse";
 import type { PaperDetails } from "./sources.tools";
 
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
+const langfuse = new Langfuse({
+  secretKey: process.env.LANGFUSE_SECRET_KEY,
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+  baseUrl: process.env.LANGFUSE_BASE_URL,
+});
+
 /**
  * Research Extraction Tools
- * Structured extraction of therapeutic research using AI SDK
+ * Now uses Langfuse-backed prompts (fetched at runtime, no hardcoded templates)
  */
 
+function toVars(input: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(input))
+    out[k] = v == null ? "" : String(v);
+  return out;
+}
+
+async function getCompiledTextPrompt(params: {
+  name: string;
+  vars: Record<string, unknown>;
+}) {
+  const p = await langfuse.getPrompt(params.name, undefined, {
+    type: "text",
+  });
+  const compiled: string = p.compile(toVars(params.vars));
+
+  if (compiled.includes("{{")) {
+    throw new Error(
+      `Unresolved {{variables}} in compiled Langfuse prompt "${params.name}".`,
+    );
+  }
+  return compiled;
+}
+
+/**
+ * Planner output schema (career interview self-advocacy)
+ * NOTE: This is what your Langfuse planner template must produce.
+ */
+const PlanSchema = z.object({
+  goalType: z.enum([
+    "career_interview_self_advocacy",
+    "communication_training",
+    "interview_training",
+  ]),
+  keywords: z.array(z.string()).min(3),
+  inclusion: z.array(z.string()).default([]),
+  exclusion: z.array(z.string()).default([]),
+
+  // Query pack (key for recall/volume)
+  semanticScholarQueries: z.array(z.string()).min(2),
+  crossrefQueries: z.array(z.string()).min(2),
+  pubmedQueries: z.array(z.string()).min(1),
+});
+
+export type ResearchPlan = z.infer<typeof PlanSchema>;
+
+/**
+ * Extractor output schema (career-focused, not clinical therapy)
+ */
+const CareerResearchSchema = z.object({
+  domain: z.enum([
+    "io_psych",
+    "career_coaching",
+    "communication_training",
+    "other",
+  ]),
+  paperMeta: z.object({
+    title: z.string(),
+    authors: z.array(z.string()),
+    year: z.number().int().nullable(),
+    venue: z.string().nullable(),
+    doi: z.string().nullable(),
+    url: z.string().nullable(),
+  }),
+  studyType: z.enum([
+    "meta-analysis",
+    "RCT",
+    "field study",
+    "lab study",
+    "quasi-experimental",
+    "review",
+    "other",
+  ]),
+  populationContext: z.string().nullable(),
+  interventionOrSkill: z.string().nullable(),
+  keyFindings: z.array(z.string()),
+  evidenceSnippets: z.array(
+    z.object({
+      findingIndex: z.number().int(),
+      snippet: z.string(),
+    }),
+  ),
+  practicalTakeaways: z.array(z.string()),
+  relevanceScore: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1),
+  rejectReason: z.string().nullable(),
+});
+
+export type ExtractedCareerResearch = z.infer<typeof CareerResearchSchema>;
+
+// Legacy schema for backward compatibility
 const TherapyResearchSchema = z.object({
   therapeuticGoalType: z
     .string()
@@ -51,9 +149,161 @@ const TherapyResearchSchema = z.object({
 export type ExtractedResearch = z.infer<typeof TherapyResearchSchema>;
 
 /**
- * Extract structured research from paper
+ * Convert legacy ExtractedResearch to new CareerResearchSchema format
+ */
+function convertLegacyToCareerSchema(
+  legacy: ExtractedResearch,
+): ExtractedCareerResearch {
+  return {
+    domain: "career_coaching", // default domain for legacy conversions
+    paperMeta: {
+      title: legacy.title,
+      authors: legacy.authors,
+      year: legacy.year,
+      venue: legacy.journal,
+      doi: legacy.doi,
+      url: legacy.url,
+    },
+    studyType: (legacy.evidenceLevel as any) ?? "other",
+    populationContext: null,
+    interventionOrSkill: legacy.therapeuticTechniques?.join(", ") ?? null,
+    keyFindings: legacy.keyFindings,
+    evidenceSnippets: legacy.keyFindings.map((finding, idx) => ({
+      findingIndex: idx,
+      snippet: finding,
+    })),
+    practicalTakeaways: legacy.therapeuticTechniques ?? [],
+    relevanceScore: legacy.relevanceScore,
+    confidence: legacy.extractionConfidence,
+    rejectReason:
+      legacy.relevanceScore < 0.5 ? "below_relevance_threshold" : null,
+  };
+}
+
+/**
+ * Plan research query using Langfuse-backed planner prompt
+ */
+export async function planResearchQuery(params: {
+  title: string;
+  description: string;
+  notes: string[];
+  plannerPromptName: string; // from workflow ensure step
+  timeHorizonDays?: number;
+  roleFamily?: string;
+}): Promise<ResearchPlan> {
+  const {
+    title,
+    description,
+    notes,
+    plannerPromptName,
+    timeHorizonDays = 14,
+    roleFamily = "software engineering",
+  } = params;
+
+  const compiledPrompt = await getCompiledTextPrompt({
+    name: plannerPromptName,
+    vars: {
+      goalTitle: title,
+      goalDescription: description,
+      notes: notes.join("\n- "),
+      timeHorizonDays,
+      roleFamily,
+    },
+  });
+
+  const { object } = await generateObject({
+    model: deepseek("deepseek-chat"),
+    schema: PlanSchema,
+    prompt: compiledPrompt,
+  });
+
+  return object;
+}
+
+/**
+ * Extract research using Langfuse-backed extractor prompt
  */
 export async function extractResearch(params: {
+  goalTitle: string;
+  goalDescription: string;
+  goalType: string;
+  paper: PaperDetails;
+  extractorPromptName: string; // from workflow ensure step
+}): Promise<ExtractedCareerResearch> {
+  const { goalTitle, goalDescription, goalType, paper, extractorPromptName } =
+    params;
+
+  const compiledPrompt = await getCompiledTextPrompt({
+    name: extractorPromptName,
+    vars: {
+      goalTitle,
+      goalDescription,
+      goalType,
+      paperTitle: paper.title ?? "",
+      paperAuthors: (paper.authors ?? []).join(", "),
+      paperYear: paper.year ?? "",
+      paperVenue: paper.journal ?? "",
+      paperDoi: paper.doi ?? "",
+      paperUrl: paper.url ?? "",
+      paperAbstract: paper.abstract ?? "",
+    },
+  });
+
+  // Append explicit schema instructions to ensure valid JSON output
+  const schemaInstructions = `
+
+REQUIRED JSON OUTPUT FORMAT:
+{
+  "domain": "io_psych" | "career_coaching" | "communication_training" | "other",
+  "paperMeta": {
+    "title": "string",
+    "authors": ["string"],
+    "year": number | null,
+    "venue": "string" | null,
+    "doi": "string" | null,
+    "url": "string" | null
+  },
+  "studyType": "meta-analysis" | "RCT" | "field study" | "lab study" | "quasi-experimental" | "review" | "other",
+  "populationContext": "string" | null,
+  "interventionOrSkill": "string" | null,
+  "keyFindings": ["string"],
+  "evidenceSnippets": [{ "findingIndex": number, "snippet": "string" }],
+  "practicalTakeaways": ["string"],
+  "relevanceScore": number (0-1),
+  "confidence": number (0-1),
+  "rejectReason": "string" | null
+}
+
+CRITICAL: Return VALID JSON ONLY. No markdown, no code blocks, no extra text.`;
+
+  try {
+    const { object } = await generateObject({
+      model: deepseek("deepseek-chat"),
+      schema: CareerResearchSchema,
+      prompt: compiledPrompt + schemaInstructions,
+    });
+
+    return object;
+  } catch (err) {
+    console.error(
+      `⚠️ Schema validation failed for "${paper.title}". Falling back to legacy extraction.`,
+    );
+    // Fallback to legacy extraction on schema mismatch
+    const legacyResult = await extractResearchLegacy({
+      therapeuticGoalType: goalType,
+      goalTitle,
+      goalDescription,
+      paper,
+    });
+    return convertLegacyToCareerSchema(legacyResult);
+  }
+}
+
+/**
+ * Legacy extract (for backward compatibility with existing workflow)
+ * This will be deprecated once the workflow is fully migrated
+ */
+export async function extractResearchLegacy(params: {
   therapeuticGoalType: string;
   goalTitle: string;
   goalDescription: string;
@@ -140,9 +390,9 @@ Instructions:
 }
 
 /**
- * Plan research query
+ * Legacy plan for backward compatibility (old therapeutic goal schema)
  */
-export async function planResearchQuery(params: {
+export async function planResearchQueryLegacy(params: {
   title: string;
   description: string;
   notes: string[];
@@ -151,45 +401,106 @@ export async function planResearchQuery(params: {
 
   const { object } = await generateObject({
     model: deepseek("deepseek-chat"),
+    temperature: 1.5,
     schema: z.object({
       therapeuticGoalType: z.string().describe("Type of therapeutic goal"),
-      keywords: z.array(z.string()).describe("Search keywords (5-8 terms)"),
+      keywords: z
+        .array(z.string())
+        .describe("Core search keywords (5-8 terms)"),
+      semanticScholarQueries: z
+        .array(z.string())
+        .describe("20-40 diverse queries for Semantic Scholar"),
+      crossrefQueries: z
+        .array(z.string())
+        .describe("20-45 queries for Crossref"),
+      pubmedQueries: z
+        .array(z.string())
+        .describe("20-40 MeSH-friendly queries for PubMed"),
       inclusion: z.array(z.string()).describe("Inclusion criteria"),
       exclusion: z.array(z.string()).describe("Exclusion criteria"),
     }),
-    prompt: `Plan a research query for this THERAPEUTIC/PSYCHOLOGICAL goal.
+    prompt: `Plan a research query strategy for this WORKPLACE/CAREER PSYCHOLOGY goal.
 
 Goal: ${title}
 Description: ${description}
 Notes: ${notes.join("\n- ")}
 
-Generate search keywords and criteria for finding CLINICAL/THERAPEUTIC research papers.
+Generate MULTIPLE diverse queries to maximize recall from different databases.
 
-CRITICAL CONTEXT GUIDELINES:
-- This is about MENTAL HEALTH, THERAPY, or PERSONAL DEVELOPMENT
-- Focus on psychological, counseling, or behavioral research
-- Add context words like: therapy, psychological, mental health, counseling, behavioral, clinical
-- For workplace/career topics: add "workplace psychology", "occupational therapy", "career counseling"
-- For social topics: add "social anxiety", "interpersonal therapy", "communication skills therapy"
+CRITICAL DOMAIN MAPPING:
+- This is about WORKPLACE/CAREER PSYCHOLOGY and ORGANIZATIONAL BEHAVIOR
+- Use terms like: "occupational psychology", "industrial-organizational psychology", "I-O psychology"
+- NEVER use "occupational therapy" (that's rehabilitation medicine)
+- For interviews: "job interview", "employment interview", "structured interview", "behavioral interview"
+- For self-advocacy: "self-promotion", "impression management", "self-efficacy", "assertiveness"
 
-EXCLUSION EXAMPLES:
-- If goal mentions "interviews": EXCLUDE forensic, legal, police, child, medical interviews
-- If goal mentions "relationships": EXCLUDE studies on animals, non-human subjects
-- If goal mentions technical topics: focus on the PSYCHOLOGICAL aspects only
+QUERY STRATEGY:
+1. Semantic Scholar queries (20-40): Mix broad + specific, use synonyms
+   Examples: "job interview anxiety", "employment interview self-efficacy", "workplace impression management"
 
-1. Therapeutic goal type: Classify as specific therapy type (e.g., "social anxiety therapy", "workplace confidence counseling")
-2. Search keywords: Include therapeutic context + specific topic (e.g., "job interview anxiety CBT", "workplace assertiveness therapy")
-3. Inclusion criteria: Must be about therapeutic/psychological interventions for humans
-4. Exclusion criteria: Filter out forensic, legal, medical, non-therapeutic contexts
+2. Crossref queries (20-45): Use natural language, include context
+   Examples: "interview preparation coaching", "self-advocacy workplace", "interview anxiety reduction"
 
-Be specific and ALWAYS include therapeutic/psychological context in keywords.`,
+3. PubMed queries (20-40): Use MeSH terms if biomedical overlap exists
+   Examples: "social anxiety AND interviews", "self-efficacy AND employment"
+
+STRICT EXCLUSIONS:
+- forensic, legal, police, witness, court, criminal, abuse
+- child, pediatric, school counseling (unless specifically about career counseling for students)
+- medical diagnostic interviews
+- pre-admission interviews (medical school)
+
+THERAPEUTIC FOCUS:
+- Stick to psychological interventions: CBT, coaching, training programs
+- Include terms: anxiety, confidence, skills training, self-efficacy, coaching
+
+Return 40-87 total queries across all sources for maximum recall.`,
   });
 
   return object;
 }
 
+/**
+ * Sanitize plan to remove poison terms
+ */
+export function sanitizePlan(plan: {
+  therapeuticGoalType?: string;
+  goalType?: string;
+  keywords: string[];
+  semanticScholarQueries?: string[];
+  crossrefQueries?: string[];
+  pubmedQueries?: string[];
+  inclusion?: string[];
+  exclusion?: string[];
+}) {
+  // Replace "occupational therapy" with "occupational psychology"
+  const ban = /\boccupational therapy\b/gi;
+  const replacement = "occupational psychology";
+
+  const fixString = (s: string) => s.replace(ban, replacement);
+  const fixArray = (arr: string[]) => (arr ?? []).map(fixString);
+
+  return {
+    ...plan,
+    therapeuticGoalType: plan.therapeuticGoalType
+      ? fixString(plan.therapeuticGoalType)
+      : undefined,
+    goalType: plan.goalType ? fixString(plan.goalType) : undefined,
+    keywords: fixArray(plan.keywords),
+    semanticScholarQueries: fixArray(plan.semanticScholarQueries ?? []),
+    crossrefQueries: fixArray(plan.crossrefQueries ?? []),
+    pubmedQueries: fixArray(plan.pubmedQueries ?? []),
+    inclusion: fixArray(plan.inclusion ?? []),
+    exclusion: plan.exclusion ?? [],
+  };
+}
+
 export const extractorTools = {
   extract: extractResearch,
-  repair: repairResearch,
   plan: planResearchQuery,
+  repair: repairResearch,
+  sanitize: sanitizePlan,
+  // Legacy exports
+  extractLegacy: extractResearchLegacy,
+  planLegacy: planResearchQueryLegacy,
 };

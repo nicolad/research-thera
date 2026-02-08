@@ -10,6 +10,8 @@ import "dotenv/config";
 import { tursoTools, turso } from "@/src/db";
 import { generateTherapyResearchWorkflow } from "@/src/workflows/generateTherapyResearch.workflow";
 
+// Suppress AI SDK warnings
+(globalThis as any).AI_SDK_LOG_WARNINGS = false;
 
 const DEMO_USER_ID = "demo-user";
 const DEFAULT_GOAL_SLUG = "advocating-for-yourself-in-interviews";
