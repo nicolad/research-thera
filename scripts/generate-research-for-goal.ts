@@ -7,8 +7,9 @@
  */
 
 import "dotenv/config";
-import { tursoTools } from "@/src/db";
+import { tursoTools, turso } from "@/src/db";
 import { generateTherapyResearchWorkflow } from "@/src/workflows/generateTherapyResearch.workflow";
+
 
 const DEMO_USER_ID = "demo-user";
 const DEFAULT_GOAL_SLUG = "advocating-for-yourself-in-interviews";
@@ -30,6 +31,15 @@ async function main() {
 
     console.log(`📌 Goal: ${goal.title}`);
     console.log(`   Description: ${goal.description?.substring(0, 100)}...\n`);
+
+    // Clean up existing research before generating new research
+    console.log("🧹 Cleaning up existing research...");
+    const deleteResult = await turso.execute({
+      sql: `DELETE FROM therapy_research WHERE goal_id = ?`,
+      args: [goal.id],
+    });
+    const deletedCount = deleteResult.rowsAffected || 0;
+    console.log(`   Deleted ${deletedCount} old research papers\n`);
 
     // Run the research generation workflow
     console.log("🔬 Running research generation workflow...\n");

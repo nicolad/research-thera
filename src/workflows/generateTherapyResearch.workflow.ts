@@ -140,6 +140,8 @@ const searchStep = createStep({
   execute: async ({ inputData }) => {
     const q = inputData.keywords.join(" ");
 
+    console.log(`\n🔍 Searching for: "${q}"`);
+
     // Parallel search across sources
     const [crossref, pubmed, semantic] = await Promise.all([
       sourceTools.searchCrossref(q, 15),
@@ -147,15 +149,27 @@ const searchStep = createStep({
       sourceTools.searchSemanticScholar(q, 15),
     ]);
 
-    const candidates = sourceTools.dedupeCandidates([
+    console.log(`📚 Raw results: Crossref(${crossref.length}), PubMed(${pubmed.length}), Semantic(${semantic.length})`);
+
+    // Deduplicate
+    const deduped = sourceTools.dedupeCandidates([
       ...crossref,
       ...pubmed,
       ...semantic,
     ]);
 
+    console.log(`🔗 After dedup: ${deduped.length} candidates`);
+
+    // Apply quality filters: book chapters, irrelevant titles, short abstracts
+    const filtered = sourceTools.applyQualityFilters(deduped, {
+      minAbstractLength: 200,
+    });
+
+    console.log(`✅ After quality filters: ${filtered.length} candidates\n`);
+
     return {
       ...inputData,
-      candidates,
+      candidates: filtered,
     };
   },
 });
@@ -328,9 +342,38 @@ const persistStep = createStep({
   }),
   outputSchema,
   execute: async ({ inputData }) => {
+    console.log(`\n📊 Extraction results: ${inputData.results.length} total\n`);
+
+    // Apply strict multi-field gating
     const good = inputData.results
       .filter((r) => r.ok && r.research)
+      .filter((r) => {
+        const research = r.research;
+        
+        // Gate on relevance score
+        if (research.relevanceScore < 0.6) {
+          console.log(`❌ Rejected (low relevance ${research.relevanceScore}): "${research.title}"`);
+          return false;
+        }
+        
+        // Gate on key findings
+        if (!research.keyFindings || research.keyFindings.length === 0) {
+          console.log(`❌ Rejected (no key findings): "${research.title}"`);
+          return false;
+        }
+        
+        // Gate on extraction confidence
+        if (research.extractionConfidence < 0.5) {
+          console.log(`❌ Rejected (low confidence ${research.extractionConfidence}): "${research.title}"`);
+          return false;
+        }
+        
+        console.log(`✅ Accepted (${research.relevanceScore.toFixed(2)} relevance, ${research.extractionConfidence.toFixed(2)} confidence): "${research.title}"`);
+        return true;
+      })
       .sort((a, b) => b.score - a.score);
+
+    console.log(`\n✨ ${good.length} papers passed strict gating\n`);
 
     // Take top 12 high-confidence papers
     const top = good.slice(0, 12);
@@ -361,8 +404,8 @@ const persistStep = createStep({
       success: true,
       count,
       message: count
-        ? `Generated ${count} high-confidence research papers`
-        : "No high-confidence research found",
+        ? `Generated ${count} high-quality research papers`
+        : "No papers met quality thresholds (relevanceScore >= 0.6, extractionConfidence >= 0.5, keyFindings present)",
     };
   },
 });
