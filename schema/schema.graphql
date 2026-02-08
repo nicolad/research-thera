@@ -1,6 +1,6 @@
 type Query {
   goals(familyMemberId: Int, status: String, userId: String!): [Goal!]!
-  goal(id: Int!, userId: String!): Goal
+  goal(id: Int, slug: String, userId: String!): Goal
   research(goalId: Int!, userId: String!): [Research!]!
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!
@@ -63,6 +63,7 @@ type Goal {
   id: Int!
   familyMemberId: Int!
   userId: String!
+  slug: String
   title: String!
   description: String
   targetDate: String

@@ -208,6 +208,7 @@ type Goal {
   priority: String!
   questions: [TherapeuticQuestion!]!
   research: [Research!]!
+  slug: String
   status: String!
   stories: [GoalStory!]!
   targetDate: String
@@ -316,7 +317,7 @@ type Query {
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
-  goal(id: Int!, userId: String!): Goal
+  goal(id: Int, slug: String, userId: String!): Goal
   goals(familyMemberId: Int, status: String, userId: String!): [Goal!]!
   note(id: Int, slug: String, userId: String!): Note
   notes(entityId: Int!, entityType: String!, userId: String!): [Note!]!

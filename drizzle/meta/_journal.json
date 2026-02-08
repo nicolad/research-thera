@@ -15,6 +15,13 @@
       "when": 1770202419984,
       "tag": "0001_tiny_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1770583261523,
+      "tag": "0002_lyrical_the_renegades",
+      "breakpoints": true
     }
   ]
 }

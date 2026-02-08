@@ -1,9 +1,11 @@
 import type { QueryResolvers } from "./../../types.generated";
+import { tursoTools } from "@/src/mastra/tools/turso.tools";
 
 export const research: NonNullable<QueryResolvers['research']> = async (
   _parent,
-  _arg,
+  args,
   _ctx,
 ) => {
-  throw new Error("research resolver not implemented");
+  const researchList = await tursoTools.listTherapyResearch(args.goalId);
+  return researchList;
 };

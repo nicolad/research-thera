@@ -247,6 +247,7 @@ export type Goal = {
   priority: Scalars['String']['output'];
   questions: Array<TherapeuticQuestion>;
   research: Array<Research>;
+  slug?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
   targetDate?: Maybe<Scalars['String']['output']>;
@@ -484,7 +485,8 @@ export type QuerygenerationJobsArgs = {
 
 
 export type QuerygoalArgs = {
-  id: Scalars['Int']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  slug?: InputMaybe<Scalars['String']['input']>;
   userId: Scalars['String']['input'];
 };
 
@@ -936,6 +938,7 @@ export type GoalResolvers<ContextType = GraphQLContext, ParentType extends Resol
   priority?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   questions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType>;
   research?: Resolver<Array<ResolversTypes['Research']>, ParentType, ContextType>;
+  slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   stories?: Resolver<Array<ResolversTypes['GoalStory']>, ParentType, ContextType>;
   targetDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1035,7 +1038,7 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   claimCardsForNote?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType, RequireFields<QueryclaimCardsForNoteArgs, 'noteId'>>;
   generationJob?: Resolver<Maybe<ResolversTypes['GenerationJob']>, ParentType, ContextType, RequireFields<QuerygenerationJobArgs, 'id'>>;
   generationJobs?: Resolver<Array<ResolversTypes['GenerationJob']>, ParentType, ContextType, Partial<QuerygenerationJobsArgs>>;
-  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType, RequireFields<QuerygoalArgs, 'id' | 'userId'>>;
+  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType, RequireFields<QuerygoalArgs, 'userId'>>;
   goals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType, RequireFields<QuerygoalsArgs, 'userId'>>;
   note?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynoteArgs, 'userId'>>;
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynotesArgs, 'entityId' | 'entityType' | 'userId'>>;

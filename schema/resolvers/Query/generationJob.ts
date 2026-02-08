@@ -1,5 +1,23 @@
 import type { QueryResolvers } from "./../../types.generated";
+import { tursoTools } from "@/src/mastra/tools/turso.tools";
 
-export const generationJob: NonNullable<QueryResolvers['generationJob']> = async (_parent, _arg, _ctx) => {
-  throw new Error("generationJob resolver not implemented");
+export const generationJob: NonNullable<QueryResolvers['generationJob']> = async (_parent, args, _ctx) => {
+  const job = await tursoTools.getGenerationJob(args.id);
+  if (!job) {
+    throw new Error(`Generation job ${args.id} not found`);
+  }
+
+  return {
+    id: job.id,
+    userId: job.userId,
+    type: job.type as any,
+    goalId: job.goalId,
+    storyId: job.storyId,
+    status: job.status as any,
+    progress: job.progress,
+    result: job.result,
+    error: job.error,
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+  };
 };

@@ -23,6 +23,7 @@ export async function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       family_member_id INTEGER NOT NULL,
       user_id TEXT NOT NULL,
+      slug TEXT UNIQUE,
       title TEXT NOT NULL,
       description TEXT,
       target_date TEXT,

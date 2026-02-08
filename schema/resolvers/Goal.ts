@@ -11,10 +11,22 @@ export const Goal: GoalResolvers = {
     const notes = await tursoTools.listNotesForEntity(
       parent.id,
       "Goal",
-      parent.userId
+      parent.userId,
     );
     return notes;
   },
 
-  // questions, stories, and therapeuticText fields are handled by the database layer
+  questions: async (parent, _args, _ctx) => {
+    const questions = await tursoTools.listTherapeuticQuestions(parent.id);
+    return questions;
+  },
+
+  stories: async (parent, _args, _ctx) => {
+    const stories = await tursoTools.listGoalStories(parent.id);
+    return stories.map((story) => ({
+      ...story,
+      segments: [],
+      audioAssets: [],
+    }));
+  },
 };

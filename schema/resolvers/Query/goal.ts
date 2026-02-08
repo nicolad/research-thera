@@ -1,9 +1,39 @@
 import type { QueryResolvers } from "./../../types.generated";
+import { tursoTools } from "@/src/mastra/tools/turso.tools";
 
-export const goal: NonNullable<QueryResolvers['goal']> = async (
+export const goal: NonNullable<QueryResolvers["goal"]> = async (
   _parent,
-  _arg,
+  args,
   _ctx,
 ) => {
-  throw new Error("goal resolver not implemented");
+  let goal;
+
+  if (args.slug) {
+    goal = await tursoTools.getGoalBySlug(args.slug, args.userId);
+  } else if (args.id) {
+    goal = await tursoTools.getGoal(args.id, args.userId);
+  } else {
+    throw new Error("Either id or slug must be provided");
+  }
+
+  return {
+    id: goal.id,
+    familyMemberId: goal.familyMemberId,
+    userId: goal.userId,
+    slug: goal.slug,
+    title: goal.title,
+    description: goal.description,
+    targetDate: goal.targetDate,
+    status: goal.status,
+    priority: goal.priority,
+    therapeuticText: goal.therapeuticText,
+    therapeuticTextLanguage: goal.therapeuticTextLanguage,
+    therapeuticTextGeneratedAt: goal.therapeuticTextGeneratedAt,
+    createdAt: goal.createdAt,
+    updatedAt: goal.updatedAt,
+    questions: [],
+    stories: [],
+    notes: [],
+    research: [],
+  } as any;
 };

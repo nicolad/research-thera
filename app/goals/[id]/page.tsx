@@ -25,12 +25,21 @@ import "./accordion.css";
 function GoalPageContent() {
   const router = useRouter();
   const params = useParams();
-  const goalId = parseInt(params.id as string);
+  const paramValue = params.id as string;
   const userId = "demo-user";
 
+  // Determine if paramValue is a number (ID) or string (slug)
+  const isNumericId = /^\d+$/.test(paramValue);
+  const goalId = isNumericId ? parseInt(paramValue) : undefined;
+  const goalSlug = !isNumericId ? paramValue : undefined;
+
   const { data, loading, error } = useGetGoalQuery({
-    variables: { id: goalId, userId },
-    skip: !goalId,
+    variables: {
+      id: goalId,
+      slug: goalSlug,
+      userId,
+    },
+    skip: !goalId && !goalSlug,
   });
 
   const goal = data?.goal;

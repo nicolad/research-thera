@@ -32,6 +32,37 @@ export async function getGoal(goalId: number, userId: string) {
     id: row.id as number,
     familyMemberId: row.family_member_id as number,
     userId: row.user_id as string,
+    slug: (row.slug as string) || null,
+    title: row.title as string,
+    description: (row.description as string) || null,
+    targetDate: (row.target_date as string) || null,
+    status: row.status as string,
+    priority: row.priority as string,
+    therapeuticText: (row.therapeutic_text as string) || null,
+    therapeuticTextLanguage: (row.therapeutic_text_language as string) || null,
+    therapeuticTextGeneratedAt:
+      (row.therapeutic_text_generated_at as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function getGoalBySlug(slug: string, userId: string) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM goals WHERE slug = ? AND user_id = ?`,
+    args: [slug, userId],
+  });
+
+  if (result.rows.length === 0) {
+    throw new Error(`Goal with slug "${slug}" not found`);
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    userId: row.user_id as string,
+    slug: (row.slug as string) || null,
     title: row.title as string,
     description: (row.description as string) || null,
     targetDate: (row.target_date as string) || null,
@@ -84,6 +115,7 @@ export async function listGoals(
 export async function createGoal(params: {
   familyMemberId: number;
   userId: string;
+  slug?: string;
   title: string;
   description?: string | null;
   targetDate?: string | null;
@@ -93,12 +125,13 @@ export async function createGoal(params: {
   const status = "active";
 
   const result = await turso.execute({
-    sql: `INSERT INTO goals (family_member_id, user_id, title, description, target_date, status, priority)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO goals (family_member_id, user_id, slug, title, description, target_date, status, priority)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           RETURNING id`,
     args: [
       params.familyMemberId,
       params.userId,
+      params.slug || null,
       params.title,
       params.description || null,
       params.targetDate || null,
@@ -108,54 +141,6 @@ export async function createGoal(params: {
   });
 
   return result.rows[0].id as number;
-}
-
-export async function updateGoal(
-  goalId: number,
-  userId: string,
-  updates: {
-    title?: string;
-    description?: string | null;
-    targetDate?: string | null;
-    status?: string;
-    priority?: string;
-  },
-) {
-  const fields: string[] = [];
-  const args: any[] = [];
-
-  if (updates.title !== undefined) {
-    fields.push("title = ?");
-    args.push(updates.title);
-  }
-
-  if (updates.description !== undefined) {
-    fields.push("description = ?");
-    args.push(updates.description);
-  }
-
-  if (updates.targetDate !== undefined) {
-    fields.push("target_date = ?");
-    args.push(updates.targetDate);
-  }
-
-  if (updates.status !== undefined) {
-    fields.push("status = ?");
-    args.push(updates.status);
-  }
-
-  if (updates.priority !== undefined) {
-    fields.push("priority = ?");
-    args.push(updates.priority);
-  }
-
-  fields.push("updated_at = datetime('now')");
-  args.push(goalId, userId);
-
-  await turso.execute({
-    sql: `UPDATE goals SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
-    args,
-  });
 }
 
 // ============================================
@@ -643,11 +628,90 @@ export async function getGenerationJob(id: string) {
   };
 }
 
+// ============================================
+// Therapeutic Questions
+// ============================================
+
+export async function listTherapeuticQuestions(goalId: number) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM therapeutic_questions WHERE goal_id = ? ORDER BY created_at DESC`,
+    args: [goalId],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    question: row.question as string,
+    researchId: (row.research_id as number) || null,
+    researchTitle: (row.research_title as string) || null,
+    rationale: row.rationale as string,
+    generatedAt: row.generated_at as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+// ============================================
+// Goal Stories
+// ============================================
+
+export async function listGoalStories(goalId: number) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM goal_stories WHERE goal_id = ? ORDER BY created_at DESC`,
+    args: [goalId],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    language: row.language as string,
+    minutes: row.minutes as number,
+    text: row.text as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getTextSegmentsForStory(storyId: number) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM text_segments WHERE story_id = ? ORDER BY idx ASC`,
+    args: [storyId],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    storyId: (row.story_id as number) || null,
+    idx: row.idx as number,
+    text: row.text as string,
+    createdAt: row.created_at as string,
+  }));
+}
+
+export async function getAudioAssetsForStory(storyId: number) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM audio_assets WHERE story_id = ? ORDER BY created_at DESC`,
+    args: [storyId],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as string,
+    userId: row.user_id as string,
+    goalId: row.goal_id as number,
+    storyId: (row.story_id as number) || null,
+    language: row.language as string,
+    voice: row.voice as string,
+    mimeType: row.mime_type as string,
+    manifest: JSON.parse(row.manifest as string),
+    createdAt: row.created_at as string,
+  }));
+}
+
 export const tursoTools = {
   getGoal,
+  getGoalBySlug,
   listGoals,
   createGoal,
-  updateGoal,
   upsertTherapyResearch,
   listTherapyResearch,
   getResearchForNote,
@@ -661,6 +725,10 @@ export const tursoTools = {
   createGenerationJob,
   updateGenerationJob,
   getGenerationJob,
+  listTherapeuticQuestions,
+  listGoalStories,
+  getTextSegmentsForStory,
+  getAudioAssetsForStory,
 };
 
 // Export turso client for direct database access in scripts

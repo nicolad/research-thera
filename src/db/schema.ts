@@ -5,6 +5,7 @@ export const goals = sqliteTable("goals", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   familyMemberId: integer("family_member_id").notNull(),
   userId: text("user_id").notNull(),
+  slug: text("slug").unique(),
   title: text("title").notNull(),
   description: text("description"),
   targetDate: text("target_date"),

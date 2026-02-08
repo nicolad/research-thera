@@ -1,5 +1,25 @@
 import type { QueryResolvers } from "./../../types.generated";
+import { turso } from "@/src/mastra/tools/turso.tools";
 
-export const therapeuticQuestions: NonNullable<QueryResolvers['therapeuticQuestions']> = async (_parent, _arg, _ctx) => {
-  throw new Error("therapeuticQuestions resolver not implemented");
+export const therapeuticQuestions: NonNullable<QueryResolvers['therapeuticQuestions']> = async (
+  _parent,
+  args,
+  _ctx,
+) => {
+  const result = await turso.execute({
+    sql: `SELECT * FROM therapeutic_questions WHERE goal_id = ? ORDER BY created_at DESC`,
+    args: [args.goalId],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    question: row.question as string,
+    researchId: (row.research_id as number) || null,
+    researchTitle: (row.research_title as string) || null,
+    rationale: row.rationale as string,
+    generatedAt: row.generated_at as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
 };

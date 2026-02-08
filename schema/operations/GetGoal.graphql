@@ -1,6 +1,7 @@
-query GetGoal($id: Int!, $userId: String!) {
-  goal(id: $id, userId: $userId) {
+query GetGoal($id: Int, $slug: String, $userId: String!) {
+  goal(id: $id, slug: $slug, userId: $userId) {
     id
+    slug
     title
     description
     status
