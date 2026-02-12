@@ -218,6 +218,7 @@ export type GenerateOpenAiAudioInput = {
   responseFormat?: InputMaybe<OpenAiAudioFormat>;
   speed?: InputMaybe<Scalars['Float']['input']>;
   text: Scalars['String']['input'];
+  uploadToCloud?: InputMaybe<Scalars['Boolean']['input']>;
   voice?: InputMaybe<OpenAittsVoice>;
 };
 
@@ -226,6 +227,7 @@ export type GenerateOpenAiAudioResult = {
   audioBuffer?: Maybe<Scalars['String']['output']>;
   audioUrl?: Maybe<Scalars['String']['output']>;
   duration?: Maybe<Scalars['Float']['output']>;
+  key?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   sizeBytes?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];

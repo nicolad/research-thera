@@ -139,6 +139,7 @@ function StoryPageContent() {
             model: OpenAittsModel.Gpt_4OMiniTts,
             speed: 0.9,
             responseFormat: OpenAiAudioFormat.Mp3,
+            uploadToCloud: true, // Upload to Cloudflare R2
           },
         },
       });
@@ -149,6 +150,28 @@ function StoryPageContent() {
         );
       }
 
+      // Check if we got a cloud URL
+      const audioUrl = result.data.generateOpenAIAudio.audioUrl;
+      if (audioUrl) {
+        // Use cloud URL directly
+        const audio = new Audio(audioUrl);
+
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          setAudioElement(null);
+        };
+
+        audio.onerror = () => {
+          setIsPlayingAudio(false);
+          setAudioElement(null);
+        };
+
+        setAudioElement(audio);
+        await audio.play();
+        return;
+      }
+
+      // Fallback to base64 audio buffer
       const audioBuffer = result.data.generateOpenAIAudio.audioBuffer;
       if (!audioBuffer) {
         throw new Error("No audio data received");
@@ -163,19 +186,19 @@ function StoryPageContent() {
       const blob = new Blob([bytes], { type: "audio/mpeg" });
 
       // Create audio element
-      const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
+      const blobUrl = URL.createObjectURL(blob);
+      const audio = new Audio(blobUrl);
 
       audio.onended = () => {
         setIsPlayingAudio(false);
         setAudioElement(null);
-        URL.revokeObjectURL(audioUrl);
+        URL.revokeObjectURL(blobUrl);
       };
 
       audio.onerror = () => {
         setIsPlayingAudio(false);
         setAudioElement(null);
-        URL.revokeObjectURL(audioUrl);
+        URL.revokeObjectURL(blobUrl);
       };
 
       setAudioElement(audio);

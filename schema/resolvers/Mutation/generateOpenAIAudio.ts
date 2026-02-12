@@ -1,18 +1,22 @@
 import type { MutationResolvers } from "./../../types.generated";
 import OpenAI from "openai";
+import { uploadToR2, generateAudioKey } from "@/lib/r2-uploader";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIAudio']> = async (_parent, args, ctx) => {
+export const generateOpenAIAudio: NonNullable<
+  MutationResolvers["generateOpenAIAudio"]
+> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");
   }
 
   try {
-    const { text, voice, model, speed, responseFormat } = args.input;
+    const { text, voice, model, speed, responseFormat, uploadToCloud } =
+      args.input;
 
     if (!text) {
       throw new Error("Text is required");
@@ -42,6 +46,32 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Upload to Cloudflare R2 if requested
+    if (uploadToCloud) {
+      const key = generateAudioKey("graphql-tts");
+      const result = await uploadToR2({
+        key,
+        body: buffer,
+        contentType: `audio/${format}`,
+        metadata: {
+          voice: openAIVoice,
+          model: openAIModel,
+          textLength: text.length.toString(),
+          generatedBy: userEmail,
+        },
+      });
+
+      return {
+        success: true,
+        message: "Audio generated and uploaded to R2",
+        audioBuffer: null,
+        audioUrl: result.publicUrl,
+        key: result.key,
+        sizeBytes: result.sizeBytes,
+        duration: null,
+      };
+    }
+
     // Convert to base64 for GraphQL response
     const base64Audio = buffer.toString("base64");
 
@@ -50,6 +80,7 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
       message: "Audio generated successfully",
       audioBuffer: base64Audio,
       audioUrl: null,
+      key: null,
       sizeBytes: buffer.length,
       duration: null,
     };
@@ -61,6 +92,7 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
         error instanceof Error ? error.message : "Failed to generate audio",
       audioBuffer: null,
       audioUrl: null,
+      key: null,
       sizeBytes: null,
       duration: null,
     };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { MDocument } from "@mastra/rag";
+import { uploadToR2, generateAudioKey } from "@/lib/r2-uploader";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ async function chunkTextForSpeech(text: string): Promise<string[]> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, voice } = await request.json();
+    const { text, voice, uploadToCloud } = await request.json();
 
     if (!text) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
@@ -63,6 +64,30 @@ export async function POST(request: NextRequest) {
       // Combine all chunks into a single buffer
       const combined = Buffer.concat(audioChunks);
 
+      // Upload to R2 if requested
+      if (uploadToCloud) {
+        const key = generateAudioKey("tts");
+        const result = await uploadToR2({
+          key,
+          body: combined,
+          contentType: "audio/mpeg",
+          metadata: {
+            voice: selectedVoice,
+            model: "gpt-4o-mini-tts",
+            textLength: text.length.toString(),
+            chunks: chunks.length.toString(),
+          },
+        });
+
+        return NextResponse.json({
+          success: true,
+          audioUrl: result.publicUrl,
+          key: result.key,
+          sizeBytes: result.sizeBytes,
+        });
+      }
+
+      // Return audio directly
       return new NextResponse(combined, {
         headers: {
           "Content-Type": "audio/mpeg",
@@ -71,7 +96,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // For short text, stream directly using OpenAI's streaming
+    // For short text, stream directly
     const response = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
       voice: selectedVoice,
@@ -80,7 +105,32 @@ export async function POST(request: NextRequest) {
       speed: 0.9,
     });
 
-    // Convert response to web stream
+    // Upload to R2 if requested
+    if (uploadToCloud) {
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const key = generateAudioKey("tts");
+      const result = await uploadToR2({
+        key,
+        body: buffer,
+        contentType: "audio/mpeg",
+        metadata: {
+          voice: selectedVoice,
+          model: "gpt-4o-mini-tts",
+          textLength: text.length.toString(),
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        audioUrl: result.publicUrl,
+        key: result.key,
+        sizeBytes: result.sizeBytes,
+      });
+    }
+
+    // Convert response to web stream for direct streaming
     const stream = new ReadableStream({
       async start(controller) {
         try {

@@ -182,6 +182,7 @@ input GenerateOpenAIAudioInput {
   responseFormat: OpenAIAudioFormat
   speed: Float
   text: String!
+  uploadToCloud: Boolean
   voice: OpenAITTSVoice
 }
 
@@ -189,6 +190,7 @@ type GenerateOpenAIAudioResult {
   audioBuffer: String
   audioUrl: String
   duration: Float
+  key: String
   message: String
   sizeBytes: Int
   success: Boolean!

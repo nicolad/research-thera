@@ -505,6 +505,7 @@ input GenerateOpenAIAudioInput {
   model: OpenAITTSModel
   speed: Float
   responseFormat: OpenAIAudioFormat
+  uploadToCloud: Boolean
 }
 
 type GenerateOpenAIAudioResult {
@@ -512,6 +513,7 @@ type GenerateOpenAIAudioResult {
   message: String
   audioBuffer: String
   audioUrl: String
+  key: String
   sizeBytes: Int
   duration: Float
 }

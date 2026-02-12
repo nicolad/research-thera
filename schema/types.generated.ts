@@ -218,6 +218,7 @@ export type GenerateOpenAIAudioInput = {
   responseFormat?: InputMaybe<OpenAIAudioFormat>;
   speed?: InputMaybe<Scalars['Float']['input']>;
   text: Scalars['String']['input'];
+  uploadToCloud?: InputMaybe<Scalars['Boolean']['input']>;
   voice?: InputMaybe<OpenAITTSVoice>;
 };
 
@@ -226,6 +227,7 @@ export type GenerateOpenAIAudioResult = {
   audioBuffer?: Maybe<Scalars['String']['output']>;
   audioUrl?: Maybe<Scalars['String']['output']>;
   duration?: Maybe<Scalars['Float']['output']>;
+  key?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   sizeBytes?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];
@@ -1013,6 +1015,7 @@ export type GenerateOpenAIAudioResultResolvers<ContextType = GraphQLContext, Par
   audioBuffer?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   duration?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  key?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   sizeBytes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
