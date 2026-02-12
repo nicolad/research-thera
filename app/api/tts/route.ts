@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { elevenlabs, THERAPEUTIC_VOICES } from "@/lib/elevenlabs";
+import OpenAI from "openai";
 import { MDocument } from "@mastra/rag";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_CHARS = 9500; // ElevenLabs limit is 10,000, use 9,500 to be safe
+const MAX_CHARS = 4000; // OpenAI limit is 4096, use 4000 to be safe
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 async function chunkTextForSpeech(text: string): Promise<string[]> {
   // Create MDocument from text
@@ -26,61 +30,38 @@ async function chunkTextForSpeech(text: string): Promise<string[]> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, voiceId } = await request.json();
+    const { text, voice } = await request.json();
 
     if (!text) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 
-    // Use George voice by default (professional, calm, reassuring)
-    const selectedVoiceId = voiceId || THERAPEUTIC_VOICES.george.id;
+    // Use alloy voice by default (calm, clear, professional)
+    // Other options: ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer
+    const selectedVoice = voice || "alloy";
 
     // Check if text needs to be chunked
     if (text.length > MAX_CHARS) {
       const chunks = await chunkTextForSpeech(text);
 
       // Process chunks and combine audio
-      const audioChunks: Uint8Array[] = [];
+      const audioChunks: Buffer[] = [];
 
       for (const chunk of chunks) {
-        const audioStream = await elevenlabs.textToSpeech.stream(
-          selectedVoiceId,
-          {
-            modelId: "eleven_multilingual_v2",
-            text: chunk,
-            outputFormat: "mp3_44100_128",
-            voiceSettings: {
-              stability: 0.5,
-              similarityBoost: 0.75,
-              useSpeakerBoost: true,
-              speed: 0.9,
-            },
-          },
-        );
+        const response = await openai.audio.speech.create({
+          model: "gpt-4o-mini-tts",
+          voice: selectedVoice,
+          input: chunk,
+          response_format: "mp3",
+          speed: 0.9,
+        });
 
-        const reader = audioStream.getReader();
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            if (value) audioChunks.push(value);
-          }
-        } finally {
-          reader.releaseLock();
-        }
+        const buffer = Buffer.from(await response.arrayBuffer());
+        audioChunks.push(buffer);
       }
 
       // Combine all chunks into a single buffer
-      const totalLength = audioChunks.reduce(
-        (sum, chunk) => sum + chunk.length,
-        0,
-      );
-      const combined = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const chunk of audioChunks) {
-        combined.set(chunk, offset);
-        offset += chunk.length;
-      }
+      const combined = Buffer.concat(audioChunks);
 
       return new NextResponse(combined, {
         headers: {
@@ -90,23 +71,25 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // For short text, stream directly
-    const audioStream = await elevenlabs.textToSpeech.stream(selectedVoiceId, {
-      modelId: "eleven_multilingual_v2",
-      text,
-      outputFormat: "mp3_44100_128",
-      voiceSettings: {
-        stability: 0.5,
-        similarityBoost: 0.75,
-        useSpeakerBoost: true,
-        speed: 0.9,
-      },
+    // For short text, stream directly using OpenAI's streaming
+    const response = await openai.audio.speech.create({
+      model: "gpt-4o-mini-tts",
+      voice: selectedVoice,
+      input: text,
+      response_format: "mp3",
+      speed: 0.9,
     });
 
+    // Convert response to web stream
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = audioStream.getReader();
         try {
+          const reader = response.body?.getReader();
+          if (!reader) {
+            controller.close();
+            return;
+          }
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
@@ -117,8 +100,6 @@ export async function POST(request: NextRequest) {
           }
         } catch (error) {
           controller.error(error);
-        } finally {
-          reader.releaseLock();
         }
       },
     });

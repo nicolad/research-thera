@@ -57,6 +57,7 @@
     "langfuse": "^3.38.6",
     "mastra": "latest",
     "next": "16.1.6",
+    "openai": "^6.21.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "uuid": "^11.0.4",
