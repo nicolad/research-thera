@@ -10,12 +10,12 @@ import {
   Heading,
   Text,
   Card,
-  Button,
   Badge,
   Spinner,
   Link,
   Separator,
 } from "@radix-ui/themes";
+import { GlassButton } from "@/app/components/GlassButton";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -215,9 +215,13 @@ function GoalPageContent() {
             <Heading size="4">
               Stories {goal.userStories ? `(${goal.userStories.length})` : ""}
             </Heading>
-            <Button size="2" onClick={handleAddStory}>
+            <GlassButton
+              variant="primary"
+              size="medium"
+              onClick={handleAddStory}
+            >
               Add Story
-            </Button>
+            </GlassButton>
           </Flex>
 
           {goal.userStories && goal.userStories.length > 0 ? (
@@ -392,23 +396,14 @@ export default function GoalPage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <Link href="/goals" underline="none">
-            <Button
-              variant="soft"
-              size="2"
-              radius="full"
-              color="gray"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push("/goals");
-              }}
-            >
-              <ArrowLeftIcon />
-              <Text as="span" size="2" weight="medium">
-                Goals
-              </Text>
-            </Button>
-          </Link>
+          <GlassButton
+            variant="secondary"
+            size="medium"
+            onClick={() => router.push("/goals")}
+          >
+            <ArrowLeftIcon />
+            Goals
+          </GlassButton>
 
           <Separator orientation="vertical" />
 

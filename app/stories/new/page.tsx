@@ -7,13 +7,13 @@ import {
   Flex,
   Heading,
   Text,
-  Button,
   Link,
   Separator,
   TextArea,
   Card,
   Spinner,
 } from "@radix-ui/themes";
+import { GlassButton } from "@/app/components/GlassButton";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
   useCreateStoryMutation,
@@ -79,38 +79,22 @@ function NewStoryContent() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <Link
-            href={
-              goal?.slug
-                ? `/goals/${goal.slug}`
-                : goalId
-                  ? `/goals/${goalId}`
-                  : "/goals"
-            }
-            underline="none"
+          <GlassButton
+            variant="secondary"
+            size="medium"
+            onClick={() => {
+              if (goal?.slug) {
+                router.push(`/goals/${goal.slug}`);
+              } else if (goalId) {
+                router.push(`/goals/${goalId}`);
+              } else {
+                router.push("/goals");
+              }
+            }}
           >
-            <Button
-              variant="soft"
-              size="2"
-              radius="full"
-              color="gray"
-              onClick={(e) => {
-                e.preventDefault();
-                if (goal?.slug) {
-                  router.push(`/goals/${goal.slug}`);
-                } else if (goalId) {
-                  router.push(`/goals/${goalId}`);
-                } else {
-                  router.push("/goals");
-                }
-              }}
-            >
-              <ArrowLeftIcon />
-              <Text as="span" size="2" weight="medium">
-                Back to Goal
-              </Text>
-            </Button>
-          </Link>
+            <ArrowLeftIcon />
+            Back to Goal
+          </GlassButton>
 
           <Separator orientation="vertical" />
 
@@ -153,9 +137,9 @@ function NewStoryContent() {
             />
 
             <Flex gap="2" justify="end">
-              <Button
-                variant="soft"
-                color="gray"
+              <GlassButton
+                variant="secondary"
+                size="medium"
                 onClick={() => {
                   if (goal?.slug) {
                     router.push(`/goals/${goal.slug}`);
@@ -168,13 +152,16 @@ function NewStoryContent() {
                 disabled={creatingStory}
               >
                 Cancel
-              </Button>
-              <Button
+              </GlassButton>
+              <GlassButton
+                variant="primary"
+                size="medium"
                 onClick={handleCreateStory}
                 disabled={!storyContent.trim() || creatingStory}
+                loading={creatingStory}
               >
-                {creatingStory ? "Creating..." : "Create Story"}
-              </Button>
+                Create Story
+              </GlassButton>
             </Flex>
           </Flex>
         </Card>

@@ -7,13 +7,13 @@ import {
   Heading,
   Text,
   Card,
-  Button,
   Badge,
   Spinner,
   Link,
   Separator,
   TextArea,
 } from "@radix-ui/themes";
+import { GlassButton } from "@/app/components/GlassButton";
 import {
   ArrowLeftIcon,
   Pencil1Icon,
@@ -202,25 +202,25 @@ function StoryPageContent() {
               <Flex gap="2">
                 {!isEditing && (
                   <>
-                    <Button
-                      variant="soft"
-                      size="2"
+                    <GlassButton
+                      variant="secondary"
+                      size="medium"
                       onClick={handleEdit}
                       disabled={deleting}
                     >
                       <Pencil1Icon />
                       Edit
-                    </Button>
-                    <Button
-                      variant="soft"
-                      color="red"
-                      size="2"
+                    </GlassButton>
+                    <GlassButton
+                      variant="destructive"
+                      size="medium"
                       onClick={handleDelete}
                       disabled={deleting}
+                      loading={deleting}
                     >
                       <TrashIcon />
-                      {deleting ? "Deleting..." : "Delete"}
-                    </Button>
+                      Delete
+                    </GlassButton>
                   </>
                 )}
               </Flex>
@@ -237,28 +237,31 @@ function StoryPageContent() {
                 style={{ minHeight: "300px" }}
               />
               <Flex gap="2" justify="end">
-                <Button
-                  variant="soft"
-                  color="gray"
+                <GlassButton
+                  variant="secondary"
+                  size="medium"
                   onClick={() => setIsEditing(false)}
                   disabled={updating}
                 >
                   Cancel
-                </Button>
-                <Button
+                </GlassButton>
+                <GlassButton
+                  variant="primary"
+                  size="medium"
                   onClick={handleSave}
                   disabled={updating || !editContent.trim()}
+                  loading={updating}
                 >
-                  {updating ? "Saving..." : "Save"}
-                </Button>
+                  Save
+                </GlassButton>
               </Flex>
             </Flex>
           ) : (
             <Flex direction="column" gap="3">
               <Flex justify="start">
-                <Button
-                  variant="soft"
-                  size="3"
+                <GlassButton
+                  variant="primary"
+                  size="large"
                   onClick={handleTextToSpeech}
                   disabled={!story.content}
                 >
@@ -273,7 +276,7 @@ function StoryPageContent() {
                       Text to Speech
                     </>
                   )}
-                </Button>
+                </GlassButton>
               </Flex>
               <Text size="3" style={{ whiteSpace: "pre-wrap" }}>
                 {story.content}
@@ -350,38 +353,22 @@ export default function StoryPage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <Link
-            href={
-              story?.goal?.slug
-                ? `/goals/${story.goal.slug}`
-                : story?.goalId
-                  ? `/goals/${story.goalId}`
-                  : "/goals"
-            }
-            underline="none"
+          <GlassButton
+            variant="secondary"
+            size="medium"
+            onClick={() => {
+              if (story?.goal?.slug) {
+                router.push(`/goals/${story.goal.slug}`);
+              } else if (story?.goalId) {
+                router.push(`/goals/${story.goalId}`);
+              } else {
+                router.push("/goals");
+              }
+            }}
           >
-            <Button
-              variant="soft"
-              size="2"
-              radius="full"
-              color="gray"
-              onClick={(e) => {
-                e.preventDefault();
-                if (story?.goal?.slug) {
-                  router.push(`/goals/${story.goal.slug}`);
-                } else if (story?.goalId) {
-                  router.push(`/goals/${story.goalId}`);
-                } else {
-                  router.push("/goals");
-                }
-              }}
-            >
-              <ArrowLeftIcon />
-              <Text as="span" size="2" weight="medium">
-                Back to Goal
-              </Text>
-            </Button>
-          </Link>
+            <ArrowLeftIcon />
+            Back to Goal
+          </GlassButton>
 
           <Separator orientation="vertical" />
 
