@@ -5,9 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateOpenAIAudio: NonNullable<
-  MutationResolvers["generateOpenAIAudio"]
-> = async (_parent, args, ctx) => {
+export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIAudio']> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");

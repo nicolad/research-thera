@@ -1,5 +1,4 @@
 import { createDeepSeek } from "@ai-sdk/deepseek";
-import { elevenlabs } from "@ai-sdk/elevenlabs";
 import { Agent } from "@mastra/core/agent";
 import { CompositeVoice } from "@mastra/core/voice";
 import { Memory } from "@mastra/memory";
@@ -7,8 +6,6 @@ import { LibSQLStore } from "@mastra/libsql";
 import { buildTracingOptions } from "@mastra/observability";
 import { withLangfusePrompt } from "@mastra/langfuse";
 import { Langfuse } from "langfuse";
-
-import { createElevenLabsVoice } from "../voice";
 
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
@@ -107,7 +104,7 @@ export const storyTellerAgent = new Agent({
   name: "Story Teller Agent",
   instructions: storyInstructions,
   model: deepseek("deepseek-chat"),
-  voice: createElevenLabsVoice("george"), // Professional, calm voice
+  // Voice removed - use OpenAI TTS via GraphQL
   memory: new Memory({
     storage: agentStorage,
   }),
@@ -129,7 +126,7 @@ export async function createStoryTellerAgentWithLangfuse(
     name: "Story Teller Agent (Langfuse)",
     instructions: prompt.prompt,
     model: deepseek("deepseek-chat"),
-    voice: createElevenLabsVoice("george"),
+    // Voice removed - use OpenAI TTS via GraphQL
     memory: new Memory({
       storage: agentStorage,
     }),
@@ -204,13 +201,13 @@ Draw from:
 "Welcome. I'm glad you're here, taking this time for yourself. [pause] Today, we're going to work together on [specific goal]. This is a common challenge that many people face, and there are proven techniques that can help. [pause] Find a comfortable position, and let's begin..."
 `;
 
-// Therapeutic Agent with ElevenLabs Voice
+// Therapeutic Agent with OpenAI TTS (via GraphQL)
 export const therapeuticAgent = new Agent({
   id: "therapeutic-agent",
   name: "Therapeutic Audio Agent",
   instructions: therapeuticInstructions,
   model: deepseek("deepseek-chat"),
-  voice: createElevenLabsVoice("george"), // Professional, calm voice
+  // Voice removed - use OpenAI TTS via GraphQL
   memory: new Memory({
     storage: agentStorage,
   }),
@@ -232,7 +229,7 @@ export async function createTherapeuticAgentWithLangfuse(
     name: "Therapeutic Audio Agent (Langfuse)",
     instructions: prompt.prompt,
     model: deepseek("deepseek-chat"),
-    voice: createElevenLabsVoice("george"),
+    // Voice removed - use OpenAI TTS via GraphQL
     memory: new Memory({
       storage: agentStorage,
     }),

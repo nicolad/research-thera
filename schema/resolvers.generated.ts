@@ -1,7 +1,6 @@
 /* This file was automatically generated. DO NOT UPDATE MANUALLY. */
     import type   { Resolvers } from './types.generated';
     import    { allNotes as Query_allNotes } from './resolvers/Query/allNotes';
-import    { availableVoices as Query_availableVoices } from './resolvers/Query/availableVoices';
 import    { claimCard as Query_claimCard } from './resolvers/Query/claimCard';
 import    { claimCardsForNote as Query_claimCardsForNote } from './resolvers/Query/claimCardsForNote';
 import    { generationJob as Query_generationJob } from './resolvers/Query/generationJob';
@@ -26,7 +25,6 @@ import    { deleteResearch as Mutation_deleteResearch } from './resolvers/Mutati
 import    { deleteStory as Mutation_deleteStory } from './resolvers/Mutation/deleteStory';
 import    { deleteTherapeuticQuestions as Mutation_deleteTherapeuticQuestions } from './resolvers/Mutation/deleteTherapeuticQuestions';
 import    { generateAudio as Mutation_generateAudio } from './resolvers/Mutation/generateAudio';
-import    { generateAudioFromText as Mutation_generateAudioFromText } from './resolvers/Mutation/generateAudioFromText';
 import    { generateLongFormText as Mutation_generateLongFormText } from './resolvers/Mutation/generateLongFormText';
 import    { generateOpenAIAudio as Mutation_generateOpenAIAudio } from './resolvers/Mutation/generateOpenAIAudio';
 import    { generateResearch as Mutation_generateResearch } from './resolvers/Mutation/generateResearch';
@@ -35,7 +33,6 @@ import    { refreshClaimCard as Mutation_refreshClaimCard } from './resolvers/Mu
 import    { updateGoal as Mutation_updateGoal } from './resolvers/Mutation/updateGoal';
 import    { updateNote as Mutation_updateNote } from './resolvers/Mutation/updateNote';
 import    { updateStory as Mutation_updateStory } from './resolvers/Mutation/updateStory';
-import    { uploadAudioToR2 as Mutation_uploadAudioToR2 } from './resolvers/Mutation/uploadAudioToR2';
 import    { audioJobStatus as Subscription_audioJobStatus } from './resolvers/Subscription/audioJobStatus';
 import    { researchJobStatus as Subscription_researchJobStatus } from './resolvers/Subscription/researchJobStatus';
 import    { AudioAsset } from './resolvers/AudioAsset';
@@ -51,10 +48,8 @@ import    { DeleteNoteResult } from './resolvers/DeleteNoteResult';
 import    { DeleteQuestionsResult } from './resolvers/DeleteQuestionsResult';
 import    { DeleteResearchResult } from './resolvers/DeleteResearchResult';
 import    { DeleteStoryResult } from './resolvers/DeleteStoryResult';
-import    { ElevenLabsVoice } from './resolvers/ElevenLabsVoice';
 import    { EvidenceItem } from './resolvers/EvidenceItem';
 import    { EvidenceLocator } from './resolvers/EvidenceLocator';
-import    { GenerateAudioFromTextResult } from './resolvers/GenerateAudioFromTextResult';
 import    { GenerateAudioResult } from './resolvers/GenerateAudioResult';
 import    { GenerateLongFormTextResult } from './resolvers/GenerateLongFormTextResult';
 import    { GenerateOpenAIAudioResult } from './resolvers/GenerateOpenAIAudioResult';
@@ -71,10 +66,9 @@ import    { Research } from './resolvers/Research';
 import    { Story } from './resolvers/Story';
 import    { TextSegment } from './resolvers/TextSegment';
 import    { TherapeuticQuestion } from './resolvers/TherapeuticQuestion';
-import    { UploadAudioToR2Result } from './resolvers/UploadAudioToR2Result';
     export const resolvers: Resolvers = {
-      Query: { allNotes: Query_allNotes,availableVoices: Query_availableVoices,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions },
-      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createGoal: Mutation_createGoal,createNote: Mutation_createNote,createStory: Mutation_createStory,deleteClaimCard: Mutation_deleteClaimCard,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateAudioFromText: Mutation_generateAudioFromText,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory,uploadAudioToR2: Mutation_uploadAudioToR2 },
+      Query: { allNotes: Query_allNotes,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions },
+      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createGoal: Mutation_createGoal,createNote: Mutation_createNote,createStory: Mutation_createStory,deleteClaimCard: Mutation_deleteClaimCard,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory },
       Subscription: { audioJobStatus: Subscription_audioJobStatus,researchJobStatus: Subscription_researchJobStatus },
       AudioAsset: AudioAsset,
 AudioManifest: AudioManifest,
@@ -89,10 +83,8 @@ DeleteNoteResult: DeleteNoteResult,
 DeleteQuestionsResult: DeleteQuestionsResult,
 DeleteResearchResult: DeleteResearchResult,
 DeleteStoryResult: DeleteStoryResult,
-ElevenLabsVoice: ElevenLabsVoice,
 EvidenceItem: EvidenceItem,
 EvidenceLocator: EvidenceLocator,
-GenerateAudioFromTextResult: GenerateAudioFromTextResult,
 GenerateAudioResult: GenerateAudioResult,
 GenerateLongFormTextResult: GenerateLongFormTextResult,
 GenerateOpenAIAudioResult: GenerateOpenAIAudioResult,
@@ -108,6 +100,5 @@ PaperCandidate: PaperCandidate,
 Research: Research,
 Story: Story,
 TextSegment: TextSegment,
-TherapeuticQuestion: TherapeuticQuestion,
-UploadAudioToR2Result: UploadAudioToR2Result
+TherapeuticQuestion: TherapeuticQuestion
     }

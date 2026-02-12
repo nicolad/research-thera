@@ -37,14 +37,6 @@ export type AudioManifest = {
   totalDuration?: Maybe<Scalars['Float']['output']>;
 };
 
-export type AudioMetadataInput = {
-  generatedAt?: InputMaybe<Scalars['String']['input']>;
-  goalId?: InputMaybe<Scalars['Int']['input']>;
-  model?: InputMaybe<Scalars['String']['input']>;
-  noteId?: InputMaybe<Scalars['Int']['input']>;
-  voice?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type AudioSegmentInfo = {
   __typename?: 'AudioSegmentInfo';
   duration?: Maybe<Scalars['Float']['output']>;
@@ -177,13 +169,6 @@ export type DeleteStoryResult = {
   success: Scalars['Boolean']['output'];
 };
 
-export type ElevenLabsVoice = {
-  __typename?: 'ElevenLabsVoice';
-  description: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type EvidenceItem = {
   __typename?: 'EvidenceItem';
   excerpt?: Maybe<Scalars['String']['output']>;
@@ -207,26 +192,6 @@ export enum EvidencePolarity {
   Mixed = 'MIXED',
   Supports = 'SUPPORTS'
 }
-
-export type GenerateAudioFromTextInput = {
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  outputFormat?: InputMaybe<Scalars['String']['input']>;
-  similarityBoost?: InputMaybe<Scalars['Float']['input']>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-  text: Scalars['String']['input'];
-  useSpeakerBoost?: InputMaybe<Scalars['Boolean']['input']>;
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type GenerateAudioFromTextResult = {
-  __typename?: 'GenerateAudioFromTextResult';
-  audioBuffer?: Maybe<Scalars['String']['output']>;
-  fileName?: Maybe<Scalars['String']['output']>;
-  message?: Maybe<Scalars['String']['output']>;
-  sizeBytes?: Maybe<Scalars['Int']['output']>;
-  success: Scalars['Boolean']['output'];
-};
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -376,7 +341,6 @@ export type Mutation = {
   deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
   generateAudio: GenerateAudioResult;
-  generateAudioFromText: GenerateAudioFromTextResult;
   generateLongFormText: GenerateLongFormTextResult;
   generateOpenAIAudio: GenerateOpenAiAudioResult;
   generateResearch: GenerateResearchResult;
@@ -385,7 +349,6 @@ export type Mutation = {
   updateGoal: Goal;
   updateNote: Note;
   updateStory: Story;
-  uploadAudioToR2: UploadAudioToR2Result;
 };
 
 
@@ -453,11 +416,6 @@ export type MutationGenerateAudioArgs = {
 };
 
 
-export type MutationGenerateAudioFromTextArgs = {
-  input: GenerateAudioFromTextInput;
-};
-
-
 export type MutationGenerateLongFormTextArgs = {
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
@@ -500,11 +458,6 @@ export type MutationUpdateNoteArgs = {
 export type MutationUpdateStoryArgs = {
   id: Scalars['Int']['input'];
   input: UpdateStoryInput;
-};
-
-
-export type MutationUploadAudioToR2Args = {
-  input: UploadAudioToR2Input;
 };
 
 export type Note = {
@@ -570,7 +523,6 @@ export type PaperCandidate = {
 export type Query = {
   __typename?: 'Query';
   allNotes: Array<Note>;
-  availableVoices: Array<ElevenLabsVoice>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
   generationJob?: Maybe<GenerationJob>;
@@ -751,59 +703,6 @@ export type UpdateNoteInput = {
 export type UpdateStoryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
 };
-
-export type UploadAudioToR2Input = {
-  contextPrefix?: InputMaybe<Scalars['String']['input']>;
-  filename?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<AudioMetadataInput>;
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-  text: Scalars['String']['input'];
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UploadAudioToR2Result = {
-  __typename?: 'UploadAudioToR2Result';
-  isPublic: Scalars['Boolean']['output'];
-  message?: Maybe<Scalars['String']['output']>;
-  objectKey: Scalars['String']['output'];
-  success: Scalars['Boolean']['output'];
-  url: Scalars['String']['output'];
-};
-
-export type GenerateAudioFromTextMutationVariables = Exact<{
-  text: Scalars['String']['input'];
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  outputFormat?: InputMaybe<Scalars['String']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-  similarityBoost?: InputMaybe<Scalars['Float']['input']>;
-  useSpeakerBoost?: InputMaybe<Scalars['Boolean']['input']>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-}>;
-
-
-export type GenerateAudioFromTextMutation = { __typename?: 'Mutation', generateAudioFromText: { __typename?: 'GenerateAudioFromTextResult', success: boolean, message?: string | null, audioBuffer?: string | null, fileName?: string | null, sizeBytes?: number | null } };
-
-export type GetAvailableVoicesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetAvailableVoicesQuery = { __typename?: 'Query', availableVoices: Array<{ __typename?: 'ElevenLabsVoice', id: string, name: string, description: string }> };
-
-export type UploadAudioToR2MutationVariables = Exact<{
-  text: Scalars['String']['input'];
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  contextPrefix?: InputMaybe<Scalars['String']['input']>;
-  filename?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<AudioMetadataInput>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-}>;
-
-
-export type UploadAudioToR2Mutation = { __typename?: 'Mutation', uploadAudioToR2: { __typename?: 'UploadAudioToR2Result', success: boolean, message?: string | null, objectKey: string, url: string, isPublic: boolean } };
 
 export type CheckNoteClaimsMutationVariables = Exact<{
   input: CheckNoteClaimsInput;
@@ -986,142 +885,6 @@ export type UpdateStoryMutationVariables = Exact<{
 export type UpdateStoryMutation = { __typename?: 'Mutation', updateStory: { __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string } };
 
 
-export const GenerateAudioFromTextDocument = gql`
-    mutation GenerateAudioFromText($text: String!, $voiceId: String, $modelId: String, $outputFormat: String, $stability: Float, $similarityBoost: Float, $useSpeakerBoost: Boolean, $speed: Float) {
-  generateAudioFromText(
-    input: {text: $text, voiceId: $voiceId, modelId: $modelId, outputFormat: $outputFormat, stability: $stability, similarityBoost: $similarityBoost, useSpeakerBoost: $useSpeakerBoost, speed: $speed}
-  ) {
-    success
-    message
-    audioBuffer
-    fileName
-    sizeBytes
-  }
-}
-    `;
-export type GenerateAudioFromTextMutationFn = Apollo.MutationFunction<GenerateAudioFromTextMutation, GenerateAudioFromTextMutationVariables>;
-
-/**
- * __useGenerateAudioFromTextMutation__
- *
- * To run a mutation, you first call `useGenerateAudioFromTextMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useGenerateAudioFromTextMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [generateAudioFromTextMutation, { data, loading, error }] = useGenerateAudioFromTextMutation({
- *   variables: {
- *      text: // value for 'text'
- *      voiceId: // value for 'voiceId'
- *      modelId: // value for 'modelId'
- *      outputFormat: // value for 'outputFormat'
- *      stability: // value for 'stability'
- *      similarityBoost: // value for 'similarityBoost'
- *      useSpeakerBoost: // value for 'useSpeakerBoost'
- *      speed: // value for 'speed'
- *   },
- * });
- */
-export function useGenerateAudioFromTextMutation(baseOptions?: Apollo.MutationHookOptions<GenerateAudioFromTextMutation, GenerateAudioFromTextMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<GenerateAudioFromTextMutation, GenerateAudioFromTextMutationVariables>(GenerateAudioFromTextDocument, options);
-      }
-export type GenerateAudioFromTextMutationHookResult = ReturnType<typeof useGenerateAudioFromTextMutation>;
-export type GenerateAudioFromTextMutationResult = Apollo.MutationResult<GenerateAudioFromTextMutation>;
-export type GenerateAudioFromTextMutationOptions = Apollo.BaseMutationOptions<GenerateAudioFromTextMutation, GenerateAudioFromTextMutationVariables>;
-export const GetAvailableVoicesDocument = gql`
-    query GetAvailableVoices {
-  availableVoices {
-    id
-    name
-    description
-  }
-}
-    `;
-
-/**
- * __useGetAvailableVoicesQuery__
- *
- * To run a query within a React component, call `useGetAvailableVoicesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAvailableVoicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAvailableVoicesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetAvailableVoicesQuery(baseOptions?: Apollo.QueryHookOptions<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>(GetAvailableVoicesDocument, options);
-      }
-export function useGetAvailableVoicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>(GetAvailableVoicesDocument, options);
-        }
-// @ts-ignore
-export function useGetAvailableVoicesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>): Apollo.UseSuspenseQueryResult<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>;
-export function useGetAvailableVoicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>): Apollo.UseSuspenseQueryResult<GetAvailableVoicesQuery | undefined, GetAvailableVoicesQueryVariables>;
-export function useGetAvailableVoicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>(GetAvailableVoicesDocument, options);
-        }
-export type GetAvailableVoicesQueryHookResult = ReturnType<typeof useGetAvailableVoicesQuery>;
-export type GetAvailableVoicesLazyQueryHookResult = ReturnType<typeof useGetAvailableVoicesLazyQuery>;
-export type GetAvailableVoicesSuspenseQueryHookResult = ReturnType<typeof useGetAvailableVoicesSuspenseQuery>;
-export type GetAvailableVoicesQueryResult = Apollo.QueryResult<GetAvailableVoicesQuery, GetAvailableVoicesQueryVariables>;
-export const UploadAudioToR2Document = gql`
-    mutation UploadAudioToR2($text: String!, $voiceId: String, $modelId: String, $contextPrefix: String, $filename: String, $metadata: AudioMetadataInput, $speed: Float, $stability: Float) {
-  uploadAudioToR2(
-    input: {text: $text, voiceId: $voiceId, modelId: $modelId, contextPrefix: $contextPrefix, filename: $filename, metadata: $metadata, speed: $speed, stability: $stability}
-  ) {
-    success
-    message
-    objectKey
-    url
-    isPublic
-  }
-}
-    `;
-export type UploadAudioToR2MutationFn = Apollo.MutationFunction<UploadAudioToR2Mutation, UploadAudioToR2MutationVariables>;
-
-/**
- * __useUploadAudioToR2Mutation__
- *
- * To run a mutation, you first call `useUploadAudioToR2Mutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUploadAudioToR2Mutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [uploadAudioToR2Mutation, { data, loading, error }] = useUploadAudioToR2Mutation({
- *   variables: {
- *      text: // value for 'text'
- *      voiceId: // value for 'voiceId'
- *      modelId: // value for 'modelId'
- *      contextPrefix: // value for 'contextPrefix'
- *      filename: // value for 'filename'
- *      metadata: // value for 'metadata'
- *      speed: // value for 'speed'
- *      stability: // value for 'stability'
- *   },
- * });
- */
-export function useUploadAudioToR2Mutation(baseOptions?: Apollo.MutationHookOptions<UploadAudioToR2Mutation, UploadAudioToR2MutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UploadAudioToR2Mutation, UploadAudioToR2MutationVariables>(UploadAudioToR2Document, options);
-      }
-export type UploadAudioToR2MutationHookResult = ReturnType<typeof useUploadAudioToR2Mutation>;
-export type UploadAudioToR2MutationResult = Apollo.MutationResult<UploadAudioToR2Mutation>;
-export type UploadAudioToR2MutationOptions = Apollo.BaseMutationOptions<UploadAudioToR2Mutation, UploadAudioToR2MutationVariables>;
 export const CheckNoteClaimsDocument = gql`
     mutation CheckNoteClaims($input: CheckNoteClaimsInput!) {
   checkNoteClaims(input: $input) {

@@ -1,2 +1,2 @@
-import type   { QueryResolvers } from './../../types.generated';
-export { availableVoices } from "./../../elevenlabs/resolvers/availableVoices";
+// ElevenLabs support removed - use OpenAI TTS instead
+// This file can be deleted after GraphQL codegen runs

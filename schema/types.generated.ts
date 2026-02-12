@@ -39,14 +39,6 @@ export type AudioManifest = {
   totalDuration?: Maybe<Scalars['Float']['output']>;
 };
 
-export type AudioMetadataInput = {
-  generatedAt?: InputMaybe<Scalars['String']['input']>;
-  goalId?: InputMaybe<Scalars['Int']['input']>;
-  model?: InputMaybe<Scalars['String']['input']>;
-  noteId?: InputMaybe<Scalars['Int']['input']>;
-  voice?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type AudioSegmentInfo = {
   __typename?: 'AudioSegmentInfo';
   duration?: Maybe<Scalars['Float']['output']>;
@@ -178,13 +170,6 @@ export type DeleteStoryResult = {
   success: Scalars['Boolean']['output'];
 };
 
-export type ElevenLabsVoice = {
-  __typename?: 'ElevenLabsVoice';
-  description: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type EvidenceItem = {
   __typename?: 'EvidenceItem';
   excerpt?: Maybe<Scalars['String']['output']>;
@@ -207,26 +192,6 @@ export type EvidencePolarity =
   | 'IRRELEVANT'
   | 'MIXED'
   | 'SUPPORTS';
-
-export type GenerateAudioFromTextInput = {
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  outputFormat?: InputMaybe<Scalars['String']['input']>;
-  similarityBoost?: InputMaybe<Scalars['Float']['input']>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-  text: Scalars['String']['input'];
-  useSpeakerBoost?: InputMaybe<Scalars['Boolean']['input']>;
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type GenerateAudioFromTextResult = {
-  __typename?: 'GenerateAudioFromTextResult';
-  audioBuffer?: Maybe<Scalars['String']['output']>;
-  fileName?: Maybe<Scalars['String']['output']>;
-  message?: Maybe<Scalars['String']['output']>;
-  sizeBytes?: Maybe<Scalars['Int']['output']>;
-  success: Scalars['Boolean']['output'];
-};
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -374,7 +339,6 @@ export type Mutation = {
   deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
   generateAudio: GenerateAudioResult;
-  generateAudioFromText: GenerateAudioFromTextResult;
   generateLongFormText: GenerateLongFormTextResult;
   generateOpenAIAudio: GenerateOpenAIAudioResult;
   generateResearch: GenerateResearchResult;
@@ -383,7 +347,6 @@ export type Mutation = {
   updateGoal: Goal;
   updateNote: Note;
   updateStory: Story;
-  uploadAudioToR2: UploadAudioToR2Result;
 };
 
 
@@ -451,11 +414,6 @@ export type MutationgenerateAudioArgs = {
 };
 
 
-export type MutationgenerateAudioFromTextArgs = {
-  input: GenerateAudioFromTextInput;
-};
-
-
 export type MutationgenerateLongFormTextArgs = {
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
@@ -498,11 +456,6 @@ export type MutationupdateNoteArgs = {
 export type MutationupdateStoryArgs = {
   id: Scalars['Int']['input'];
   input: UpdateStoryInput;
-};
-
-
-export type MutationuploadAudioToR2Args = {
-  input: UploadAudioToR2Input;
 };
 
 export type Note = {
@@ -565,7 +518,6 @@ export type PaperCandidate = {
 export type Query = {
   __typename?: 'Query';
   allNotes: Array<Note>;
-  availableVoices: Array<ElevenLabsVoice>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
   generationJob?: Maybe<GenerationJob>;
@@ -746,26 +698,6 @@ export type UpdateStoryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UploadAudioToR2Input = {
-  contextPrefix?: InputMaybe<Scalars['String']['input']>;
-  filename?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<AudioMetadataInput>;
-  modelId?: InputMaybe<Scalars['String']['input']>;
-  speed?: InputMaybe<Scalars['Float']['input']>;
-  stability?: InputMaybe<Scalars['Float']['input']>;
-  text: Scalars['String']['input'];
-  voiceId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UploadAudioToR2Result = {
-  __typename?: 'UploadAudioToR2Result';
-  isPublic: Scalars['Boolean']['output'];
-  message?: Maybe<Scalars['String']['output']>;
-  objectKey: Scalars['String']['output'];
-  success: Scalars['Boolean']['output'];
-  url: Scalars['String']['output'];
-};
-
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -844,7 +776,6 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   AudioManifest: ResolverTypeWrapper<AudioManifest>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
-  AudioMetadataInput: AudioMetadataInput;
   AudioSegmentInfo: ResolverTypeWrapper<AudioSegmentInfo>;
   BuildClaimCardsInput: BuildClaimCardsInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
@@ -864,12 +795,9 @@ export type ResolversTypes = {
   DeleteQuestionsResult: ResolverTypeWrapper<DeleteQuestionsResult>;
   DeleteResearchResult: ResolverTypeWrapper<DeleteResearchResult>;
   DeleteStoryResult: ResolverTypeWrapper<DeleteStoryResult>;
-  ElevenLabsVoice: ResolverTypeWrapper<ElevenLabsVoice>;
   EvidenceItem: ResolverTypeWrapper<Omit<EvidenceItem, 'polarity'> & { polarity: ResolversTypes['EvidencePolarity'] }>;
   EvidenceLocator: ResolverTypeWrapper<EvidenceLocator>;
   EvidencePolarity: ResolverTypeWrapper<'CONTRADICTS' | 'IRRELEVANT' | 'MIXED' | 'SUPPORTS'>;
-  GenerateAudioFromTextInput: GenerateAudioFromTextInput;
-  GenerateAudioFromTextResult: ResolverTypeWrapper<GenerateAudioFromTextResult>;
   GenerateAudioResult: ResolverTypeWrapper<GenerateAudioResult>;
   GenerateLongFormTextResult: ResolverTypeWrapper<GenerateLongFormTextResult>;
   GenerateOpenAIAudioInput: GenerateOpenAIAudioInput;
@@ -899,8 +827,6 @@ export type ResolversTypes = {
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
   UpdateStoryInput: UpdateStoryInput;
-  UploadAudioToR2Input: UploadAudioToR2Input;
-  UploadAudioToR2Result: ResolverTypeWrapper<UploadAudioToR2Result>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -910,7 +836,6 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']['output'];
   AudioManifest: AudioManifest;
   Float: Scalars['Float']['output'];
-  AudioMetadataInput: AudioMetadataInput;
   AudioSegmentInfo: AudioSegmentInfo;
   BuildClaimCardsInput: BuildClaimCardsInput;
   Boolean: Scalars['Boolean']['output'];
@@ -929,11 +854,8 @@ export type ResolversParentTypes = {
   DeleteQuestionsResult: DeleteQuestionsResult;
   DeleteResearchResult: DeleteResearchResult;
   DeleteStoryResult: DeleteStoryResult;
-  ElevenLabsVoice: ElevenLabsVoice;
   EvidenceItem: EvidenceItem;
   EvidenceLocator: EvidenceLocator;
-  GenerateAudioFromTextInput: GenerateAudioFromTextInput;
-  GenerateAudioFromTextResult: GenerateAudioFromTextResult;
   GenerateAudioResult: GenerateAudioResult;
   GenerateLongFormTextResult: GenerateLongFormTextResult;
   GenerateOpenAIAudioInput: GenerateOpenAIAudioInput;
@@ -957,8 +879,6 @@ export type ResolversParentTypes = {
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
   UpdateStoryInput: UpdateStoryInput;
-  UploadAudioToR2Input: UploadAudioToR2Input;
-  UploadAudioToR2Result: UploadAudioToR2Result;
 };
 
 export type AudioAssetResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AudioAsset'] = ResolversParentTypes['AudioAsset']> = {
@@ -1054,12 +974,6 @@ export type DeleteStoryResultResolvers<ContextType = GraphQLContext, ParentType 
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
-export type ElevenLabsVoiceResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ElevenLabsVoice'] = ResolversParentTypes['ElevenLabsVoice']> = {
-  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
 export type EvidenceItemResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['EvidenceItem'] = ResolversParentTypes['EvidenceItem']> = {
   excerpt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   locator?: Resolver<Maybe<ResolversTypes['EvidenceLocator']>, ParentType, ContextType>;
@@ -1076,14 +990,6 @@ export type EvidenceLocatorResolvers<ContextType = GraphQLContext, ParentType ex
 };
 
 export type EvidencePolarityResolvers = EnumResolverSignature<{ CONTRADICTS?: any, IRRELEVANT?: any, MIXED?: any, SUPPORTS?: any }, ResolversTypes['EvidencePolarity']>;
-
-export type GenerateAudioFromTextResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GenerateAudioFromTextResult'] = ResolversParentTypes['GenerateAudioFromTextResult']> = {
-  audioBuffer?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  fileName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  sizeBytes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-};
 
 export type GenerateAudioResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GenerateAudioResult'] = ResolversParentTypes['GenerateAudioResult']> = {
   audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1205,7 +1111,6 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   deleteStory?: Resolver<ResolversTypes['DeleteStoryResult'], ParentType, ContextType, RequireFields<MutationdeleteStoryArgs, 'id'>>;
   deleteTherapeuticQuestions?: Resolver<ResolversTypes['DeleteQuestionsResult'], ParentType, ContextType, RequireFields<MutationdeleteTherapeuticQuestionsArgs, 'goalId'>>;
   generateAudio?: Resolver<ResolversTypes['GenerateAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioArgs, 'goalId'>>;
-  generateAudioFromText?: Resolver<ResolversTypes['GenerateAudioFromTextResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioFromTextArgs, 'input'>>;
   generateLongFormText?: Resolver<ResolversTypes['GenerateLongFormTextResult'], ParentType, ContextType, RequireFields<MutationgenerateLongFormTextArgs, 'goalId'>>;
   generateOpenAIAudio?: Resolver<ResolversTypes['GenerateOpenAIAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateOpenAIAudioArgs, 'input'>>;
   generateResearch?: Resolver<ResolversTypes['GenerateResearchResult'], ParentType, ContextType, RequireFields<MutationgenerateResearchArgs, 'goalId'>>;
@@ -1214,7 +1119,6 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   updateGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationupdateGoalArgs, 'id' | 'input'>>;
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
   updateStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationupdateStoryArgs, 'id' | 'input'>>;
-  uploadAudioToR2?: Resolver<ResolversTypes['UploadAudioToR2Result'], ParentType, ContextType, RequireFields<MutationuploadAudioToR2Args, 'input'>>;
 };
 
 export type NoteResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Note'] = ResolversParentTypes['Note']> = {
@@ -1255,7 +1159,6 @@ export type PaperCandidateResolvers<ContextType = GraphQLContext, ParentType ext
 
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   allNotes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
-  availableVoices?: Resolver<Array<ResolversTypes['ElevenLabsVoice']>, ParentType, ContextType>;
   claimCard?: Resolver<Maybe<ResolversTypes['ClaimCard']>, ParentType, ContextType, RequireFields<QueryclaimCardArgs, 'id'>>;
   claimCardsForNote?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType, RequireFields<QueryclaimCardsForNoteArgs, 'noteId'>>;
   generationJob?: Resolver<Maybe<ResolversTypes['GenerationJob']>, ParentType, ContextType, RequireFields<QuerygenerationJobArgs, 'id'>>;
@@ -1330,14 +1233,6 @@ export type TherapeuticQuestionResolvers<ContextType = GraphQLContext, ParentTyp
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type UploadAudioToR2ResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UploadAudioToR2Result'] = ResolversParentTypes['UploadAudioToR2Result']> = {
-  isPublic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  objectKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
 export type Resolvers<ContextType = GraphQLContext> = {
   AudioAsset?: AudioAssetResolvers<ContextType>;
   AudioManifest?: AudioManifestResolvers<ContextType>;
@@ -1353,11 +1248,9 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DeleteQuestionsResult?: DeleteQuestionsResultResolvers<ContextType>;
   DeleteResearchResult?: DeleteResearchResultResolvers<ContextType>;
   DeleteStoryResult?: DeleteStoryResultResolvers<ContextType>;
-  ElevenLabsVoice?: ElevenLabsVoiceResolvers<ContextType>;
   EvidenceItem?: EvidenceItemResolvers<ContextType>;
   EvidenceLocator?: EvidenceLocatorResolvers<ContextType>;
   EvidencePolarity?: EvidencePolarityResolvers;
-  GenerateAudioFromTextResult?: GenerateAudioFromTextResultResolvers<ContextType>;
   GenerateAudioResult?: GenerateAudioResultResolvers<ContextType>;
   GenerateLongFormTextResult?: GenerateLongFormTextResultResolvers<ContextType>;
   GenerateOpenAIAudioResult?: GenerateOpenAIAudioResultResolvers<ContextType>;
@@ -1383,6 +1276,5 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;
-  UploadAudioToR2Result?: UploadAudioToR2ResultResolvers<ContextType>;
 };
 

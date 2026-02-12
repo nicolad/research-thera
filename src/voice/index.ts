@@ -1,15 +1,7 @@
 /**
  * Voice module - centralized voice and text-to-speech functionality
- * Uses Mastra's ElevenLabs voice integration for agent-based TTS
- * and direct ElevenLabs API for custom audio generation
+ * Uses OpenAI TTS for text-to-speech generation
  */
 
-export {
-  elevenlabs,
-  THERAPEUTIC_VOICES,
-  getVoiceId,
-  createElevenLabsVoice,
-  createAudioFileFromText,
-  createAudioStreamFromText,
-  getSpeakers,
-} from "./elevenlabs";
+// Voice functionality removed - use OpenAI TTS via GraphQL mutations
+// See schema/operations/GenerateOpenAIAudio.graphql
