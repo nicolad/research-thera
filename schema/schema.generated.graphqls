@@ -113,6 +113,11 @@ input CreateNoteInput {
   title: String
 }
 
+input CreateStoryInput {
+  content: String!
+  goalId: Int!
+}
+
 type DeleteGoalResult {
   message: String
   success: Boolean!
@@ -131,6 +136,11 @@ type DeleteQuestionsResult {
 
 type DeleteResearchResult {
   deletedCount: Int!
+  message: String
+  success: Boolean!
+}
+
+type DeleteStoryResult {
   message: String
   success: Boolean!
 }
@@ -293,10 +303,12 @@ type Mutation {
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
   createGoal(input: CreateGoalInput!): Goal!
   createNote(input: CreateNoteInput!): Note!
+  createStory(input: CreateStoryInput!): Story!
   deleteClaimCard(id: ID!): Boolean!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteNote(id: Int!): DeleteNoteResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
+  deleteStory(id: Int!): DeleteStoryResult!
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
   generateAudio(goalId: Int!, language: String, storyId: Int, text: String, voice: String): GenerateAudioResult!
   generateAudioFromText(input: GenerateAudioFromTextInput!): GenerateAudioFromTextResult!
@@ -306,6 +318,7 @@ type Mutation {
   refreshClaimCard(id: ID!): ClaimCard!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
+  updateStory(id: Int!, input: UpdateStoryInput!): Story!
   uploadAudioToR2(input: UploadAudioToR2Input!): UploadAudioToR2Result!
 }
 
@@ -351,6 +364,8 @@ type Query {
   note(id: Int, slug: String): Note
   notes(entityId: Int!, entityType: String!): [Note!]!
   research(goalId: Int!): [Research!]!
+  stories(goalId: Int!): [Story!]!
+  story(id: Int!): Story
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
 }
 
@@ -384,6 +399,16 @@ enum ResearchSource {
   OPENALEX
   PUBMED
   SEMANTIC_SCHOLAR
+}
+
+type Story {
+  content: String!
+  createdAt: String!
+  createdBy: String!
+  goal: Goal
+  goalId: Int!
+  id: Int!
+  updatedAt: String!
 }
 
 type Subscription {
@@ -425,6 +450,10 @@ input UpdateNoteInput {
   noteType: String
   tags: [String!]
   title: String
+}
+
+input UpdateStoryInput {
+  content: String
 }
 
 input UploadAudioToR2Input {

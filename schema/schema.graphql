@@ -6,6 +6,8 @@ type Query {
   notes(entityId: Int!, entityType: String!): [Note!]!
   allNotes: [Note!]!
   note(id: Int, slug: String): Note
+  stories(goalId: Int!): [Story!]!
+  story(id: Int!): Story
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
 
@@ -46,6 +48,11 @@ type Mutation {
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   deleteNote(id: Int!): DeleteNoteResult!
 
+  # Stories
+  createStory(input: CreateStoryInput!): Story!
+  updateStory(id: Int!, input: UpdateStoryInput!): Story!
+  deleteStory(id: Int!): DeleteStoryResult!
+
   # Claim Cards
   buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
@@ -85,6 +92,16 @@ type Goal {
   therapeuticText: String
   therapeuticTextLanguage: String
   therapeuticTextGeneratedAt: String
+}
+
+type Story {
+  id: Int!
+  goalId: Int!
+  createdBy: String!
+  content: String!
+  createdAt: String!
+  updatedAt: String!
+  goal: Goal
 }
 
 type GoalStory {
@@ -266,6 +283,15 @@ input UpdateNoteInput {
   linkedResearchIds: [Int!]
 }
 
+input CreateStoryInput {
+  goalId: Int!
+  content: String!
+}
+
+input UpdateStoryInput {
+  content: String
+}
+
 # ============================================
 # Result Types
 # ============================================
@@ -320,6 +346,11 @@ type DeleteResearchResult {
 }
 
 type DeleteNoteResult {
+  success: Boolean!
+  message: String
+}
+
+type DeleteStoryResult {
   success: Boolean!
   message: String
 }

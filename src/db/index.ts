@@ -616,6 +616,93 @@ export async function linkResearchToNote(
 }
 
 // ============================================
+// Stories
+// ============================================
+
+export async function listStories(goalId: number, createdBy: string) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM stories WHERE goal_id = ? AND user_id = ? ORDER BY created_at DESC`,
+    args: [goalId, createdBy],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    createdBy: row.user_id as string,
+    content: row.content as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getStory(storyId: number, createdBy: string) {
+  const result = await turso.execute({
+    sql: `SELECT * FROM stories WHERE id = ? AND user_id = ?`,
+    args: [storyId, createdBy],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    createdBy: row.user_id as string,
+    content: row.content as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createStory(params: {
+  goalId: number;
+  createdBy: string;
+  content: string;
+}) {
+  const result = await turso.execute({
+    sql: `INSERT INTO stories (goal_id, user_id, content)
+          VALUES (?, ?, ?)
+          RETURNING id`,
+    args: [params.goalId, params.createdBy, params.content],
+  });
+
+  return result.rows[0].id as number;
+}
+
+export async function updateStory(
+  storyId: number,
+  createdBy: string,
+  updates: {
+    content?: string;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.content !== undefined) {
+    fields.push("content = ?");
+    args.push(updates.content);
+  }
+
+  fields.push("updated_at = datetime('now')");
+  args.push(storyId, createdBy);
+
+  await turso.execute({
+    sql: `UPDATE stories SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteStory(storyId: number, createdBy: string) {
+  await turso.execute({
+    sql: `DELETE FROM stories WHERE id = ? AND user_id = ?`,
+    args: [storyId, createdBy],
+  });
+}
+
+// ============================================
 // Generation Jobs
 // ============================================
 
@@ -795,6 +882,11 @@ export const tursoTools = {
   createNote,
   updateNote,
   linkResearchToNote,
+  listStories,
+  getStory,
+  createStory,
+  updateStory,
+  deleteStory,
   createGenerationJob,
   updateGenerationJob,
   getGenerationJob,

@@ -141,6 +141,11 @@ export type CreateNoteInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateStoryInput = {
+  content: Scalars['String']['input'];
+  goalId: Scalars['Int']['input'];
+};
+
 export type DeleteGoalResult = {
   __typename?: 'DeleteGoalResult';
   message?: Maybe<Scalars['String']['output']>;
@@ -163,6 +168,12 @@ export type DeleteQuestionsResult = {
 export type DeleteResearchResult = {
   __typename?: 'DeleteResearchResult';
   deletedCount: Scalars['Int']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteStoryResult = {
+  __typename?: 'DeleteStoryResult';
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -336,10 +347,12 @@ export type Mutation = {
   checkNoteClaims: CheckNoteClaimsResult;
   createGoal: Goal;
   createNote: Note;
+  createStory: Story;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
+  deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
   generateAudio: GenerateAudioResult;
   generateAudioFromText: GenerateAudioFromTextResult;
@@ -349,6 +362,7 @@ export type Mutation = {
   refreshClaimCard: ClaimCard;
   updateGoal: Goal;
   updateNote: Note;
+  updateStory: Story;
   uploadAudioToR2: UploadAudioToR2Result;
 };
 
@@ -373,6 +387,11 @@ export type MutationcreateNoteArgs = {
 };
 
 
+export type MutationcreateStoryArgs = {
+  input: CreateStoryInput;
+};
+
+
 export type MutationdeleteClaimCardArgs = {
   id: Scalars['ID']['input'];
 };
@@ -390,6 +409,11 @@ export type MutationdeleteNoteArgs = {
 
 export type MutationdeleteResearchArgs = {
   goalId: Scalars['Int']['input'];
+};
+
+
+export type MutationdeleteStoryArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -446,6 +470,12 @@ export type MutationupdateNoteArgs = {
 };
 
 
+export type MutationupdateStoryArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateStoryInput;
+};
+
+
 export type MutationuploadAudioToR2Args = {
   input: UploadAudioToR2Input;
 };
@@ -495,6 +525,8 @@ export type Query = {
   note?: Maybe<Note>;
   notes: Array<Note>;
   research: Array<Research>;
+  stories: Array<Story>;
+  story?: Maybe<Story>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
 };
 
@@ -549,6 +581,16 @@ export type QueryresearchArgs = {
 };
 
 
+export type QuerystoriesArgs = {
+  goalId: Scalars['Int']['input'];
+};
+
+
+export type QuerystoryArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QuerytherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
@@ -584,6 +626,17 @@ export type ResearchSource =
   | 'OPENALEX'
   | 'PUBMED'
   | 'SEMANTIC_SCHOLAR';
+
+export type Story = {
+  __typename?: 'Story';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  goal?: Maybe<Goal>;
+  goalId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -637,6 +690,10 @@ export type UpdateNoteInput = {
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateStoryInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UploadAudioToR2Input = {
@@ -751,10 +808,12 @@ export type ResolversTypes = {
   ClaimVerdict: ResolverTypeWrapper<'CONTRADICTED' | 'INSUFFICIENT' | 'MIXED' | 'SUPPORTED' | 'UNVERIFIED'>;
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
+  CreateStoryInput: CreateStoryInput;
   DeleteGoalResult: ResolverTypeWrapper<DeleteGoalResult>;
   DeleteNoteResult: ResolverTypeWrapper<DeleteNoteResult>;
   DeleteQuestionsResult: ResolverTypeWrapper<DeleteQuestionsResult>;
   DeleteResearchResult: ResolverTypeWrapper<DeleteResearchResult>;
+  DeleteStoryResult: ResolverTypeWrapper<DeleteStoryResult>;
   ElevenLabsVoice: ResolverTypeWrapper<ElevenLabsVoice>;
   EvidenceItem: ResolverTypeWrapper<Omit<EvidenceItem, 'polarity'> & { polarity: ResolversTypes['EvidencePolarity'] }>;
   EvidenceLocator: ResolverTypeWrapper<EvidenceLocator>;
@@ -778,11 +837,13 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Research: ResolverTypeWrapper<Omit<Research, 'goal'> & { goal?: Maybe<ResolversTypes['Goal']> }>;
   ResearchSource: ResolverTypeWrapper<'ARXIV' | 'CROSSREF' | 'DATACITE' | 'EUROPEPMC' | 'OPENALEX' | 'PUBMED' | 'SEMANTIC_SCHOLAR'>;
+  Story: ResolverTypeWrapper<Omit<Story, 'goal'> & { goal?: Maybe<ResolversTypes['Goal']> }>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   TextSegment: ResolverTypeWrapper<TextSegment>;
   TherapeuticQuestion: ResolverTypeWrapper<TherapeuticQuestion>;
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
+  UpdateStoryInput: UpdateStoryInput;
   UploadAudioToR2Input: UploadAudioToR2Input;
   UploadAudioToR2Result: ResolverTypeWrapper<UploadAudioToR2Result>;
 };
@@ -807,10 +868,12 @@ export type ResolversParentTypes = {
   ClaimScope: ClaimScope;
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
+  CreateStoryInput: CreateStoryInput;
   DeleteGoalResult: DeleteGoalResult;
   DeleteNoteResult: DeleteNoteResult;
   DeleteQuestionsResult: DeleteQuestionsResult;
   DeleteResearchResult: DeleteResearchResult;
+  DeleteStoryResult: DeleteStoryResult;
   ElevenLabsVoice: ElevenLabsVoice;
   EvidenceItem: EvidenceItem;
   EvidenceLocator: EvidenceLocator;
@@ -830,11 +893,13 @@ export type ResolversParentTypes = {
   PaperCandidate: PaperCandidate;
   Query: Record<PropertyKey, never>;
   Research: Omit<Research, 'goal'> & { goal?: Maybe<ResolversParentTypes['Goal']> };
+  Story: Omit<Story, 'goal'> & { goal?: Maybe<ResolversParentTypes['Goal']> };
   Subscription: Record<PropertyKey, never>;
   TextSegment: TextSegment;
   TherapeuticQuestion: TherapeuticQuestion;
   UpdateGoalInput: UpdateGoalInput;
   UpdateNoteInput: UpdateNoteInput;
+  UpdateStoryInput: UpdateStoryInput;
   UploadAudioToR2Input: UploadAudioToR2Input;
   UploadAudioToR2Result: UploadAudioToR2Result;
 };
@@ -923,6 +988,11 @@ export type DeleteQuestionsResultResolvers<ContextType = GraphQLContext, ParentT
 
 export type DeleteResearchResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['DeleteResearchResult'] = ResolversParentTypes['DeleteResearchResult']> = {
   deletedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type DeleteStoryResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['DeleteStoryResult'] = ResolversParentTypes['DeleteStoryResult']> = {
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
@@ -1060,10 +1130,12 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   checkNoteClaims?: Resolver<ResolversTypes['CheckNoteClaimsResult'], ParentType, ContextType, RequireFields<MutationcheckNoteClaimsArgs, 'input'>>;
   createGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationcreateGoalArgs, 'input'>>;
   createNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
+  createStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationcreateStoryArgs, 'input'>>;
   deleteClaimCard?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationdeleteClaimCardArgs, 'id'>>;
   deleteGoal?: Resolver<ResolversTypes['DeleteGoalResult'], ParentType, ContextType, RequireFields<MutationdeleteGoalArgs, 'id'>>;
   deleteNote?: Resolver<ResolversTypes['DeleteNoteResult'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'id'>>;
   deleteResearch?: Resolver<ResolversTypes['DeleteResearchResult'], ParentType, ContextType, RequireFields<MutationdeleteResearchArgs, 'goalId'>>;
+  deleteStory?: Resolver<ResolversTypes['DeleteStoryResult'], ParentType, ContextType, RequireFields<MutationdeleteStoryArgs, 'id'>>;
   deleteTherapeuticQuestions?: Resolver<ResolversTypes['DeleteQuestionsResult'], ParentType, ContextType, RequireFields<MutationdeleteTherapeuticQuestionsArgs, 'goalId'>>;
   generateAudio?: Resolver<ResolversTypes['GenerateAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioArgs, 'goalId'>>;
   generateAudioFromText?: Resolver<ResolversTypes['GenerateAudioFromTextResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioFromTextArgs, 'input'>>;
@@ -1073,6 +1145,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   refreshClaimCard?: Resolver<ResolversTypes['ClaimCard'], ParentType, ContextType, RequireFields<MutationrefreshClaimCardArgs, 'id'>>;
   updateGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationupdateGoalArgs, 'id' | 'input'>>;
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
+  updateStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationupdateStoryArgs, 'id' | 'input'>>;
   uploadAudioToR2?: Resolver<ResolversTypes['UploadAudioToR2Result'], ParentType, ContextType, RequireFields<MutationuploadAudioToR2Args, 'input'>>;
 };
 
@@ -1118,6 +1191,8 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   note?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, Partial<QuerynoteArgs>>;
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynotesArgs, 'entityId' | 'entityType'>>;
   research?: Resolver<Array<ResolversTypes['Research']>, ParentType, ContextType, RequireFields<QueryresearchArgs, 'goalId'>>;
+  stories?: Resolver<Array<ResolversTypes['Story']>, ParentType, ContextType, RequireFields<QuerystoriesArgs, 'goalId'>>;
+  story?: Resolver<Maybe<ResolversTypes['Story']>, ParentType, ContextType, RequireFields<QuerystoryArgs, 'id'>>;
   therapeuticQuestions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType, RequireFields<QuerytherapeuticQuestionsArgs, 'goalId'>>;
 };
 
@@ -1144,6 +1219,16 @@ export type ResearchResolvers<ContextType = GraphQLContext, ParentType extends R
 };
 
 export type ResearchSourceResolvers = EnumResolverSignature<{ ARXIV?: any, CROSSREF?: any, DATACITE?: any, EUROPEPMC?: any, OPENALEX?: any, PUBMED?: any, SEMANTIC_SCHOLAR?: any }, ResolversTypes['ResearchSource']>;
+
+export type StoryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Story'] = ResolversParentTypes['Story']> = {
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType>;
+  goalId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
 
 export type SubscriptionResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   audioJobStatus?: SubscriptionResolver<ResolversTypes['GenerationJob'], "audioJobStatus", ParentType, ContextType, RequireFields<SubscriptionaudioJobStatusArgs, 'jobId'>>;
@@ -1193,6 +1278,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DeleteNoteResult?: DeleteNoteResultResolvers<ContextType>;
   DeleteQuestionsResult?: DeleteQuestionsResultResolvers<ContextType>;
   DeleteResearchResult?: DeleteResearchResultResolvers<ContextType>;
+  DeleteStoryResult?: DeleteStoryResultResolvers<ContextType>;
   ElevenLabsVoice?: ElevenLabsVoiceResolvers<ContextType>;
   EvidenceItem?: EvidenceItemResolvers<ContextType>;
   EvidenceLocator?: EvidenceLocatorResolvers<ContextType>;
@@ -1215,6 +1301,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Query?: QueryResolvers<ContextType>;
   Research?: ResearchResolvers<ContextType>;
   ResearchSource?: ResearchSourceResolvers;
+  Story?: StoryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;

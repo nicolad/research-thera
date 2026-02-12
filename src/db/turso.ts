@@ -254,5 +254,22 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_notes_claims_claim ON notes_claims(claim_id);
   `);
 
+  // Stories table
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS stories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      goal_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE
+    );
+  `);
+
+  await turso.execute(`
+    CREATE INDEX IF NOT EXISTS idx_stories_goal ON stories(goal_id);
+  `);
+
   console.log("✅ Database initialized");
 }

@@ -140,6 +140,11 @@ export type CreateNoteInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateStoryInput = {
+  content: Scalars['String']['input'];
+  goalId: Scalars['Int']['input'];
+};
+
 export type DeleteGoalResult = {
   __typename?: 'DeleteGoalResult';
   message?: Maybe<Scalars['String']['output']>;
@@ -162,6 +167,12 @@ export type DeleteQuestionsResult = {
 export type DeleteResearchResult = {
   __typename?: 'DeleteResearchResult';
   deletedCount: Scalars['Int']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteStoryResult = {
+  __typename?: 'DeleteStoryResult';
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -338,10 +349,12 @@ export type Mutation = {
   checkNoteClaims: CheckNoteClaimsResult;
   createGoal: Goal;
   createNote: Note;
+  createStory: Story;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
+  deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
   generateAudio: GenerateAudioResult;
   generateAudioFromText: GenerateAudioFromTextResult;
@@ -351,6 +364,7 @@ export type Mutation = {
   refreshClaimCard: ClaimCard;
   updateGoal: Goal;
   updateNote: Note;
+  updateStory: Story;
   uploadAudioToR2: UploadAudioToR2Result;
 };
 
@@ -375,6 +389,11 @@ export type MutationCreateNoteArgs = {
 };
 
 
+export type MutationCreateStoryArgs = {
+  input: CreateStoryInput;
+};
+
+
 export type MutationDeleteClaimCardArgs = {
   id: Scalars['ID']['input'];
 };
@@ -392,6 +411,11 @@ export type MutationDeleteNoteArgs = {
 
 export type MutationDeleteResearchArgs = {
   goalId: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteStoryArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -448,6 +472,12 @@ export type MutationUpdateNoteArgs = {
 };
 
 
+export type MutationUpdateStoryArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateStoryInput;
+};
+
+
 export type MutationUploadAudioToR2Args = {
   input: UploadAudioToR2Input;
 };
@@ -497,6 +527,8 @@ export type Query = {
   note?: Maybe<Note>;
   notes: Array<Note>;
   research: Array<Research>;
+  stories: Array<Story>;
+  story?: Maybe<Story>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
 };
 
@@ -551,6 +583,16 @@ export type QueryResearchArgs = {
 };
 
 
+export type QueryStoriesArgs = {
+  goalId: Scalars['Int']['input'];
+};
+
+
+export type QueryStoryArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
@@ -587,6 +629,17 @@ export enum ResearchSource {
   Pubmed = 'PUBMED',
   SemanticScholar = 'SEMANTIC_SCHOLAR'
 }
+
+export type Story = {
+  __typename?: 'Story';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  goal?: Maybe<Goal>;
+  goalId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -640,6 +693,10 @@ export type UpdateNoteInput = {
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateStoryInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UploadAudioToR2Input = {
