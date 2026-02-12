@@ -1,50 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { elevenlabs, THERAPEUTIC_VOICES } from "@/lib/elevenlabs";
+import { MDocument } from "@mastra/rag";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_CHARS = 9500; // ElevenLabs limit is 10,000, use 9,500 to be safe
 
-function splitTextIntoChunks(text: string, maxChars: number): string[] {
-  const chunks: string[] = [];
+async function chunkTextForSpeech(text: string): Promise<string[]> {
+  // Create MDocument from text
+  const doc = MDocument.fromText(text);
 
-  // Split by paragraphs first
-  const paragraphs = text.split(/\n\n+/);
-  let currentChunk = "";
+  // Use sentence strategy for natural speech patterns
+  const chunks = await doc.chunk({
+    strategy: "sentence",
+    maxSize: MAX_CHARS,
+    minSize: 50,
+    overlap: 0,
+    sentenceEnders: [".", "!", "?", "。", "！", "？"], // Support multiple languages
+  });
 
-  for (const paragraph of paragraphs) {
-    // If a single paragraph is too long, split by sentences
-    if (paragraph.length > maxChars) {
-      if (currentChunk) {
-        chunks.push(currentChunk.trim());
-        currentChunk = "";
-      }
-
-      const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
-      for (const sentence of sentences) {
-        if (currentChunk.length + sentence.length > maxChars) {
-          if (currentChunk) {
-            chunks.push(currentChunk.trim());
-          }
-          currentChunk = sentence;
-        } else {
-          currentChunk += sentence;
-        }
-      }
-    } else if (currentChunk.length + paragraph.length + 2 > maxChars) {
-      chunks.push(currentChunk.trim());
-      currentChunk = paragraph;
-    } else {
-      currentChunk += (currentChunk ? "\n\n" : "") + paragraph;
-    }
-  }
-
-  if (currentChunk) {
-    chunks.push(currentChunk.trim());
-  }
-
-  return chunks;
+  // Extract text from chunks
+  return chunks.map((chunk) => chunk.text);
 }
 
 export async function POST(request: NextRequest) {
@@ -60,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Check if text needs to be chunked
     if (text.length > MAX_CHARS) {
-      const chunks = splitTextIntoChunks(text, MAX_CHARS);
+      const chunks = await chunkTextForSpeech(text);
 
       // Process chunks and combine audio
       const audioChunks: Uint8Array[] = [];
