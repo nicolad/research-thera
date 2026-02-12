@@ -80,7 +80,7 @@ export const generateOpenAIAudio: NonNullable<
     if (text.length > MAX_CHARS) {
       const chunks = await chunkTextForSpeech(text);
 
-      // Process chunks and combine audio
+      // Process chunks and combine audio (ALWAYS merge at the end for story)
       const audioChunks: Buffer[] = [];
 
       for (const chunk of chunks) {
@@ -98,8 +98,11 @@ export const generateOpenAIAudio: NonNullable<
         audioChunks.push(buffer);
       }
 
-      // Combine all chunks into a single buffer
+      // CRITICAL: Combine all chunks into a single audio file for the story
       const combined = Buffer.concat(audioChunks);
+      console.log(
+        `Merged ${chunks.length} audio chunks into single file (${combined.length} bytes)`,
+      );
 
       // Upload to Cloudflare R2 if requested
       if (uploadToCloud) {

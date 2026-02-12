@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       streamFormat,
       instructions,
       responseFormat,
+      storyId,
+      userEmail,
     } = await request.json();
 
     if (!text) {
@@ -52,8 +54,11 @@ export async function POST(request: NextRequest) {
     // Check if text needs to be chunked
     if (text.length > MAX_CHARS) {
       const chunks = await chunkTextForSpeech(text);
+      console.log(
+        `Text too long (${text.length} chars), split into ${chunks.length} chunks`,
+      );
 
-      // Process chunks and combine audio
+      // Process chunks and combine audio (ALWAYS merge at the end for story)
       const audioChunks: Buffer[] = [];
 
       for (const chunk of chunks) {
@@ -70,10 +75,13 @@ export async function POST(request: NextRequest) {
         audioChunks.push(buffer);
       }
 
-      // Combine all chunks into a single buffer
+      // CRITICAL: Combine all chunks into a single audio file (ALWAYS merge at the end)
       const combined = Buffer.concat(audioChunks);
+      console.log(
+        `Merged ${chunks.length} audio chunks into single file (${combined.length} bytes)`,
+      );
 
-      // Upload to R2 if requested
+      // Upload to R2 and save to story if requested
       if (uploadToCloud) {
         const key = generateAudioKey("tts");
         const result = await uploadToR2({
@@ -89,19 +97,42 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Save audio to story if both storyId and userEmail are provided
+        if (storyId && userEmail) {
+          const { turso } = await import("@/src/db/turso");
+          const now = new Date().toISOString();
+          await turso.execute({
+            sql: `UPDATE stories 
+                  SET audio_key = ?, audio_url = ?, audio_generated_at = ?, updated_at = ?
+                  WHERE id = ? AND user_id = ?`,
+            args: [
+              result.key,
+              result.publicUrl || "",
+              now,
+              now,
+              storyId,
+              userEmail,
+            ],
+          });
+        }
+
         return NextResponse.json({
           success: true,
           audioUrl: result.publicUrl,
           key: result.key,
           sizeBytes: result.sizeBytes,
+          chunks: chunks.length,
+          merged: true,
         });
       }
 
-      // Return audio directly
+      // Return merged audio directly
       return new NextResponse(combined, {
         headers: {
           "Content-Type": `audio/${format}`,
           "Content-Length": combined.length.toString(),
+          "X-Audio-Chunks": chunks.length.toString(),
+          "X-Audio-Merged": "true",
         },
       });
     }
@@ -179,11 +210,31 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Save audio to story if both storyId and userEmail are provided
+      if (storyId && userEmail) {
+        const { turso } = await import("@/src/db/turso");
+        const now = new Date().toISOString();
+        await turso.execute({
+          sql: `UPDATE stories 
+                SET audio_key = ?, audio_url = ?, audio_generated_at = ?, updated_at = ?
+                WHERE id = ? AND user_id = ?`,
+          args: [
+            result.key,
+            result.publicUrl || "",
+            now,
+            now,
+            storyId,
+            userEmail,
+          ],
+        });
+      }
+
       return NextResponse.json({
         success: true,
         audioUrl: result.publicUrl,
         key: result.key,
         sizeBytes: result.sizeBytes,
+        merged: false, // Not chunked, so no merging needed
       });
     }
 
