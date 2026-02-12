@@ -14,7 +14,13 @@ import {
   Separator,
   TextArea,
 } from "@radix-ui/themes";
-import { ArrowLeftIcon, Pencil1Icon, TrashIcon, SpeakerLoudIcon, StopIcon } from "@radix-ui/react-icons";
+import {
+  ArrowLeftIcon,
+  Pencil1Icon,
+  TrashIcon,
+  SpeakerLoudIcon,
+  StopIcon,
+} from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -32,7 +38,9 @@ function StoryPageContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+    null,
+  );
 
   const { data, loading, error, refetch } = useGetStoryQuery({
     variables: { id: storyId },
