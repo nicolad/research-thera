@@ -16,6 +16,7 @@ export const Story: StoryResolvers = {
         research: [],
         questions: [],
         stories: [],
+        userStories: [],
       } as any;
     } catch (error) {
       return null;

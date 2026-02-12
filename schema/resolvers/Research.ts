@@ -32,6 +32,7 @@ export const Research: ResearchResolvers = {
       research: [],
       questions: [],
       stories: [],
+      userStories: [],
     } as any;
   },
 };

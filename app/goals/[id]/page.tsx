@@ -3,7 +3,6 @@
 import { useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
-import * as Dialog from "@radix-ui/react-dialog";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
   Box,
@@ -20,10 +19,7 @@ import {
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import {
-  useGetGoalQuery,
-  useCreateStoryMutation,
-} from "@/app/__generated__/hooks";
+import { useGetGoalQuery } from "@/app/__generated__/hooks";
 import { authClient } from "@/src/auth/client";
 import "./accordion.css";
 
@@ -32,8 +28,6 @@ function GoalPageContent() {
   const params = useParams();
   const paramValue = params.id as string;
   const { data: session } = authClient.useSession();
-  const [storyDialogOpen, setStoryDialogOpen] = useState(false);
-  const [storyContent, setStoryContent] = useState("");
 
   // Determine if paramValue is a number (ID) or string (slug)
   const isNumericId = /^\d+$/.test(paramValue);
@@ -46,14 +40,6 @@ function GoalPageContent() {
       slug: goalSlug,
     },
     skip: !goalId && !goalSlug,
-  });
-
-  const [createStory, { loading: creatingStory }] = useCreateStoryMutation({
-    refetchQueries: ["GetGoal"],
-    onCompleted: () => {
-      setStoryContent("");
-      setStoryDialogOpen(false);
-    },
   });
 
   const goal = data?.goal;
@@ -91,17 +77,9 @@ function GoalPageContent() {
     }
   };
 
-  const handleCreateStory = async () => {
-    if (!storyContent.trim() || !goal) return;
-
-    await createStory({
-      variables: {
-        input: {
-          goalId: goal.id,
-          content: storyContent,
-        },
-      },
-    });
+  const handleAddStory = () => {
+    if (!goal) return;
+    router.push(`/stories/new?goalId=${goal.id}`);
   };
 
   return (
@@ -237,81 +215,9 @@ function GoalPageContent() {
             <Heading size="4">
               Stories {goal.userStories ? `(${goal.userStories.length})` : ""}
             </Heading>
-            <Dialog.Root
-              open={storyDialogOpen}
-              onOpenChange={setStoryDialogOpen}
-            >
-              <Dialog.Trigger asChild>
-                <Button size="2">Add Story</Button>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay
-                  style={{
-                    position: "fixed",
-                    inset: 0,
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    zIndex: 50,
-                  }}
-                />
-                <Dialog.Content
-                  style={{
-                    position: "fixed",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    backgroundColor: "var(--color-panel)",
-                    padding: "24px",
-                    borderRadius: "8px",
-                    maxWidth: "600px",
-                    width: "90vw",
-                    zIndex: 51,
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  <Flex direction="column" gap="4">
-                    <Dialog.Title asChild>
-                      <Heading size="5">Add New Story</Heading>
-                    </Dialog.Title>
-                    <Dialog.Description asChild>
-                      <Text size="2" color="gray">
-                        Share your thoughts, reflections, or experiences related
-                        to this goal.
-                      </Text>
-                    </Dialog.Description>
-                    <textarea
-                      value={storyContent}
-                      onChange={(e) => setStoryContent(e.target.value)}
-                      placeholder="Write your story here..."
-                      style={{
-                        width: "100%",
-                        minHeight: "200px",
-                        padding: "12px",
-                        borderRadius: "4px",
-                        border: "1px solid var(--gray-6)",
-                        backgroundColor: "var(--color-background)",
-                        color: "var(--gray-12)",
-                        fontSize: "14px",
-                        fontFamily: "inherit",
-                        resize: "vertical",
-                      }}
-                    />
-                    <Flex gap="2" justify="end">
-                      <Dialog.Close asChild>
-                        <Button variant="soft" color="gray">
-                          Cancel
-                        </Button>
-                      </Dialog.Close>
-                      <Button
-                        onClick={handleCreateStory}
-                        disabled={!storyContent.trim() || creatingStory}
-                      >
-                        {creatingStory ? "Creating..." : "Create Story"}
-                      </Button>
-                    </Flex>
-                  </Flex>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
+            <Button size="2" onClick={handleAddStory}>
+              Add Story
+            </Button>
           </Flex>
 
           {goal.userStories && goal.userStories.length > 0 ? (

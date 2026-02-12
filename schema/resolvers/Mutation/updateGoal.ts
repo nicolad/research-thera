@@ -2,7 +2,7 @@ import type { MutationResolvers } from "./../../types.generated";
 import { tursoTools } from "@/src/db";
 import { updateGoal as updateGoalDb } from "@/src/db";
 
-export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
+export const updateGoal: NonNullable<MutationResolvers["updateGoal"]> = async (
   _parent,
   args,
   ctx,
@@ -35,6 +35,7 @@ export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
     updatedAt: goal.updatedAt,
     questions: [],
     stories: [],
+    userStories: [],
     notes: [],
     research: [],
   } as any;

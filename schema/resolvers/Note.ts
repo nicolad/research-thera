@@ -28,6 +28,7 @@ export const Note: NoteResolvers = {
         research: [],
         questions: [],
         stories: [],
+        userStories: [],
       } as any;
     } catch (error) {
       // Goal not found or user doesn't have access
