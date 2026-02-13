@@ -1,11 +1,5 @@
 import { LibSQLVector } from "@mastra/libsql";
-
-if (!process.env.TURSO_DATABASE_URL) {
-  throw new Error("TURSO_DATABASE_URL environment variable is required");
-}
-
-const url = process.env.TURSO_DATABASE_URL.trim();
-const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 /**
  * RAG Tools for Mastra Workflows
@@ -15,8 +9,8 @@ const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
 // Initialize vector store
 export const vectorStore = new LibSQLVector({
   id: "goal-context-v1",
-  url,
-  authToken,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 /**

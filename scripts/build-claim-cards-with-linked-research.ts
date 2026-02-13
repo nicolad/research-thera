@@ -25,11 +25,12 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { generateObject } from "ai";
 import { z } from "zod";
 import type { PaperDetails } from "../src/tools/sources.tools";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "../src/config/turso";
 
 // Create turso client directly
 const turso = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 const deepseek = createDeepSeek({

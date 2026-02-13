@@ -7,11 +7,12 @@
 
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 // Create Turso client following official Next.js pattern
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!.trim(),
-  authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 const db = drizzle(client);

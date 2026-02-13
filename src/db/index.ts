@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 import { turso } from "./turso";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 
@@ -10,16 +11,9 @@ function getDb() {
     return dbInstance;
   }
 
-  if (!process.env.TURSO_DATABASE_URL) {
-    throw new Error("TURSO_DATABASE_URL environment variable is required");
-  }
-
-  const url = process.env.TURSO_DATABASE_URL.trim();
-  const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
-
   const client = createClient({
-    url,
-    authToken,
+    url: TURSO_DATABASE_URL,
+    authToken: TURSO_AUTH_TOKEN,
   });
 
   dbInstance = drizzle(client, { schema });

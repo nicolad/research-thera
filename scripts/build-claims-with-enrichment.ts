@@ -33,6 +33,7 @@ import type { PaperDetails } from "../src/tools/sources.tools";
 import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "../src/config/turso";
 
 dotenv.config();
 
@@ -60,8 +61,8 @@ const CFG = {
 const USER_AGENT = `ai-therapist/1.0 (${CFG.CONTACT_EMAIL ? `mailto:${CFG.CONTACT_EMAIL}` : "research@example.com"})`;
 
 const turso = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 const deepseek = createDeepSeek({

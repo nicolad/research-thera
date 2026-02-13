@@ -1,10 +1,11 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 const dialect = new LibsqlDialect({
-  url: process.env.TURSO_DATABASE_URL as string,
-  authToken: process.env.TURSO_AUTH_TOKEN as string,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN as string,
 });
 
 export const auth = betterAuth({

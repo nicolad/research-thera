@@ -6,6 +6,7 @@ import { LibSQLStore } from "@mastra/libsql";
 import { buildTracingOptions } from "@mastra/observability";
 import { withLangfusePrompt } from "@mastra/langfuse";
 import { Langfuse } from "langfuse";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY,
@@ -17,15 +18,11 @@ const langfuse = new Langfuse({
   secretKey: process.env.LANGFUSE_SECRET_KEY!,
 });
 
-if (!process.env.TURSO_DATABASE_URL) {
-  throw new Error("TURSO_DATABASE_URL environment variable is required");
-}
-
 // Agent-level storage for conversation history
 const agentStorage = new LibSQLStore({
   id: "agent-memory-storage",
-  url: process.env.TURSO_DATABASE_URL.trim(),
-  authToken: process.env.TURSO_AUTH_TOKEN?.trim(),
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 const storyInstructions = `

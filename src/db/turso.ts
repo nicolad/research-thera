@@ -1,15 +1,9 @@
 import { createClient } from "@libsql/client";
-
-if (!process.env.TURSO_DATABASE_URL) {
-  throw new Error("TURSO_DATABASE_URL environment variable is required");
-}
-
-const url = process.env.TURSO_DATABASE_URL.trim();
-const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 export const turso = createClient({
-  url,
-  authToken,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 /**

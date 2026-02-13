@@ -2,13 +2,14 @@ import { createClient } from "@libsql/client";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "../src/config/turso";
 
 // Load environment variables
 dotenv.config();
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN!,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 // Read CSV data from file

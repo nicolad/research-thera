@@ -492,18 +492,15 @@ export async function refreshClaimCard(
 import { createClient } from "@libsql/client";
 import type { Client } from "@libsql/client";
 import path from "path";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "@/src/config/turso";
 
 let tursoClient: Client | null = null;
 
 function getTursoClient(): Client {
   if (!tursoClient) {
-    if (!process.env.TURSO_DATABASE_URL) {
-      throw new Error("TURSO_DATABASE_URL environment variable is required");
-    }
-
     tursoClient = createClient({
-      url: process.env.TURSO_DATABASE_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      url: TURSO_DATABASE_URL,
+      authToken: TURSO_AUTH_TOKEN,
     });
   }
   return tursoClient;

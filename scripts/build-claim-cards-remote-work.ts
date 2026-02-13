@@ -12,6 +12,7 @@
 import { createClient } from "@libsql/client";
 import * as dotenv from "dotenv";
 import { buildClaimCards } from "../schema/resolvers/Mutation/buildClaimCards";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "../src/config/turso";
 
 // Load environment variables
 dotenv.config();
@@ -22,8 +23,8 @@ if (typeof globalThis !== "undefined") {
 }
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN!,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 type StorageDetection = {

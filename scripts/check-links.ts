@@ -1,15 +1,16 @@
 import { createClient } from "@libsql/client";
 import * as dotenv from "dotenv";
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "../src/config/turso";
 
 dotenv.config();
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url: TURSO_DATABASE_URL,
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 async function checkLinks() {
-  console.log("URL:", process.env.TURSO_DATABASE_URL);
+  console.log("URL:", TURSO_DATABASE_URL);
 
   const result = await client.execute(
     "SELECT COUNT(*) as count FROM notes_research WHERE note_id = 1",
