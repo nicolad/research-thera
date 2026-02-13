@@ -37,27 +37,18 @@ export function AudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-
-  // If we ever create an object URL (base64 -> Blob), keep it so user can replay without regenerating.
-  // Revoke only when replaced or on unmount.
   const objectUrlRef = useRef<string | null>(null);
+  const syncingRef = useRef(false);
 
-  // Track the last playable src (R2 URL or object URL). Prefer this over existingAudioUrl
-  // right after generation/regeneration (before parent refetch updates existingAudioUrl).
-  const lastPlayableSrcRef = useRef<string | null>(null);
-
-  // NEW: prevent feedback loops when we sync audio -> waveform and waveform -> audio
-  const syncingWaveformRef = useRef(false);
-
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioDuration, setAudioDuration] = useState<number | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string>("");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
 
   const [generateAudio, { loading: generatingAudio }] =
     useGenerateOpenAiAudioMutation();
 
-  const revokeObjectUrlIfAny = () => {
+  const revokeObjectUrl = () => {
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
@@ -65,94 +56,20 @@ export function AudioPlayer({
   };
 
   const stopPlayback = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
-
-    // NEW: keep waveform in sync (visual reset)
     if (wavesurferRef.current) {
-      syncingWaveformRef.current = true;
+      syncingRef.current = true;
       wavesurferRef.current.seekTo(0);
-      syncingWaveformRef.current = false;
+      syncingRef.current = false;
     }
-
-    setIsPlayingAudio(false);
-    setCurrentTime(0);
-    audioRef.current = null;
+    setIsPlaying(false);
   };
 
-  const resetAudioState = () => {
-    stopPlayback();
-    if (wavesurferRef.current) {
-      wavesurferRef.current.empty();
-    }
-    setAudioDuration(null);
-    setCurrentTime(0);
-    lastPlayableSrcRef.current = null;
-  };
-
-  const wireAudioEvents = (audio: HTMLAudioElement) => {
-    const onLoadedMetadata = () => {
-      const d = audio.duration;
-      if (Number.isFinite(d) && d > 0) setAudioDuration(d);
-    };
-
-    const onTimeUpdate = () => {
-      const t = audio.currentTime || 0;
-      setCurrentTime(t);
-
-      // NEW: drive WaveSurfer progress from the real audio element (visual-only)
-      const ws = wavesurferRef.current;
-      const d = audio.duration;
-      if (ws && Number.isFinite(d) && d > 0 && ws.getDuration() > 0) {
-        const progress = Math.min(1, Math.max(0, t / d));
-        syncingWaveformRef.current = true;
-        ws.seekTo(progress);
-        syncingWaveformRef.current = false;
-      }
-    };
-
-    const onEnded = () => {
-      stopPlayback();
-    };
-
-    const onError = (e: Event) => {
-      console.error("Audio playback error:", e);
-      stopPlayback();
-    };
-
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onError);
-
-    return () => {
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onError);
-    };
-  };
-
-  const playUrl = async (src: string) => {
-    // Stop any existing playback first
-    stopPlayback();
-
-    setIsPlayingAudio(true);
-
-    const audio = new Audio();
-    audio.crossOrigin = "anonymous";
-    audio.preload = "metadata";
-
-    const unwire = wireAudioEvents(audio);
-    audioRef.current = audio;
-
-    audio.src = src;
-    lastPlayableSrcRef.current = src;
-
-    // Load waveform for visualization/seek
+  const loadAudioSrc = async (src: string) => {
+    setAudioSrc(src);
     if (wavesurferRef.current) {
       try {
         await wavesurferRef.current.load(src);
@@ -160,91 +77,47 @@ export function AudioPlayer({
         console.warn("WaveSurfer load error:", err);
       }
     }
-
-    try {
-      // IMPORTANT: only play the real audio (WaveSurfer is visual-only now)
-      await audio.play();
-    } catch (err) {
-      console.error("Play error:", err);
-      unwire();
-      stopPlayback();
-    }
   };
 
-  const playBase64Audio = async (audioBuffer: string) => {
-    stopPlayback();
-
-    try {
-      // If buffer is a data URL, strip prefix
-      const base64 = audioBuffer.includes(",")
-        ? audioBuffer.split(",").pop()!
-        : audioBuffer;
-
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      const blob = new Blob([bytes], { type: "audio/mpeg" });
-
-      // Replace old object URL if any
-      revokeObjectUrlIfAny();
-
-      const blobUrl = URL.createObjectURL(blob);
-      objectUrlRef.current = blobUrl;
-      lastPlayableSrcRef.current = blobUrl;
-
-      setIsPlayingAudio(true);
-
-      const audio = new Audio(blobUrl);
-      audio.preload = "metadata";
-
-      wireAudioEvents(audio);
-      audioRef.current = audio;
-
-      // Load waveform for visualization/seek
-      if (wavesurferRef.current) {
-        try {
-          await wavesurferRef.current.load(blobUrl);
-        } catch (err) {
-          console.warn("WaveSurfer load error (blob):", err);
-        }
-      }
-
-      // IMPORTANT: only play the real audio (WaveSurfer is visual-only now)
-      await audio.play();
-    } catch (error) {
-      console.error("Base64 audio playback error:", error);
-      stopPlayback();
+  const base64ToBlob = (base64: string): string => {
+    const cleanBase64 = base64.includes(",") ? base64.split(",")[1] : base64;
+    const binary = atob(cleanBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
     }
+    revokeObjectUrl();
+    const blobUrl = URL.createObjectURL(
+      new Blob([bytes], { type: "audio/mpeg" }),
+    );
+    objectUrlRef.current = blobUrl;
+    return blobUrl;
   };
 
   const handleTextToSpeech = async (regenerate = false) => {
-    // If currently playing, clicking acts as stop
-    if (isPlayingAudio) {
+    if (isPlaying) {
       stopPlayback();
       return;
     }
 
-    // If regenerating, reset everything first
     if (regenerate) {
-      resetAudioState();
+      setAudioSrc("");
+      setDuration(null);
+      setCurrentTime(0);
+      if (wavesurferRef.current) wavesurferRef.current.empty();
     }
 
-    // If we already have a playable src from this session and not regenerating, replay it.
-    if (!regenerate && lastPlayableSrcRef.current) {
-      await playUrl(lastPlayableSrcRef.current);
+    if (!regenerate && audioSrc) {
+      audioRef.current?.play();
       return;
     }
 
-    // If we have existing audio and not regenerating, play it.
     if (!regenerate && existingAudioUrl) {
-      await playUrl(existingAudioUrl);
+      await loadAudioSrc(existingAudioUrl);
+      audioRef.current?.play();
       return;
     }
 
-    // Otherwise generate new audio
     try {
       const result = await generateAudio({
         variables: {
@@ -261,60 +134,38 @@ export function AudioPlayer({
       });
 
       const payload = result.data?.generateOpenAIAudio;
-
       if (!payload?.success) {
         throw new Error(payload?.message || "Failed to generate audio");
       }
 
       if (onAudioGenerated) onAudioGenerated();
 
-      // If backend provides duration, use it immediately (UI updates even before metadata loads).
       if (
         typeof payload.duration === "number" &&
         Number.isFinite(payload.duration)
       ) {
-        setAudioDuration(payload.duration);
+        setDuration(payload.duration);
       }
 
-      const audioUrl = payload.audioUrl;
-      const audioBuffer = payload.audioBuffer;
+      const src =
+        payload.audioUrl ||
+        (payload.audioBuffer ? base64ToBlob(payload.audioBuffer) : null);
+      if (!src) throw new Error("No audio data received");
 
-      if (audioUrl) {
-        try {
-          await playUrl(audioUrl);
-          return;
-        } catch (e) {
-          console.error("R2 playback failed, trying base64 fallback:", e);
-        }
-      }
-
-      if (audioBuffer) {
-        await playBase64Audio(audioBuffer);
-        return;
-      }
-
-      throw new Error("No audio data received");
+      await loadAudioSrc(src);
+      audioRef.current?.play();
     } catch (error) {
       console.error("TTS Error:", error);
       stopPlayback();
     }
   };
 
-  const handleRegenerateAudio = () => {
-    void handleTextToSpeech(true);
-  };
-
   const handleDownload = () => {
-    const audioUrl = existingAudioUrl || lastPlayableSrcRef.current;
-    if (!audioUrl) return;
-
-    const anchor = document.createElement("a");
-    anchor.href = audioUrl;
-    anchor.download = `story-${storyId}-audio.mp3`;
-    anchor.style.display = "none";
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
+    if (!audioSrc) return;
+    const a = document.createElement("a");
+    a.href = audioSrc;
+    a.download = `story-${storyId}-audio.mp3`;
+    a.click();
   };
 
   // Initialize WaveSurfer
@@ -337,87 +188,42 @@ export function AudioPlayer({
 
     ws.on("ready", () => {
       const d = ws.getDuration();
-      if (Number.isFinite(d) && d > 0) setAudioDuration(d);
+      if (Number.isFinite(d) && d > 0) setDuration(d);
     });
 
-    // NEW: allow click/drag seeking on waveform (updates the real audio element)
     ws.on("interaction" as any, (progress: number) => {
-      if (syncingWaveformRef.current) return;
-
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      const d = audio.duration;
+      if (syncingRef.current || !audioRef.current) return;
+      const d = audioRef.current.duration;
       if (!Number.isFinite(d) || d <= 0) return;
-
-      const nextTime = Math.min(d, Math.max(0, progress * d));
-      audio.currentTime = nextTime;
-      setCurrentTime(nextTime);
+      audioRef.current.currentTime = Math.min(d, Math.max(0, progress * d));
     });
 
+    return () => ws.destroy();
+  }, []);
+
+  // Load existing audio into waveform
+  useEffect(() => {
+    if (existingAudioUrl && !audioSrc) {
+      loadAudioSrc(existingAudioUrl);
+    }
+  }, [existingAudioUrl, audioSrc]);
+
+  // Cleanup
+  useEffect(() => {
     return () => {
-      ws.destroy();
+      revokeObjectUrl();
+      if (wavesurferRef.current) wavesurferRef.current.destroy();
     };
   }, []);
 
-  // Preload duration for existing R2 URL so it shows before pressing Play
-  useEffect(() => {
-    if (!existingAudioUrl) return;
+  const hasAudio = Boolean(audioSrc || existingAudioUrl);
+  const timeLabel = duration
+    ? `${formatDuration(isPlaying ? currentTime : 0)} / ${formatDuration(duration)}`
+    : isPlaying
+      ? formatDuration(currentTime)
+      : null;
 
-    let cancelled = false;
-    setIsLoadingMetadata(true);
-
-    const a = new Audio();
-    a.preload = "metadata";
-    a.crossOrigin = "anonymous";
-
-    const onLoaded = () => {
-      if (cancelled) return;
-      const d = a.duration;
-      if (Number.isFinite(d) && d > 0) setAudioDuration(d);
-      setIsLoadingMetadata(false);
-    };
-
-    const onErr = (e: Event) => {
-      if (cancelled) return;
-      console.warn("Could not load audio metadata:", e);
-      setIsLoadingMetadata(false);
-    };
-
-    a.addEventListener("loadedmetadata", onLoaded);
-    a.addEventListener("error", onErr);
-
-    a.src = existingAudioUrl;
-    a.load();
-
-    return () => {
-      cancelled = true;
-      a.removeEventListener("loadedmetadata", onLoaded);
-      a.removeEventListener("error", onErr);
-      a.src = "";
-    };
-  }, [existingAudioUrl]);
-
-  // Cleanup object URL on unmount
-  useEffect(() => {
-    return () => {
-      stopPlayback();
-      revokeObjectUrlIfAny();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const hasAnyAudio =
-    Boolean(existingAudioUrl) || Boolean(lastPlayableSrcRef.current);
-  const timeLabel =
-    audioDuration != null
-      ? `${formatDuration(isPlayingAudio ? currentTime : 0)} / ${formatDuration(audioDuration)}`
-      : isPlayingAudio
-        ? formatDuration(currentTime)
-        : null;
-
-  // Card UI when audio exists OR we've generated something in-session
-  if (hasAnyAudio) {
+  if (hasAudio) {
     return (
       <Card
         style={{
@@ -426,6 +232,35 @@ export function AudioPlayer({
         }}
       >
         <Flex direction="column" gap="2" p="3">
+          <audio
+            ref={audioRef}
+            src={audioSrc}
+            crossOrigin="anonymous"
+            preload="metadata"
+            onLoadedMetadata={(e) => {
+              const d = e.currentTarget.duration;
+              if (Number.isFinite(d) && d > 0) setDuration(d);
+            }}
+            onTimeUpdate={(e) => {
+              const t = e.currentTarget.currentTime;
+              setCurrentTime(t);
+              if (wavesurferRef.current && duration) {
+                syncingRef.current = true;
+                wavesurferRef.current.seekTo(
+                  Math.min(1, Math.max(0, t / duration)),
+                );
+                syncingRef.current = false;
+              }
+            }}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={stopPlayback}
+            onError={(e) => {
+              console.error("Audio error:", e);
+              stopPlayback();
+            }}
+          />
+
           <Flex align="center" gap="2" style={{ flexWrap: "wrap" }}>
             <SpeakerLoudIcon color="indigo" />
             <Text size="2" weight="medium" color="indigo">
@@ -438,12 +273,6 @@ export function AudioPlayer({
               </Badge>
             )}
 
-            {isLoadingMetadata && (
-              <Badge color="indigo" variant="soft" size="1">
-                Loading metadata…
-              </Badge>
-            )}
-
             {timeLabel && (
               <Badge color="indigo" variant="soft" size="1">
                 {timeLabel}
@@ -451,7 +280,6 @@ export function AudioPlayer({
             )}
           </Flex>
 
-          {/* WaveSurfer Waveform (now seekable) */}
           <div
             ref={waveformRef}
             style={{
@@ -468,29 +296,24 @@ export function AudioPlayer({
               color="indigo"
               variant="solid"
               onClick={() => void handleTextToSpeech(false)}
-              disabled={
-                generatingAudio ||
-                (!storyContent &&
-                  !existingAudioUrl &&
-                  !lastPlayableSrcRef.current)
-              }
+              disabled={generatingAudio}
             >
               {generatingAudio ? (
                 <Spinner />
-              ) : isPlayingAudio ? (
+              ) : isPlaying ? (
                 <StopIcon />
               ) : (
                 <SpeakerLoudIcon />
               )}
-              {isPlayingAudio ? "Stop Playback" : "Play Audio"}
+              {isPlaying ? "Stop" : "Play"}
             </Button>
 
-            {!isPlayingAudio && (
+            {!isPlaying && (
               <>
                 <Button
                   color="indigo"
                   variant="soft"
-                  onClick={handleRegenerateAudio}
+                  onClick={() => void handleTextToSpeech(true)}
                   disabled={generatingAudio || !storyContent}
                 >
                   {generatingAudio ? <Spinner /> : null}
@@ -501,7 +324,7 @@ export function AudioPlayer({
                   color="indigo"
                   variant="soft"
                   onClick={handleDownload}
-                  disabled={!existingAudioUrl && !lastPlayableSrcRef.current}
+                  disabled={!audioSrc}
                 >
                   <DownloadIcon />
                   Download
@@ -514,7 +337,6 @@ export function AudioPlayer({
     );
   }
 
-  // No audio exists yet: show generate
   return (
     <Flex justify="start">
       <Button
