@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Flex, Text, Card, Badge, Button, Spinner } from "@radix-ui/themes";
-import { SpeakerLoudIcon, StopIcon } from "@radix-ui/react-icons";
+import { SpeakerLoudIcon, StopIcon, DownloadIcon } from "@radix-ui/react-icons";
+import WaveSurfer from "wavesurfer.js";
 import {
   useGenerateOpenAiAudioMutation,
   OpenAittsVoice,
@@ -19,7 +20,8 @@ interface AudioPlayerProps {
 }
 
 function formatDuration(seconds?: number | null): string {
-  if (seconds == null || !Number.isFinite(seconds) || seconds < 0) return "--:--";
+  if (seconds == null || !Number.isFinite(seconds) || seconds < 0)
+    return "--:--";
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${String(secs).padStart(2, "0")}`;
@@ -33,6 +35,8 @@ export function AudioPlayer({
   onAudioGenerated,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const waveformRef = useRef<HTMLDivElement | null>(null);
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
 
   // If we ever create an object URL (base64 -> Blob), keep it so user can replay without regenerating.
   // Revoke only when replaced or on unmount.
@@ -64,9 +68,22 @@ export function AudioPlayer({
       audio.currentTime = 0;
       // Do NOT clear audio.src here; keeping it allows replay without reloading in some browsers.
     }
+    if (wavesurferRef.current) {
+      wavesurferRef.current.pause();
+    }
     setIsPlayingAudio(false);
     setCurrentTime(0);
     audioRef.current = null;
+  };
+
+  const resetAudioState = () => {
+    stopPlayback();
+    if (wavesurferRef.current) {
+      wavesurferRef.current.empty();
+    }
+    setAudioDuration(null);
+    setCurrentTime(0);
+    lastPlayableSrcRef.current = null;
   };
 
   const wireAudioEvents = (audio: HTMLAudioElement) => {
@@ -117,8 +134,20 @@ export function AudioPlayer({
     audio.src = src;
     lastPlayableSrcRef.current = src;
 
+    // Load audio into WaveSurfer if available
+    if (wavesurferRef.current) {
+      try {
+        await wavesurferRef.current.load(src);
+      } catch (err) {
+        console.warn("WaveSurfer load error:", err);
+      }
+    }
+
     try {
       await audio.play();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.play();
+      }
     } catch (err) {
       console.error("Play error:", err);
       unwire();
@@ -131,8 +160,9 @@ export function AudioPlayer({
 
     try {
       // If buffer is a data URL, strip prefix
-      const base64 =
-        audioBuffer.includes(",") ? audioBuffer.split(",").pop()! : audioBuffer;
+      const base64 = audioBuffer.includes(",")
+        ? audioBuffer.split(",").pop()!
+        : audioBuffer;
 
       const binaryString = atob(base64);
       const bytes = new Uint8Array(binaryString.length);
@@ -157,7 +187,19 @@ export function AudioPlayer({
       wireAudioEvents(audio);
       audioRef.current = audio;
 
+      // Load blob URL into WaveSurfer
+      if (wavesurferRef.current) {
+        try {
+          await wavesurferRef.current.load(blobUrl);
+        } catch (err) {
+          console.warn("WaveSurfer load error (blob):", err);
+        }
+      }
+
       await audio.play();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.play();
+      }
     } catch (error) {
       console.error("Base64 audio playback error:", error);
       stopPlayback();
@@ -169,6 +211,11 @@ export function AudioPlayer({
     if (isPlayingAudio) {
       stopPlayback();
       return;
+    }
+
+    // If regenerating, reset everything first
+    if (regenerate) {
+      resetAudioState();
     }
 
     // If we already have a playable src from this session and not regenerating, replay it.
@@ -190,7 +237,7 @@ export function AudioPlayer({
           input: {
             text: storyContent,
             storyId,
-            voice: OpenAittsVoice.Alloy,
+            voice: OpenAittsVoice.Onyx,
             model: OpenAittsModel.Gpt_4OMiniTts,
             speed: 0.9,
             responseFormat: OpenAiAudioFormat.Mp3,
@@ -208,7 +255,10 @@ export function AudioPlayer({
       if (onAudioGenerated) onAudioGenerated();
 
       // If backend provides duration, use it immediately (UI updates even before metadata loads).
-      if (typeof payload.duration === "number" && Number.isFinite(payload.duration)) {
+      if (
+        typeof payload.duration === "number" &&
+        Number.isFinite(payload.duration)
+      ) {
         setAudioDuration(payload.duration);
       }
 
@@ -239,6 +289,58 @@ export function AudioPlayer({
   const handleRegenerateAudio = () => {
     void handleTextToSpeech(true);
   };
+
+  const handleDownload = () => {
+    const audioUrl = existingAudioUrl || lastPlayableSrcRef.current;
+    if (!audioUrl) return;
+
+    const anchor = document.createElement("a");
+    anchor.href = audioUrl;
+    anchor.download = `story-${storyId}-audio.mp3`;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  };
+
+  // Initialize WaveSurfer
+  useEffect(() => {
+    if (!waveformRef.current) return;
+
+    const ws = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: "#a5b4fc",
+      progressColor: "#6366f1",
+      cursorColor: "#4f46e5",
+      height: 80,
+      normalize: true,
+      barWidth: 2,
+      barGap: 1,
+      barRadius: 2,
+    });
+
+    wavesurferRef.current = ws;
+
+    // Sync WaveSurfer with audio duration
+    ws.on("ready", () => {
+      const d = ws.getDuration();
+      if (Number.isFinite(d) && d > 0) setAudioDuration(d);
+    });
+
+    // Sync WaveSurfer time updates
+    ws.on("timeupdate", (currentTime) => {
+      setCurrentTime(currentTime);
+    });
+
+    ws.on("finish", () => {
+      setIsPlayingAudio(false);
+      setCurrentTime(0);
+    });
+
+    return () => {
+      ws.destroy();
+    };
+  }, []);
 
   // Preload duration for existing R2 URL so it shows before pressing Play
   useEffect(() => {
@@ -287,7 +389,8 @@ export function AudioPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hasAnyAudio = Boolean(existingAudioUrl) || Boolean(lastPlayableSrcRef.current);
+  const hasAnyAudio =
+    Boolean(existingAudioUrl) || Boolean(lastPlayableSrcRef.current);
   const timeLabel =
     audioDuration != null
       ? `${formatDuration(isPlayingAudio ? currentTime : 0)} / ${formatDuration(audioDuration)}`
@@ -330,27 +433,62 @@ export function AudioPlayer({
             )}
           </Flex>
 
+          {/* WaveSurfer Waveform */}
+          <div
+            ref={waveformRef}
+            style={{
+              width: "100%",
+              marginTop: "8px",
+              background: "var(--indigo-3)",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          />
+
           <Flex gap="2" style={{ flexWrap: "wrap" }}>
             <Button
               color="indigo"
               variant="solid"
               onClick={() => void handleTextToSpeech(false)}
-              disabled={generatingAudio || (!storyContent && !existingAudioUrl && !lastPlayableSrcRef.current)}
+              disabled={
+                generatingAudio ||
+                (!storyContent &&
+                  !existingAudioUrl &&
+                  !lastPlayableSrcRef.current)
+              }
             >
-              {generatingAudio ? <Spinner /> : isPlayingAudio ? <StopIcon /> : <SpeakerLoudIcon />}
+              {generatingAudio ? (
+                <Spinner />
+              ) : isPlayingAudio ? (
+                <StopIcon />
+              ) : (
+                <SpeakerLoudIcon />
+              )}
               {isPlayingAudio ? "Stop Playback" : "Play Audio"}
             </Button>
 
             {!isPlayingAudio && (
-              <Button
-                color="indigo"
-                variant="soft"
-                onClick={handleRegenerateAudio}
-                disabled={generatingAudio || !storyContent}
-              >
-                {generatingAudio ? <Spinner /> : null}
-                Regenerate
-              </Button>
+              <>
+                <Button
+                  color="indigo"
+                  variant="soft"
+                  onClick={handleRegenerateAudio}
+                  disabled={generatingAudio || !storyContent}
+                >
+                  {generatingAudio ? <Spinner /> : null}
+                  Regenerate
+                </Button>
+
+                <Button
+                  color="indigo"
+                  variant="soft"
+                  onClick={handleDownload}
+                  disabled={!existingAudioUrl && !lastPlayableSrcRef.current}
+                >
+                  <DownloadIcon />
+                  Download
+                </Button>
+              </>
             )}
           </Flex>
         </Flex>
