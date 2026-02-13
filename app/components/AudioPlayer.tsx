@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Flex, Text, Card, Badge, Button, Spinner } from "@radix-ui/themes";
 import { SpeakerLoudIcon, StopIcon, DownloadIcon } from "@radix-ui/react-icons";
-import WaveSurfer from "wavesurfer.js";
 import {
   useGenerateOpenAiAudioMutation,
   OpenAittsVoice,
@@ -35,10 +34,7 @@ export function AudioPlayer({
   onAudioGenerated,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const waveformRef = useRef<HTMLDivElement | null>(null);
-  const wavesurferRef = useRef<WaveSurfer | null>(null);
   const objectUrlRef = useRef<string | null>(null);
-  const syncingRef = useRef(false);
 
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -60,23 +56,11 @@ export function AudioPlayer({
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    if (wavesurferRef.current) {
-      syncingRef.current = true;
-      wavesurferRef.current.seekTo(0);
-      syncingRef.current = false;
-    }
     setIsPlaying(false);
   };
 
-  const loadAudioSrc = async (src: string) => {
+  const loadAudioSrc = (src: string) => {
     setAudioSrc(src);
-    if (wavesurferRef.current) {
-      try {
-        await wavesurferRef.current.load(src);
-      } catch (err) {
-        console.warn("WaveSurfer load error:", err);
-      }
-    }
   };
 
   const base64ToBlob = (base64: string): string => {
@@ -104,7 +88,6 @@ export function AudioPlayer({
       setAudioSrc("");
       setDuration(null);
       setCurrentTime(0);
-      if (wavesurferRef.current) wavesurferRef.current.empty();
     }
 
     if (!regenerate && audioSrc) {
@@ -113,7 +96,7 @@ export function AudioPlayer({
     }
 
     if (!regenerate && existingAudioUrl) {
-      await loadAudioSrc(existingAudioUrl);
+      loadAudioSrc(existingAudioUrl);
       audioRef.current?.play();
       return;
     }
@@ -152,7 +135,7 @@ export function AudioPlayer({
         (payload.audioBuffer ? base64ToBlob(payload.audioBuffer) : null);
       if (!src) throw new Error("No audio data received");
 
-      await loadAudioSrc(src);
+      loadAudioSrc(src);
       audioRef.current?.play();
     } catch (error) {
       console.error("TTS Error:", error);
@@ -168,40 +151,7 @@ export function AudioPlayer({
     a.click();
   };
 
-  // Initialize WaveSurfer
-  useEffect(() => {
-    if (!waveformRef.current) return;
-
-    const ws = WaveSurfer.create({
-      container: waveformRef.current,
-      waveColor: "#a5b4fc",
-      progressColor: "#6366f1",
-      cursorColor: "#4f46e5",
-      height: 80,
-      normalize: true,
-      barWidth: 2,
-      barGap: 1,
-      barRadius: 2,
-    });
-
-    wavesurferRef.current = ws;
-
-    ws.on("ready", () => {
-      const d = ws.getDuration();
-      if (Number.isFinite(d) && d > 0) setDuration(d);
-    });
-
-    ws.on("interaction" as any, (progress: number) => {
-      if (syncingRef.current || !audioRef.current) return;
-      const d = audioRef.current.duration;
-      if (!Number.isFinite(d) || d <= 0) return;
-      audioRef.current.currentTime = Math.min(d, Math.max(0, progress * d));
-    });
-
-    return () => ws.destroy();
-  }, []);
-
-  // Load existing audio into waveform
+  // Load existing audio
   useEffect(() => {
     if (existingAudioUrl && !audioSrc) {
       loadAudioSrc(existingAudioUrl);
@@ -212,7 +162,6 @@ export function AudioPlayer({
   useEffect(() => {
     return () => {
       revokeObjectUrl();
-      if (wavesurferRef.current) wavesurferRef.current.destroy();
     };
   }, []);
 
@@ -235,22 +184,16 @@ export function AudioPlayer({
           <audio
             ref={audioRef}
             src={audioSrc}
+            controls
             crossOrigin="anonymous"
             preload="metadata"
+            style={{ width: "100%" }}
             onLoadedMetadata={(e) => {
               const d = e.currentTarget.duration;
               if (Number.isFinite(d) && d > 0) setDuration(d);
             }}
             onTimeUpdate={(e) => {
-              const t = e.currentTarget.currentTime;
-              setCurrentTime(t);
-              if (wavesurferRef.current && duration) {
-                syncingRef.current = true;
-                wavesurferRef.current.seekTo(
-                  Math.min(1, Math.max(0, t / duration)),
-                );
-                syncingRef.current = false;
-              }
+              setCurrentTime(e.currentTarget.currentTime);
             }}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
@@ -279,17 +222,6 @@ export function AudioPlayer({
               </Badge>
             )}
           </Flex>
-
-          <div
-            ref={waveformRef}
-            style={{
-              width: "100%",
-              marginTop: "8px",
-              background: "var(--indigo-3)",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          />
 
           <Flex gap="2" style={{ flexWrap: "wrap" }}>
             <Button

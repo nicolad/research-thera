@@ -137,9 +137,6 @@ importers:
       uuid:
         specifier: ^11.0.4
         version: 11.1.0
-      wavesurfer.js:
-        specifier: ^7.12.1
-        version: 7.12.1
       zod:
         specifier: ^3.24.2
         version: 3.25.76
@@ -7224,9 +7221,6 @@ packages:
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
-
-  wavesurfer.js@7.12.1:
-    resolution: {integrity: sha512-NswPjVHxk0Q1F/VMRemCPUzSojjuHHisQrBqQiRXg7MVbe3f5vQ6r0rTTXA/a/neC/4hnOEC4YpXca4LpH0SUg==}
 
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
@@ -15431,8 +15425,6 @@ snapshots:
   uuid@11.1.0: {}
 
   vary@1.1.2: {}
-
-  wavesurfer.js@7.12.1: {}
 
   web-streams-polyfill@3.3.3: {}
 
