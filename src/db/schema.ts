@@ -74,12 +74,25 @@ export const notes = sqliteTable("notes", {
   content: text("content").notNull(),
   createdBy: text("created_by"),
   tags: text("tags"), // JSON array
+  visibility: text("visibility").notNull().default("PRIVATE"), // PRIVATE or PUBLIC
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const noteShares = sqliteTable("note_shares", {
+  noteId: integer("note_id")
+    .notNull()
+    .references(() => notes.id, { onDelete: "cascade" }),
+  email: text("email").notNull(), // normalized lower(trim(email))
+  role: text("role").notNull().default("READER"), // READER or EDITOR
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  createdBy: text("created_by").notNull(), // who created the share
 });
 
 export const stories = sqliteTable("stories", {

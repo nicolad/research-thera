@@ -46,6 +46,9 @@ export function AudioPlayer({
   // right after generation/regeneration (before parent refetch updates existingAudioUrl).
   const lastPlayableSrcRef = useRef<string | null>(null);
 
+  // NEW: prevent feedback loops when we sync audio -> waveform and waveform -> audio
+  const syncingWaveformRef = useRef(false);
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -66,11 +69,15 @@ export function AudioPlayer({
     if (audio) {
       audio.pause();
       audio.currentTime = 0;
-      // Do NOT clear audio.src here; keeping it allows replay without reloading in some browsers.
     }
+
+    // NEW: keep waveform in sync (visual reset)
     if (wavesurferRef.current) {
-      wavesurferRef.current.pause();
+      syncingWaveformRef.current = true;
+      wavesurferRef.current.seekTo(0);
+      syncingWaveformRef.current = false;
     }
+
     setIsPlayingAudio(false);
     setCurrentTime(0);
     audioRef.current = null;
@@ -93,7 +100,18 @@ export function AudioPlayer({
     };
 
     const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime || 0);
+      const t = audio.currentTime || 0;
+      setCurrentTime(t);
+
+      // NEW: drive WaveSurfer progress from the real audio element (visual-only)
+      const ws = wavesurferRef.current;
+      const d = audio.duration;
+      if (ws && Number.isFinite(d) && d > 0 && ws.getDuration() > 0) {
+        const progress = Math.min(1, Math.max(0, t / d));
+        syncingWaveformRef.current = true;
+        ws.seekTo(progress);
+        syncingWaveformRef.current = false;
+      }
     };
 
     const onEnded = () => {
@@ -134,7 +152,7 @@ export function AudioPlayer({
     audio.src = src;
     lastPlayableSrcRef.current = src;
 
-    // Load audio into WaveSurfer if available
+    // Load waveform for visualization/seek
     if (wavesurferRef.current) {
       try {
         await wavesurferRef.current.load(src);
@@ -144,10 +162,8 @@ export function AudioPlayer({
     }
 
     try {
+      // IMPORTANT: only play the real audio (WaveSurfer is visual-only now)
       await audio.play();
-      if (wavesurferRef.current) {
-        wavesurferRef.current.play();
-      }
     } catch (err) {
       console.error("Play error:", err);
       unwire();
@@ -187,7 +203,7 @@ export function AudioPlayer({
       wireAudioEvents(audio);
       audioRef.current = audio;
 
-      // Load blob URL into WaveSurfer
+      // Load waveform for visualization/seek
       if (wavesurferRef.current) {
         try {
           await wavesurferRef.current.load(blobUrl);
@@ -196,10 +212,8 @@ export function AudioPlayer({
         }
       }
 
+      // IMPORTANT: only play the real audio (WaveSurfer is visual-only now)
       await audio.play();
-      if (wavesurferRef.current) {
-        wavesurferRef.current.play();
-      }
     } catch (error) {
       console.error("Base64 audio playback error:", error);
       stopPlayback();
@@ -321,20 +335,24 @@ export function AudioPlayer({
 
     wavesurferRef.current = ws;
 
-    // Sync WaveSurfer with audio duration
     ws.on("ready", () => {
       const d = ws.getDuration();
       if (Number.isFinite(d) && d > 0) setAudioDuration(d);
     });
 
-    // Sync WaveSurfer time updates
-    ws.on("timeupdate", (currentTime) => {
-      setCurrentTime(currentTime);
-    });
+    // NEW: allow click/drag seeking on waveform (updates the real audio element)
+    ws.on("interaction" as any, (progress: number) => {
+      if (syncingWaveformRef.current) return;
 
-    ws.on("finish", () => {
-      setIsPlayingAudio(false);
-      setCurrentTime(0);
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      const d = audio.duration;
+      if (!Number.isFinite(d) || d <= 0) return;
+
+      const nextTime = Math.min(d, Math.max(0, progress * d));
+      audio.currentTime = nextTime;
+      setCurrentTime(nextTime);
     });
 
     return () => {
@@ -433,7 +451,7 @@ export function AudioPlayer({
             )}
           </Flex>
 
-          {/* WaveSurfer Waveform */}
+          {/* WaveSurfer Waveform (now seekable) */}
           <div
             ref={waveformRef}
             style={{
