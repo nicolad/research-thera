@@ -19,13 +19,13 @@ import {
   useCreateStoryMutation,
   useGetGoalQuery,
 } from "@/app/__generated__/hooks";
-import { authClient } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 
 function NewStoryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const goalId = searchParams.get("goalId");
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
   const [storyContent, setStoryContent] = useState("");
 
   const { data: goalData } = useGetGoalQuery({

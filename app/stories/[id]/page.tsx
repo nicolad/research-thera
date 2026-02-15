@@ -23,13 +23,13 @@ import {
   useUpdateStoryMutation,
   useDeleteStoryMutation,
 } from "@/app/__generated__/hooks";
-import { authClient } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 
 function StoryPageContent() {
   const router = useRouter();
   const params = useParams();
   const storyId = parseInt(params.id as string);
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
 
@@ -101,7 +101,7 @@ function StoryPageContent() {
     }
   };
 
-  const canEdit = session?.user?.email === story.createdBy;
+  const canEdit = user?.emailAddresses[0]?.emailAddress === story.createdBy;
 
   return (
     <Flex direction="column" gap="4">
@@ -248,7 +248,7 @@ export default function StoryPage() {
   const router = useRouter();
   const params = useParams();
   const storyId = parseInt(params.id as string);
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
 
   const { data } = useGetStoryQuery({
     variables: { id: storyId },

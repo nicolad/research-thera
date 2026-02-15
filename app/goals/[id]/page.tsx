@@ -20,14 +20,14 @@ import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useGetGoalQuery } from "@/app/__generated__/hooks";
-import { authClient } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 import "./accordion.css";
 
 function GoalPageContent() {
   const router = useRouter();
   const params = useParams();
   const paramValue = params.id as string;
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
 
   // Determine if paramValue is a number (ID) or string (slug)
   const isNumericId = /^\d+$/.test(paramValue);
@@ -364,7 +364,7 @@ export default function GoalPage() {
   const router = useRouter();
   const params = useParams();
   const goalId = parseInt(params.id as string);
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
 
   const { data } = useGetGoalQuery({
     variables: { id: goalId },

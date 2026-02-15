@@ -1,12 +1,11 @@
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { NextRequest } from "next/server";
-import { headers } from "next/headers";
 import { typeDefs } from "../../../schema/typeDefs.generated";
 import { resolvers } from "../../../schema/resolvers.generated";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { GraphQLContext } from "../../apollo/context";
-import { auth } from "@/src/auth";
+import { auth } from "@clerk/nextjs/server";
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const apolloServer = new ApolloServer<GraphQLContext>({ schema });
@@ -15,14 +14,15 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
   apolloServer,
   {
     context: async (req) => {
-      // Get session from Better Auth
-      const session = await auth.api.getSession({
-        headers: await headers(),
-      });
+      // Get auth from Clerk
+      const { userId } = await auth();
+
+      // For email, you might want to call clerkClient if needed
+      // const user = userId ? await clerkClient.users.getUser(userId) : null;
 
       return {
-        userId: session?.user?.id,
-        userEmail: session?.user?.email,
+        userId: userId || undefined,
+        userEmail: undefined, // Add clerkClient call if email is needed
       };
     },
   },

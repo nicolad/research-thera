@@ -11,10 +11,10 @@ import {
 } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { useCreateGoalMutation } from "@/app/__generated__/hooks";
-import { authClient } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 
 export default function AddGoalButton() {
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -37,7 +37,7 @@ export default function AddGoalButton() {
     e.preventDefault();
     setError(null);
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       setError("You must be logged in to create a goal");
       return;
     }
@@ -62,7 +62,7 @@ export default function AddGoalButton() {
     }
   };
 
-  if (!session) {
+  if (!user) {
     return null;
   }
 

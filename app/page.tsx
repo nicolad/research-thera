@@ -11,7 +11,7 @@ import {
   Grid,
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 import {
   RocketIcon,
   FileTextIcon,
@@ -23,7 +23,8 @@ import {
 
 export default function Home() {
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { user, isLoaded } = useUser();
+  const isPending = !isLoaded;
 
   return (
     <Flex direction="column" gap="8">
@@ -47,9 +48,10 @@ export default function Home() {
             content.
           </Text>
 
-          {session && (
+          {user && (
             <Text size="3" color="indigo" weight="medium">
-              Welcome back, {session.user.name || session.user.email}!
+              Welcome back,{" "}
+              {user.firstName || user.emailAddresses[0]?.emailAddress}!
             </Text>
           )}
 
@@ -63,7 +65,7 @@ export default function Home() {
                   Loading...
                 </Button>
               </>
-            ) : !session ? (
+            ) : !user ? (
               <>
                 <Button
                   size="3"
@@ -106,7 +108,7 @@ export default function Home() {
         <Grid columns={{ initial: "1", md: "2", lg: "3" }} gap="4">
           <Card
             style={{ cursor: "pointer" }}
-            onClick={() => router.push(session ? "/goals" : "/sign-up")}
+            onClick={() => router.push(user ? "/goals" : "/sign-up")}
           >
             <Flex direction="column" gap="3" p="2">
               <Flex align="center" gap="2">
@@ -118,14 +120,14 @@ export default function Home() {
                 dates, and comprehensive status management.
               </Text>
               <Button variant="soft" style={{ marginTop: "auto" }}>
-                {session ? "Manage Goals →" : "Get Started →"}
+                {user ? "Manage Goals →" : "Get Started →"}
               </Button>
             </Flex>
           </Card>
 
           <Card
             style={{ cursor: "pointer" }}
-            onClick={() => router.push(session ? "/notes" : "/sign-up")}
+            onClick={() => router.push(user ? "/notes" : "/sign-up")}
           >
             <Flex direction="column" gap="3" p="2">
               <Flex align="center" gap="2">
@@ -137,7 +139,7 @@ export default function Home() {
                 research papers for evidence-based insights.
               </Text>
               <Button variant="soft" style={{ marginTop: "auto" }}>
-                {session ? "View Notes →" : "Get Started →"}
+                {user ? "View Notes →" : "Get Started →"}
               </Button>
             </Flex>
           </Card>
@@ -308,37 +310,37 @@ export default function Home() {
           <Card style={{ background: "var(--violet-3)" }}>
             <Flex direction="column" gap="3" p="4">
               <Heading size="4">
-                {session ? "Create Your First Goal" : "Start Your Journey"}
+                {user ? "Create Your First Goal" : "Start Your Journey"}
               </Heading>
               <Text color="gray">
-                {session
+                {user
                   ? "Start your therapeutic journey by setting meaningful goals and connecting them with evidence-based research."
                   : "Sign up to create therapeutic goals backed by research and track your progress."}
               </Text>
               <Button
-                onClick={() => router.push(session ? "/goals" : "/sign-up")}
+                onClick={() => router.push(user ? "/goals" : "/sign-up")}
                 style={{ marginTop: "1rem" }}
               >
-                {session ? "Create Goal" : "Sign Up"}
+                {user ? "Create Goal" : "Sign Up"}
               </Button>
             </Flex>
           </Card>
           <Card style={{ background: "var(--blue-3)" }}>
             <Flex direction="column" gap="3" p="4">
               <Heading size="4">
-                {session ? "Browse Your Notes" : "Explore Features"}
+                {user ? "Browse Your Notes" : "Explore Features"}
               </Heading>
               <Text color="gray">
-                {session
+                {user
                   ? "View all your therapeutic notes, reflections, and claim verifications in one organized place."
                   : "Discover research-backed insights, claim verification, and AI-powered audio content."}
               </Text>
               <Button
-                onClick={() => router.push(session ? "/notes" : "/sign-in")}
+                onClick={() => router.push(user ? "/notes" : "/sign-in")}
                 style={{ marginTop: "1rem" }}
-                variant={session ? "solid" : "soft"}
+                variant={user ? "solid" : "soft"}
               >
-                {session ? "View Notes" : "Learn More"}
+                {user ? "View Notes" : "Learn More"}
               </Button>
             </Flex>
           </Card>

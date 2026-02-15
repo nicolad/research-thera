@@ -12,11 +12,11 @@ import {
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { useGetAllNotesQuery } from "../__generated__/hooks";
-import { authClient } from "@/src/auth/client";
+import { useUser } from "@clerk/nextjs";
 
 export default function NotesPage() {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { user } = useUser();
 
   const { data, loading, error } = useGetAllNotesQuery();
 
