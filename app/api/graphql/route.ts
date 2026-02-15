@@ -5,7 +5,7 @@ import { typeDefs } from "../../../schema/typeDefs.generated";
 import { resolvers } from "../../../schema/resolvers.generated";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { GraphQLContext } from "../../apollo/context";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const apolloServer = new ApolloServer<GraphQLContext>({ schema });
@@ -17,12 +17,20 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
       // Get auth from Clerk
       const { userId } = await auth();
 
-      // For email, you might want to call clerkClient if needed
-      // const user = userId ? await clerkClient.users.getUser(userId) : null;
+      // Get user email from Clerk
+      let userEmail: string | undefined;
+      if (userId) {
+        try {
+          const user = await clerkClient().users.getUser(userId);
+          userEmail = user.emailAddresses[0]?.emailAddress;
+        } catch (error) {
+          console.error("Error fetching user from Clerk:", error);
+        }
+      }
 
       return {
         userId: userId || undefined,
-        userEmail: undefined, // Add clerkClient call if email is needed
+        userEmail: userEmail,
       };
     },
   },
