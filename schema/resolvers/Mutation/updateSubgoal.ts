@@ -7,7 +7,11 @@ export const updateSubgoal: NonNullable<MutationResolvers['updateSubgoal']> = as
     throw new Error("Authentication required");
   }
 
-  const subgoal = await d1Tools.updateSubgoal(args.id, userEmail, args.input);
+  const subgoal = await d1Tools.updateSubgoal(args.id, userEmail, {
+    title: args.input.title ?? undefined,
+    description: args.input.description ?? undefined,
+    status: args.input.status ?? undefined,
+  });
   if (!subgoal) {
     throw new Error("Failed to update subgoal");
   }

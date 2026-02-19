@@ -38,5 +38,6 @@ export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
     userStories: [],
     notes: [],
     research: [],
+    subgoals: [],
   } as any;
 };
