@@ -8,9 +8,13 @@ import {
   Text,
   TextField,
   TextArea,
+  Select,
 } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { useCreateGoalMutation } from "@/app/__generated__/hooks";
+import {
+  useCreateGoalMutation,
+  useGetFamilyMembersQuery,
+} from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 
 export default function AddGoalButton() {
@@ -18,13 +22,18 @@ export default function AddGoalButton() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [familyMemberId, setFamilyMemberId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+
+  const { data: familyData } = useGetFamilyMembersQuery();
+  const familyMembers = familyData?.familyMembers ?? [];
 
   const [createGoal, { loading }] = useCreateGoalMutation({
     onCompleted: () => {
       setOpen(false);
       setTitle("");
       setDescription("");
+      setFamilyMemberId("");
       setError(null);
     },
     onError: (err) => {
@@ -51,7 +60,7 @@ export default function AddGoalButton() {
       await createGoal({
         variables: {
           input: {
-            familyMemberId: 1, // Default family member
+            familyMemberId: familyMemberId ? parseInt(familyMemberId, 10) : 1,
             title: title.trim(),
             description: description.trim() || undefined,
           },
@@ -107,6 +116,30 @@ export default function AddGoalButton() {
                 rows={4}
                 disabled={loading}
               />
+            </label>
+
+            <label>
+              <Text as="div" size="2" mb="1" weight="medium">
+                Family Member
+              </Text>
+              <Select.Root
+                value={familyMemberId}
+                onValueChange={setFamilyMemberId}
+                disabled={loading}
+              >
+                <Select.Trigger
+                  placeholder="Select family member…"
+                  style={{ width: "100%" }}
+                />
+                <Select.Content>
+                  {familyMembers.map((fm) => (
+                    <Select.Item key={fm.id} value={String(fm.id)}>
+                      {fm.firstName ?? fm.name}
+                      {fm.relationship ? ` (${fm.relationship})` : ""}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
             </label>
 
             {error && (

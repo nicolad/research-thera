@@ -19,6 +19,134 @@ export const db = null as any;
  */
 
 // ============================================
+// Family Members
+// ============================================
+
+export async function listFamilyMembers(userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM family_members WHERE user_id = ? ORDER BY created_at DESC`,
+    args: [userId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    firstName: row.first_name as string,
+    name: (row.name as string) || null,
+    ageYears: (row.age_years as number) || null,
+    relationship: (row.relationship as string) || null,
+    dateOfBirth: (row.date_of_birth as string) || null,
+    bio: (row.bio as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getFamilyMember(id: number) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM family_members WHERE id = ?`,
+    args: [id],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    userId: row.user_id as string,
+    firstName: row.first_name as string,
+    name: (row.name as string) || null,
+    ageYears: (row.age_years as number) || null,
+    relationship: (row.relationship as string) || null,
+    dateOfBirth: (row.date_of_birth as string) || null,
+    bio: (row.bio as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createFamilyMember(params: {
+  userId: string;
+  firstName: string;
+  name?: string | null;
+  ageYears?: number | null;
+  relationship?: string | null;
+  dateOfBirth?: string | null;
+  bio?: string | null;
+}): Promise<number> {
+  const result = await d1.execute({
+    sql: `INSERT INTO family_members (user_id, first_name, name, age_years, relationship, date_of_birth, bio, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.userId,
+      params.firstName,
+      params.name ?? null,
+      params.ageYears ?? null,
+      params.relationship ?? null,
+      params.dateOfBirth ?? null,
+      params.bio ?? null,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateFamilyMember(
+  id: number,
+  params: {
+    firstName?: string;
+    name?: string | null;
+    ageYears?: number | null;
+    relationship?: string | null;
+    dateOfBirth?: string | null;
+    bio?: string | null;
+  },
+) {
+  const sets: string[] = [];
+  const args: any[] = [];
+
+  if (params.firstName !== undefined) {
+    sets.push("first_name = ?");
+    args.push(params.firstName);
+  }
+  if (params.name !== undefined) {
+    sets.push("name = ?");
+    args.push(params.name);
+  }
+  if (params.ageYears !== undefined) {
+    sets.push("age_years = ?");
+    args.push(params.ageYears);
+  }
+  if (params.relationship !== undefined) {
+    sets.push("relationship = ?");
+    args.push(params.relationship);
+  }
+  if (params.dateOfBirth !== undefined) {
+    sets.push("date_of_birth = ?");
+    args.push(params.dateOfBirth);
+  }
+  if (params.bio !== undefined) {
+    sets.push("bio = ?");
+    args.push(params.bio);
+  }
+
+  if (sets.length === 0) return;
+
+  sets.push("updated_at = CURRENT_TIMESTAMP");
+  args.push(id);
+
+  await d1.execute({
+    sql: `UPDATE family_members SET ${sets.join(", ")} WHERE id = ?`,
+    args,
+  });
+}
+
+export async function deleteFamilyMember(id: number): Promise<boolean> {
+  await d1.execute({
+    sql: `DELETE FROM family_members WHERE id = ?`,
+    args: [id],
+  });
+  return true;
+}
+
+// ============================================
 // Goals
 // ============================================
 
@@ -1070,6 +1198,13 @@ export async function getAudioAssetsForStory(storyId: number) {
 }
 
 export const d1Tools = {
+  // Family Members
+  listFamilyMembers,
+  getFamilyMember,
+  createFamilyMember,
+  updateFamilyMember,
+  deleteFamilyMember,
+  // Goals
   getGoal,
   getGoalBySlug,
   listGoals,

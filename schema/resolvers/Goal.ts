@@ -2,6 +2,13 @@ import type { GoalResolvers } from "./../types.generated";
 import { d1Tools } from "@/src/db";
 
 export const Goal: GoalResolvers = {
+  familyMember: async (parent, _args, _ctx) => {
+    if (!parent.familyMemberId) return null;
+    const member = await d1Tools.getFamilyMember(parent.familyMemberId);
+    if (!member) return null;
+    return { ...member, goals: [] };
+  },
+
   research: async (parent, _args, _ctx) => {
     const research = await d1Tools.listTherapyResearch(parent.id);
     return research;

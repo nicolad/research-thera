@@ -13,6 +13,10 @@ type Query {
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
 
+  # Family Members
+  familyMembers: [FamilyMember!]!
+  familyMember(id: Int!): FamilyMember
+
   # Claim Cards
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
@@ -70,6 +74,11 @@ type Mutation {
   generateOpenAIAudio(
     input: GenerateOpenAIAudioInput!
   ): GenerateOpenAIAudioResult!
+
+  # Family Members
+  createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
+  updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
+  deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
 }
 
 type Subscription {
@@ -108,6 +117,7 @@ type NoteAccess {
 type Goal {
   id: Int!
   familyMemberId: Int!
+  familyMember: FamilyMember
   createdBy: String!
   slug: String
   title: String!
@@ -583,6 +593,47 @@ type AudioFromR2Result {
   audioUrl: String
   key: String
   metadata: AudioMetadata
+}
+
+# ============================================
+# Family Members
+# ============================================
+
+type FamilyMember {
+  id: Int!
+  userId: String!
+  firstName: String!
+  name: String
+  ageYears: Int
+  relationship: String
+  dateOfBirth: String
+  bio: String
+  createdAt: String!
+  updatedAt: String!
+  goals: [Goal!]!
+}
+
+input CreateFamilyMemberInput {
+  firstName: String!
+  name: String
+  ageYears: Int
+  relationship: String
+  dateOfBirth: String
+  bio: String
+}
+
+input UpdateFamilyMemberInput {
+  firstName: String
+  name: String
+  ageYears: Int
+  relationship: String
+  dateOfBirth: String
+  bio: String
+}
+
+type DeleteFamilyMemberResult {
+  success: Boolean!
+  message: String
 }
 
 type AudioMetadata {

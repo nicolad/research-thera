@@ -5,6 +5,12 @@ query GetGoals($familyMemberId: Int, $status: String) {
     description
     status
     familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+      relationship
+    }
     createdBy
     parentGoalId
     notes {

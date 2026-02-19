@@ -234,6 +234,14 @@ function GoalPageContent() {
                 </Badge>
               )}
               <Heading size="7">{goal.title}</Heading>
+              {goal.familyMember && (
+                <Badge color="cyan" size="2" style={{ width: "fit-content" }}>
+                  {goal.familyMember.firstName ?? goal.familyMember.name}
+                  {goal.familyMember.relationship
+                    ? ` · ${goal.familyMember.relationship}`
+                    : ""}
+                </Badge>
+              )}
             </Flex>
             <Flex align="center" gap="2">
               <Badge color={getStatusColor(goal.status)} size="2">

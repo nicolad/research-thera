@@ -105,6 +105,15 @@ enum ClaimVerdict {
   UNVERIFIED
 }
 
+input CreateFamilyMemberInput {
+  ageYears: Int
+  bio: String
+  dateOfBirth: String
+  firstName: String!
+  name: String
+  relationship: String
+}
+
 input CreateGoalInput {
   description: String
   familyMemberId: Int!
@@ -130,6 +139,11 @@ input CreateStoryInput {
 input CreateSubGoalInput {
   description: String
   title: String!
+}
+
+type DeleteFamilyMemberResult {
+  message: String
+  success: Boolean!
 }
 
 type DeleteGoalResult {
@@ -179,6 +193,20 @@ enum EvidencePolarity {
   IRRELEVANT
   MIXED
   SUPPORTS
+}
+
+type FamilyMember {
+  ageYears: Int
+  bio: String
+  createdAt: String!
+  dateOfBirth: String
+  firstName: String!
+  goals: [Goal!]!
+  id: Int!
+  name: String
+  relationship: String
+  updatedAt: String!
+  userId: String!
 }
 
 type GenerateAudioResult {
@@ -253,6 +281,7 @@ type Goal {
   createdAt: String!
   createdBy: String!
   description: String
+  familyMember: FamilyMember
   familyMemberId: Int!
   id: Int!
   notes: [Note!]!
@@ -316,11 +345,13 @@ enum JobType {
 type Mutation {
   buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
+  createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
   createGoal(input: CreateGoalInput!): Goal!
   createNote(input: CreateNoteInput!): Note!
   createStory(input: CreateStoryInput!): Story!
   createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
   deleteClaimCard(id: ID!): Boolean!
+  deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteNote(id: Int!): DeleteNoteResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
@@ -335,6 +366,7 @@ type Mutation {
   setNoteVisibility(noteId: Int!, visibility: NoteVisibility!): Note!
   shareNote(email: String!, noteId: Int!, role: NoteShareRole): NoteShare!
   unshareNote(email: String!, noteId: Int!): Boolean!
+  updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
@@ -438,6 +470,8 @@ type Query {
   audioFromR2(key: String!): AudioFromR2Result
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
+  familyMember(id: Int!): FamilyMember
+  familyMembers: [FamilyMember!]!
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int, slug: String): Goal
@@ -520,6 +554,15 @@ type TherapeuticQuestion {
   researchId: Int
   researchTitle: String
   updatedAt: String!
+}
+
+input UpdateFamilyMemberInput {
+  ageYears: Int
+  bio: String
+  dateOfBirth: String
+  firstName: String
+  name: String
+  relationship: String
 }
 
 input UpdateGoalInput {

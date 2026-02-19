@@ -124,6 +124,18 @@ function GoalsListContent() {
                 <Flex justify="between" align="start" gap="3">
                   <Flex direction="column" gap="2" style={{ flex: 1 }}>
                     <Heading size="4">{goal.title}</Heading>
+                    {goal.familyMember && (
+                      <Badge
+                        color="cyan"
+                        size="1"
+                        style={{ width: "fit-content" }}
+                      >
+                        {goal.familyMember.firstName ?? goal.familyMember.name}
+                        {goal.familyMember.relationship
+                          ? ` · ${goal.familyMember.relationship}`
+                          : ""}
+                      </Badge>
+                    )}
                     {goal.description && (
                       <Text
                         size="2"

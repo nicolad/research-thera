@@ -1,0 +1,13 @@
+query GetFamilyMembers {
+  familyMembers {
+    id
+    firstName
+    name
+    ageYears
+    relationship
+    dateOfBirth
+    bio
+    createdAt
+    updatedAt
+  }
+}

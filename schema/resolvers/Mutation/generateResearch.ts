@@ -2,9 +2,7 @@ import type { MutationResolvers } from "./../../types.generated";
 import { d1Tools } from "@/src/db";
 import { generateTherapyResearchWorkflow } from "@/src/workflows/generateTherapyResearch.workflow";
 
-export const generateResearch: NonNullable<
-  MutationResolvers["generateResearch"]
-> = async (_parent, args, ctx) => {
+export const generateResearch: NonNullable<MutationResolvers['generateResearch']> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");

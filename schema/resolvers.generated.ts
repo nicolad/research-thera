@@ -4,6 +4,8 @@
 import    { audioFromR2 as Query_audioFromR2 } from './resolvers/Query/audioFromR2';
 import    { claimCard as Query_claimCard } from './resolvers/Query/claimCard';
 import    { claimCardsForNote as Query_claimCardsForNote } from './resolvers/Query/claimCardsForNote';
+import    { familyMember as Query_familyMember } from './resolvers/Query/familyMember';
+import    { familyMembers as Query_familyMembers } from './resolvers/Query/familyMembers';
 import    { generationJob as Query_generationJob } from './resolvers/Query/generationJob';
 import    { generationJobs as Query_generationJobs } from './resolvers/Query/generationJobs';
 import    { goal as Query_goal } from './resolvers/Query/goal';
@@ -17,11 +19,13 @@ import    { story as Query_story } from './resolvers/Query/story';
 import    { therapeuticQuestions as Query_therapeuticQuestions } from './resolvers/Query/therapeuticQuestions';
 import    { buildClaimCards as Mutation_buildClaimCards } from './resolvers/Mutation/buildClaimCards';
 import    { checkNoteClaims as Mutation_checkNoteClaims } from './resolvers/Mutation/checkNoteClaims';
+import    { createFamilyMember as Mutation_createFamilyMember } from './resolvers/Mutation/createFamilyMember';
 import    { createGoal as Mutation_createGoal } from './resolvers/Mutation/createGoal';
 import    { createNote as Mutation_createNote } from './resolvers/Mutation/createNote';
 import    { createStory as Mutation_createStory } from './resolvers/Mutation/createStory';
 import    { createSubGoal as Mutation_createSubGoal } from './resolvers/Mutation/createSubGoal';
 import    { deleteClaimCard as Mutation_deleteClaimCard } from './resolvers/Mutation/deleteClaimCard';
+import    { deleteFamilyMember as Mutation_deleteFamilyMember } from './resolvers/Mutation/deleteFamilyMember';
 import    { deleteGoal as Mutation_deleteGoal } from './resolvers/Mutation/deleteGoal';
 import    { deleteNote as Mutation_deleteNote } from './resolvers/Mutation/deleteNote';
 import    { deleteResearch as Mutation_deleteResearch } from './resolvers/Mutation/deleteResearch';
@@ -36,6 +40,7 @@ import    { refreshClaimCard as Mutation_refreshClaimCard } from './resolvers/Mu
 import    { setNoteVisibility as Mutation_setNoteVisibility } from './resolvers/Mutation/setNoteVisibility';
 import    { shareNote as Mutation_shareNote } from './resolvers/Mutation/shareNote';
 import    { unshareNote as Mutation_unshareNote } from './resolvers/Mutation/unshareNote';
+import    { updateFamilyMember as Mutation_updateFamilyMember } from './resolvers/Mutation/updateFamilyMember';
 import    { updateGoal as Mutation_updateGoal } from './resolvers/Mutation/updateGoal';
 import    { updateNote as Mutation_updateNote } from './resolvers/Mutation/updateNote';
 import    { updateStory as Mutation_updateStory } from './resolvers/Mutation/updateStory';
@@ -51,6 +56,7 @@ import    { CheckNoteClaimsResult } from './resolvers/CheckNoteClaimsResult';
 import    { ClaimCard } from './resolvers/ClaimCard';
 import    { ClaimProvenance } from './resolvers/ClaimProvenance';
 import    { ClaimScope } from './resolvers/ClaimScope';
+import    { DeleteFamilyMemberResult } from './resolvers/DeleteFamilyMemberResult';
 import    { DeleteGoalResult } from './resolvers/DeleteGoalResult';
 import    { DeleteNoteResult } from './resolvers/DeleteNoteResult';
 import    { DeleteQuestionsResult } from './resolvers/DeleteQuestionsResult';
@@ -58,6 +64,7 @@ import    { DeleteResearchResult } from './resolvers/DeleteResearchResult';
 import    { DeleteStoryResult } from './resolvers/DeleteStoryResult';
 import    { EvidenceItem } from './resolvers/EvidenceItem';
 import    { EvidenceLocator } from './resolvers/EvidenceLocator';
+import    { FamilyMember } from './resolvers/FamilyMember';
 import    { GenerateAudioResult } from './resolvers/GenerateAudioResult';
 import    { GenerateLongFormTextResult } from './resolvers/GenerateLongFormTextResult';
 import    { GenerateOpenAIAudioResult } from './resolvers/GenerateOpenAIAudioResult';
@@ -77,8 +84,8 @@ import    { Story } from './resolvers/Story';
 import    { TextSegment } from './resolvers/TextSegment';
 import    { TherapeuticQuestion } from './resolvers/TherapeuticQuestion';
     export const resolvers: Resolvers = {
-      Query: { allNotes: Query_allNotes,audioFromR2: Query_audioFromR2,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions },
-      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createGoal: Mutation_createGoal,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteClaimCard: Mutation_deleteClaimCard,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareNote: Mutation_shareNote,unshareNote: Mutation_unshareNote,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory },
+      Query: { allNotes: Query_allNotes,audioFromR2: Query_audioFromR2,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,familyMember: Query_familyMember,familyMembers: Query_familyMembers,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions },
+      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createFamilyMember: Mutation_createFamilyMember,createGoal: Mutation_createGoal,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteClaimCard: Mutation_deleteClaimCard,deleteFamilyMember: Mutation_deleteFamilyMember,deleteGoal: Mutation_deleteGoal,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareNote: Mutation_shareNote,unshareNote: Mutation_unshareNote,updateFamilyMember: Mutation_updateFamilyMember,updateGoal: Mutation_updateGoal,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory },
       Subscription: { audioJobStatus: Subscription_audioJobStatus,researchJobStatus: Subscription_researchJobStatus },
       AudioAsset: AudioAsset,
 AudioFromR2Result: AudioFromR2Result,
@@ -90,6 +97,7 @@ CheckNoteClaimsResult: CheckNoteClaimsResult,
 ClaimCard: ClaimCard,
 ClaimProvenance: ClaimProvenance,
 ClaimScope: ClaimScope,
+DeleteFamilyMemberResult: DeleteFamilyMemberResult,
 DeleteGoalResult: DeleteGoalResult,
 DeleteNoteResult: DeleteNoteResult,
 DeleteQuestionsResult: DeleteQuestionsResult,
@@ -97,6 +105,7 @@ DeleteResearchResult: DeleteResearchResult,
 DeleteStoryResult: DeleteStoryResult,
 EvidenceItem: EvidenceItem,
 EvidenceLocator: EvidenceLocator,
+FamilyMember: FamilyMember,
 GenerateAudioResult: GenerateAudioResult,
 GenerateLongFormTextResult: GenerateLongFormTextResult,
 GenerateOpenAIAudioResult: GenerateOpenAIAudioResult,

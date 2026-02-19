@@ -47,6 +47,22 @@ export const goalStories = sqliteTable("goal_stories", {
 	index("idx_stories_goal").on(table.goalId),
 ]);
 
+export const familyMembers = sqliteTable("family_members", {
+	id: integer().primaryKey({ autoIncrement: true }).notNull(),
+	userId: text("user_id").notNull(),
+	firstName: text("first_name").notNull(),
+	name: text(),
+	ageYears: integer("age_years"),
+	relationship: text(),
+	dateOfBirth: text("date_of_birth"),
+	bio: text(),
+	createdAt: text("created_at").default("sql`(CURRENT_TIMESTAMP)`").notNull(),
+	updatedAt: text("updated_at").default("sql`(CURRENT_TIMESTAMP)`").notNull(),
+},
+(table) => [
+	index("idx_family_members_user").on(table.userId),
+]);
+
 export const goals = sqliteTable("goals", {
 	id: integer().primaryKey({ autoIncrement: true }).notNull(),
 	familyMemberId: integer("family_member_id").notNull(),

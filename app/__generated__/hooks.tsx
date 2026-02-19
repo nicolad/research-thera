@@ -134,6 +134,15 @@ export enum ClaimVerdict {
   Unverified = 'UNVERIFIED'
 }
 
+export type CreateFamilyMemberInput = {
+  ageYears?: InputMaybe<Scalars['Int']['input']>;
+  bio?: InputMaybe<Scalars['String']['input']>;
+  dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  firstName: Scalars['String']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  relationship?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
@@ -159,6 +168,12 @@ export type CreateStoryInput = {
 export type CreateSubGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type DeleteFamilyMemberResult = {
+  __typename?: 'DeleteFamilyMemberResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type DeleteGoalResult = {
@@ -216,6 +231,21 @@ export enum EvidencePolarity {
   Mixed = 'MIXED',
   Supports = 'SUPPORTS'
 }
+
+export type FamilyMember = {
+  __typename?: 'FamilyMember';
+  ageYears?: Maybe<Scalars['Int']['output']>;
+  bio?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  dateOfBirth?: Maybe<Scalars['String']['output']>;
+  firstName: Scalars['String']['output'];
+  goals: Array<Goal>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  relationship?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+};
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -296,6 +326,7 @@ export type Goal = {
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  familyMember?: Maybe<FamilyMember>;
   familyMemberId: Scalars['Int']['output'];
   id: Scalars['Int']['output'];
   notes: Array<Note>;
@@ -363,11 +394,13 @@ export type Mutation = {
   __typename?: 'Mutation';
   buildClaimCards: BuildClaimCardsResult;
   checkNoteClaims: CheckNoteClaimsResult;
+  createFamilyMember: FamilyMember;
   createGoal: Goal;
   createNote: Note;
   createStory: Story;
   createSubGoal: Goal;
   deleteClaimCard: Scalars['Boolean']['output'];
+  deleteFamilyMember: DeleteFamilyMemberResult;
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
@@ -382,6 +415,7 @@ export type Mutation = {
   setNoteVisibility: Note;
   shareNote: NoteShare;
   unshareNote: Scalars['Boolean']['output'];
+  updateFamilyMember: FamilyMember;
   updateGoal: Goal;
   updateNote: Note;
   updateStory: Story;
@@ -395,6 +429,11 @@ export type MutationBuildClaimCardsArgs = {
 
 export type MutationCheckNoteClaimsArgs = {
   input: CheckNoteClaimsInput;
+};
+
+
+export type MutationCreateFamilyMemberArgs = {
+  input: CreateFamilyMemberInput;
 };
 
 
@@ -421,6 +460,11 @@ export type MutationCreateSubGoalArgs = {
 
 export type MutationDeleteClaimCardArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteFamilyMemberArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -501,6 +545,12 @@ export type MutationShareNoteArgs = {
 export type MutationUnshareNoteArgs = {
   email: Scalars['String']['input'];
   noteId: Scalars['Int']['input'];
+};
+
+
+export type MutationUpdateFamilyMemberArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateFamilyMemberInput;
 };
 
 
@@ -624,6 +674,8 @@ export type Query = {
   audioFromR2?: Maybe<AudioFromR2Result>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
+  familyMember?: Maybe<FamilyMember>;
+  familyMembers: Array<FamilyMember>;
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
@@ -650,6 +702,11 @@ export type QueryClaimCardArgs = {
 
 export type QueryClaimCardsForNoteArgs = {
   noteId: Scalars['Int']['input'];
+};
+
+
+export type QueryFamilyMemberArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -793,6 +850,15 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type UpdateFamilyMemberInput = {
+  ageYears?: InputMaybe<Scalars['Int']['input']>;
+  bio?: InputMaybe<Scalars['String']['input']>;
+  dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  relationship?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
@@ -849,6 +915,13 @@ export type DeleteClaimCardMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type DeleteClaimCardMutation = { __typename?: 'Mutation', deleteClaimCard: boolean };
 
+export type CreateFamilyMemberMutationVariables = Exact<{
+  input: CreateFamilyMemberInput;
+}>;
+
+
+export type CreateFamilyMemberMutation = { __typename?: 'Mutation', createFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, createdAt: string } };
+
 export type CreateGoalMutationVariables = Exact<{
   input: CreateGoalInput;
 }>;
@@ -877,6 +950,13 @@ export type CreateSubGoalMutationVariables = Exact<{
 
 
 export type CreateSubGoalMutation = { __typename?: 'Mutation', createSubGoal: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMemberId: number } };
+
+export type DeleteFamilyMemberMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteFamilyMemberMutation = { __typename?: 'Mutation', deleteFamilyMember: { __typename?: 'DeleteFamilyMemberResult', success: boolean, message?: string | null } };
 
 export type DeleteGoalMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -959,13 +1039,18 @@ export type GetAudioFromR2QueryVariables = Exact<{
 
 export type GetAudioFromR2Query = { __typename?: 'Query', audioFromR2?: { __typename?: 'AudioFromR2Result', success: boolean, message?: string | null, audioUrl?: string | null, key?: string | null, metadata?: { __typename?: 'AudioMetadata', voice?: string | null, model?: string | null, textLength?: string | null, chunks?: string | null, generatedBy?: string | null, instructions?: string | null } | null } | null };
 
+export type GetFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFamilyMembersQuery = { __typename?: 'Query', familyMembers: Array<{ __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string }> };
+
 export type GetGoalQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, parentGoal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, status: string } | null, subGoals: Array<{ __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string }>, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
+export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null } | null, parentGoal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, status: string } | null, subGoals: Array<{ __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string }>, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
 
 export type GetGoalsQueryVariables = Exact<{
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
@@ -973,7 +1058,7 @@ export type GetGoalsQueryVariables = Exact<{
 }>;
 
 
-export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
+export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null } | null, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
 
 export type GetNoteQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
@@ -1407,6 +1492,44 @@ export function useDeleteClaimCardMutation(baseOptions?: Apollo.MutationHookOpti
 export type DeleteClaimCardMutationHookResult = ReturnType<typeof useDeleteClaimCardMutation>;
 export type DeleteClaimCardMutationResult = Apollo.MutationResult<DeleteClaimCardMutation>;
 export type DeleteClaimCardMutationOptions = Apollo.BaseMutationOptions<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>;
+export const CreateFamilyMemberDocument = gql`
+    mutation CreateFamilyMember($input: CreateFamilyMemberInput!) {
+  createFamilyMember(input: $input) {
+    id
+    firstName
+    name
+    ageYears
+    relationship
+    createdAt
+  }
+}
+    `;
+export type CreateFamilyMemberMutationFn = Apollo.MutationFunction<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>;
+
+/**
+ * __useCreateFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useCreateFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createFamilyMemberMutation, { data, loading, error }] = useCreateFamilyMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateFamilyMemberMutation(baseOptions?: Apollo.MutationHookOptions<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>(CreateFamilyMemberDocument, options);
+      }
+export type CreateFamilyMemberMutationHookResult = ReturnType<typeof useCreateFamilyMemberMutation>;
+export type CreateFamilyMemberMutationResult = Apollo.MutationResult<CreateFamilyMemberMutation>;
+export type CreateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>;
 export const CreateGoalDocument = gql`
     mutation CreateGoal($input: CreateGoalInput!) {
   createGoal(input: $input) {
@@ -1570,6 +1693,40 @@ export function useCreateSubGoalMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateSubGoalMutationHookResult = ReturnType<typeof useCreateSubGoalMutation>;
 export type CreateSubGoalMutationResult = Apollo.MutationResult<CreateSubGoalMutation>;
 export type CreateSubGoalMutationOptions = Apollo.BaseMutationOptions<CreateSubGoalMutation, CreateSubGoalMutationVariables>;
+export const DeleteFamilyMemberDocument = gql`
+    mutation DeleteFamilyMember($id: Int!) {
+  deleteFamilyMember(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteFamilyMemberMutationFn = Apollo.MutationFunction<DeleteFamilyMemberMutation, DeleteFamilyMemberMutationVariables>;
+
+/**
+ * __useDeleteFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useDeleteFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteFamilyMemberMutation, { data, loading, error }] = useDeleteFamilyMemberMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteFamilyMemberMutation(baseOptions?: Apollo.MutationHookOptions<DeleteFamilyMemberMutation, DeleteFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteFamilyMemberMutation, DeleteFamilyMemberMutationVariables>(DeleteFamilyMemberDocument, options);
+      }
+export type DeleteFamilyMemberMutationHookResult = ReturnType<typeof useDeleteFamilyMemberMutation>;
+export type DeleteFamilyMemberMutationResult = Apollo.MutationResult<DeleteFamilyMemberMutation>;
+export type DeleteFamilyMemberMutationOptions = Apollo.BaseMutationOptions<DeleteFamilyMemberMutation, DeleteFamilyMemberMutationVariables>;
 export const DeleteGoalDocument = gql`
     mutation DeleteGoal($id: Int!) {
   deleteGoal(id: $id) {
@@ -2018,6 +2175,56 @@ export type GetAudioFromR2QueryHookResult = ReturnType<typeof useGetAudioFromR2Q
 export type GetAudioFromR2LazyQueryHookResult = ReturnType<typeof useGetAudioFromR2LazyQuery>;
 export type GetAudioFromR2SuspenseQueryHookResult = ReturnType<typeof useGetAudioFromR2SuspenseQuery>;
 export type GetAudioFromR2QueryResult = Apollo.QueryResult<GetAudioFromR2Query, GetAudioFromR2QueryVariables>;
+export const GetFamilyMembersDocument = gql`
+    query GetFamilyMembers {
+  familyMembers {
+    id
+    firstName
+    name
+    ageYears
+    relationship
+    dateOfBirth
+    bio
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetFamilyMembersQuery__
+ *
+ * To run a query within a React component, call `useGetFamilyMembersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFamilyMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFamilyMembersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetFamilyMembersQuery(baseOptions?: Apollo.QueryHookOptions<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>(GetFamilyMembersDocument, options);
+      }
+export function useGetFamilyMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>(GetFamilyMembersDocument, options);
+        }
+// @ts-ignore
+export function useGetFamilyMembersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>;
+export function useGetFamilyMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMembersQuery | undefined, GetFamilyMembersQueryVariables>;
+export function useGetFamilyMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>(GetFamilyMembersDocument, options);
+        }
+export type GetFamilyMembersQueryHookResult = ReturnType<typeof useGetFamilyMembersQuery>;
+export type GetFamilyMembersLazyQueryHookResult = ReturnType<typeof useGetFamilyMembersLazyQuery>;
+export type GetFamilyMembersSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMembersSuspenseQuery>;
+export type GetFamilyMembersQueryResult = Apollo.QueryResult<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>;
 export const GetGoalDocument = gql`
     query GetGoal($id: Int, $slug: String) {
   goal(id: $id, slug: $slug) {
@@ -2027,6 +2234,12 @@ export const GetGoalDocument = gql`
     description
     status
     familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+      relationship
+    }
     createdBy
     parentGoalId
     parentGoal {
@@ -2122,6 +2335,12 @@ export const GetGoalsDocument = gql`
     description
     status
     familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+      relationship
+    }
     createdBy
     parentGoalId
     notes {
