@@ -7,12 +7,16 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { GraphQLContext } from "../../apollo/context";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
-const schema = makeExecutableSchema({ typeDefs, resolvers });
-const apolloServer = new ApolloServer<GraphQLContext>({ schema });
+// Lazy-initialize so Next.js HMR picks up resolver changes without a full restart
+let handler: ReturnType<typeof startServerAndCreateNextHandler> | null = null;
 
-const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
-  apolloServer,
-  {
+function getHandler() {
+  if (!handler) {
+    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    const apolloServer = new ApolloServer<GraphQLContext>({ schema });
+    handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
+      apolloServer,
+      {
     context: async (req) => {
       // Get auth from Clerk
       const { userId } = await auth();
@@ -34,13 +38,15 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
         userEmail: userEmail,
       };
     },
-  },
-);
+  });
+  }
+  return handler;
+}
 
 export async function GET(request: NextRequest) {
-  return handler(request);
+  return getHandler()(request);
 }
 
 export async function POST(request: NextRequest) {
-  return handler(request);
+  return getHandler()(request);
 }
