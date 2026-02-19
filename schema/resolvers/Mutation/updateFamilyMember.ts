@@ -1,11 +1,9 @@
 import type { MutationResolvers } from "./../../types.generated";
 import { d1Tools } from "@/src/db";
 
-export const updateFamilyMember: NonNullable<MutationResolvers['updateFamilyMember']> = async (
-  _parent,
-  args,
-  ctx,
-) => {
+export const updateFamilyMember: NonNullable<
+  MutationResolvers["updateFamilyMember"]
+> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");

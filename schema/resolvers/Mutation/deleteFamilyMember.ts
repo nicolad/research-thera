@@ -1,11 +1,9 @@
 import type { MutationResolvers } from "./../../types.generated";
 import { d1 } from "@/src/db";
 
-export const deleteFamilyMember: NonNullable<MutationResolvers['deleteFamilyMember']> = async (
-  _parent,
-  args,
-  ctx,
-) => {
+export const deleteFamilyMember: NonNullable<
+  MutationResolvers["deleteFamilyMember"]
+> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");
@@ -24,7 +22,10 @@ export const deleteFamilyMember: NonNullable<MutationResolvers['deleteFamilyMemb
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to delete family member",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete family member",
     };
   }
 };
