@@ -10,7 +10,9 @@ import { langfusePromptPackTools } from "@/src/tools/langfusePromptPack.tools";
 /**
  * Deep Research Workflow
  *
- * Multi-step workflow with quality gating:
+ * Generic multi-step workflow for extracting and persisting research papers
+ * relevant to any goal. Quality gating is applied at each stage.
+ *
  * 1. Load goal + notes from D1 database
  * 2. Ensure Langfuse prompts exist (DeepSeek generates goal-specific templates)
  * 3. Plan query (goal type + keywords + multi-source query expansion)
@@ -121,7 +123,7 @@ const ensurePromptsStep = createStep({
   },
 });
 
-// Step 3: Plan query (uses Langfuse-backed planner prompt)
+// Step 3: Plan query – goal type, keywords, and multi-source query expansion (Langfuse-backed planner prompt)
 const planQueryStep = createStep({
   id: "plan-query",
   inputSchema: z.object({
@@ -153,11 +155,9 @@ const planQueryStep = createStep({
       description: inputData.goal.description ?? "",
       notes: inputData.notes.map((n) => n.content),
       plannerPromptName: inputData.plannerPromptName,
-      timeHorizonDays: 14,
-      roleFamily: "software engineering",
     });
 
-    // Sanitize to remove "occupational therapy" poison
+    // Sanitize plan to normalize domain terminology
     const plan = extractorTools.sanitize(rawPlan);
 
     console.log(`\n📋 Query Plan:`);
@@ -174,17 +174,10 @@ const planQueryStep = createStep({
       goalType:
         plan.goalType ??
         plan.therapeuticGoalType ??
-        "career_interview_self_advocacy",
+        "general_research",
     };
   },
 });
-
-/**
- * Escape special regex characters
- */
-function escapeRegExp(input: string): string {
-  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 // Step 4: Multi-source search with multi-query expansion
 const searchStep = createStep({
@@ -228,33 +221,22 @@ const searchStep = createStep({
 
     console.log(`\n🔍 Multi-source search with query expansion...\n`);
 
-    // Fallback queries if planner didn't provide them
+    // Derive fallback queries from goal keywords when the planner didn't provide them
+    const baseKeywords: string[] = inputData.keywords?.length
+      ? inputData.keywords.slice(0, 3)
+      : [inputData.goal.title];
+
     const crossrefQueries = inputData.crossrefQueries?.length
       ? inputData.crossrefQueries.slice(0, 15)
-      : [
-          "job interview self advocacy",
-          "employment interview self presentation",
-          "interview impression management",
-          "interview communication skills training",
-          "job interview confidence building",
-        ];
+      : baseKeywords;
 
     const semanticQueries = inputData.semanticScholarQueries?.length
       ? inputData.semanticScholarQueries.slice(0, 20)
-      : [
-          "job interview self advocacy",
-          "employment interview self presentation strategies",
-          "interview impression management",
-          "job interview communication training",
-          "self promotion in job interviews",
-        ];
+      : baseKeywords;
 
     const pubmedQueries = inputData.pubmedQueries?.length
       ? inputData.pubmedQueries.slice(0, 12)
-      : [
-          "job interview anxiety intervention",
-          "employment interview communication skills",
-        ];
+      : baseKeywords.slice(0, 2);
 
     console.log(`   Crossref: ${crossrefQueries.length} queries`);
     console.log(`   Semantic Scholar: ${semanticQueries.length} queries`);
@@ -297,67 +279,12 @@ const searchStep = createStep({
       `📚 Raw results: Crossref(${crossrefBatches.flat().length}), PubMed(${pubmedBatches.flat().length}), Semantic(${semanticBatches.flat().length})`,
     );
 
-    // Title blacklist: avoid obvious out-of-domain papers
-    const badTerms = [
-      "forensic",
-      "witness",
-      "court",
-      "police",
-      "legal",
-      "child",
-      "abuse",
-      "occupational therapy",
-      "pre-admission",
-      "intake interview",
-      "diagnostic interview",
-      "therapy session",
-      "treatment outcome",
-      "clinical interview",
-      "patient interview",
-      "counseling interview",
-      "motivational interview",
-      "therapeutic alliance",
-    ];
-
-    const bad = new RegExp(
-      `\\b(${badTerms.map(escapeRegExp).join("|")})\\b`,
-      "i",
-    );
-
-    // Require at least ONE job interview domain term in the title
-    const requiredTerms = [
-      "job interview",
-      "employment interview",
-      "selection interview",
-      "hiring interview",
-      "interview self",
-      "interview presentation",
-      "interview impression",
-      "interview communication",
-      "interview confidence",
-      "interview skills",
-      "interview training",
-      "interview preparation",
-      "interview performance",
-      "applicant",
-    ];
-
-    const required = new RegExp(
-      `\\b(${requiredTerms.map(escapeRegExp).join("|")})`,
-      "i",
-    );
-
     const deduped = sourceTools.dedupeCandidates(combined);
-    const titleFiltered = deduped.filter((c: any) => {
-      const title = c.title ?? "";
-      return !bad.test(title) && required.test(title);
-    });
 
     console.log(`🔗 After dedup: ${deduped.length} candidates`);
-    console.log(`🚫 After title filter: ${titleFiltered.length} candidates`);
 
     // Filter book chapters but keep candidates without abstracts (enriched next)
-    const filtered = sourceTools.filterBookChapters(titleFiltered);
+    const filtered = sourceTools.filterBookChapters(deduped);
 
     console.log(
       `✅ After book chapter filter: ${filtered.length} candidates\n`,
