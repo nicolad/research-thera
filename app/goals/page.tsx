@@ -50,7 +50,9 @@ function GoalsListContent() {
     );
   }
 
-  const goals = data?.goals || [];
+  const allGoals = data?.goals || [];
+  const goals = allGoals.filter((g) => !g.parentGoalId);
+  const subGoalCount = allGoals.length - goals.length;
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -70,7 +72,15 @@ function GoalsListContent() {
   return (
     <Flex direction="column" gap="4">
       <Flex justify="between" align="center" wrap="wrap" gap="3">
-        <Heading size="5">All Goals ({goals.length})</Heading>
+        <Heading size="5">
+          All Goals ({goals.length})
+          {subGoalCount > 0 && (
+            <Text size="2" color="gray" weight="regular">
+              {" "}
+              + {subGoalCount} sub-goal{subGoalCount !== 1 ? "s" : ""}
+            </Text>
+          )}
+        </Heading>
         <Flex gap="3" align="center">
           <Select.Root
             value={statusFilter || "all"}

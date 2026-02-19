@@ -29,6 +29,7 @@ export const goal: NonNullable<QueryResolvers['goal']> = async (
     title: goal.title,
     description: goal.description,
     status: goal.status,
+    parentGoalId: goal.parentGoalId,
     therapeuticText: goal.therapeuticText,
     therapeuticTextLanguage: goal.therapeuticTextLanguage,
     therapeuticTextGeneratedAt: goal.therapeuticTextGeneratedAt,
@@ -39,5 +40,7 @@ export const goal: NonNullable<QueryResolvers['goal']> = async (
     userStories: [],
     notes: [],
     research: [],
+    subGoals: [],
+    parentGoal: null,
   } as any;
 };

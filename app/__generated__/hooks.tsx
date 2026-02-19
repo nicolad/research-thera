@@ -156,6 +156,11 @@ export type CreateStoryInput = {
   goalId: Scalars['Int']['input'];
 };
 
+export type CreateSubGoalInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type DeleteGoalResult = {
   __typename?: 'DeleteGoalResult';
   message?: Maybe<Scalars['String']['output']>;
@@ -294,11 +299,14 @@ export type Goal = {
   familyMemberId: Scalars['Int']['output'];
   id: Scalars['Int']['output'];
   notes: Array<Note>;
+  parentGoal?: Maybe<Goal>;
+  parentGoalId?: Maybe<Scalars['Int']['output']>;
   questions: Array<TherapeuticQuestion>;
   research: Array<Research>;
   slug?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
+  subGoals: Array<Goal>;
   therapeuticText?: Maybe<Scalars['String']['output']>;
   therapeuticTextGeneratedAt?: Maybe<Scalars['String']['output']>;
   therapeuticTextLanguage?: Maybe<Scalars['String']['output']>;
@@ -358,6 +366,7 @@ export type Mutation = {
   createGoal: Goal;
   createNote: Note;
   createStory: Story;
+  createSubGoal: Goal;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
@@ -401,6 +410,12 @@ export type MutationCreateNoteArgs = {
 
 export type MutationCreateStoryArgs = {
   input: CreateStoryInput;
+};
+
+
+export type MutationCreateSubGoalArgs = {
+  goalId: Scalars['Int']['input'];
+  input: CreateSubGoalInput;
 };
 
 
@@ -855,6 +870,21 @@ export type CreateStoryMutationVariables = Exact<{
 
 export type CreateStoryMutation = { __typename?: 'Mutation', createStory: { __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string } };
 
+export type CreateSubGoalMutationVariables = Exact<{
+  goalId: Scalars['Int']['input'];
+  input: CreateSubGoalInput;
+}>;
+
+
+export type CreateSubGoalMutation = { __typename?: 'Mutation', createSubGoal: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMemberId: number } };
+
+export type DeleteGoalMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteGoalMutation = { __typename?: 'Mutation', deleteGoal: { __typename?: 'DeleteGoalResult', success: boolean, message?: string | null } };
+
 export type DeleteNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -928,7 +958,7 @@ export type GetGoalQueryVariables = Exact<{
 }>;
 
 
-export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
+export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, parentGoal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, status: string } | null, subGoals: Array<{ __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string }>, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
 
 export type GetGoalsQueryVariables = Exact<{
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
@@ -936,7 +966,7 @@ export type GetGoalsQueryVariables = Exact<{
 }>;
 
 
-export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
+export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
 
 export type GetNoteQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
@@ -1491,6 +1521,82 @@ export function useCreateStoryMutation(baseOptions?: Apollo.MutationHookOptions<
 export type CreateStoryMutationHookResult = ReturnType<typeof useCreateStoryMutation>;
 export type CreateStoryMutationResult = Apollo.MutationResult<CreateStoryMutation>;
 export type CreateStoryMutationOptions = Apollo.BaseMutationOptions<CreateStoryMutation, CreateStoryMutationVariables>;
+export const CreateSubGoalDocument = gql`
+    mutation CreateSubGoal($goalId: Int!, $input: CreateSubGoalInput!) {
+  createSubGoal(goalId: $goalId, input: $input) {
+    id
+    slug
+    title
+    description
+    status
+    parentGoalId
+    createdAt
+    updatedAt
+    familyMemberId
+  }
+}
+    `;
+export type CreateSubGoalMutationFn = Apollo.MutationFunction<CreateSubGoalMutation, CreateSubGoalMutationVariables>;
+
+/**
+ * __useCreateSubGoalMutation__
+ *
+ * To run a mutation, you first call `useCreateSubGoalMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSubGoalMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSubGoalMutation, { data, loading, error }] = useCreateSubGoalMutation({
+ *   variables: {
+ *      goalId: // value for 'goalId'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateSubGoalMutation(baseOptions?: Apollo.MutationHookOptions<CreateSubGoalMutation, CreateSubGoalMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSubGoalMutation, CreateSubGoalMutationVariables>(CreateSubGoalDocument, options);
+      }
+export type CreateSubGoalMutationHookResult = ReturnType<typeof useCreateSubGoalMutation>;
+export type CreateSubGoalMutationResult = Apollo.MutationResult<CreateSubGoalMutation>;
+export type CreateSubGoalMutationOptions = Apollo.BaseMutationOptions<CreateSubGoalMutation, CreateSubGoalMutationVariables>;
+export const DeleteGoalDocument = gql`
+    mutation DeleteGoal($id: Int!) {
+  deleteGoal(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteGoalMutationFn = Apollo.MutationFunction<DeleteGoalMutation, DeleteGoalMutationVariables>;
+
+/**
+ * __useDeleteGoalMutation__
+ *
+ * To run a mutation, you first call `useDeleteGoalMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteGoalMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteGoalMutation, { data, loading, error }] = useDeleteGoalMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteGoalMutation(baseOptions?: Apollo.MutationHookOptions<DeleteGoalMutation, DeleteGoalMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteGoalMutation, DeleteGoalMutationVariables>(DeleteGoalDocument, options);
+      }
+export type DeleteGoalMutationHookResult = ReturnType<typeof useDeleteGoalMutation>;
+export type DeleteGoalMutationResult = Apollo.MutationResult<DeleteGoalMutation>;
+export type DeleteGoalMutationOptions = Apollo.BaseMutationOptions<DeleteGoalMutation, DeleteGoalMutationVariables>;
 export const DeleteNoteDocument = gql`
     mutation DeleteNote($id: Int!) {
   deleteNote(id: $id) {
@@ -1879,9 +1985,25 @@ export const GetGoalDocument = gql`
     status
     familyMemberId
     createdBy
+    parentGoalId
+    parentGoal {
+      id
+      slug
+      title
+      status
+    }
     therapeuticText
     therapeuticTextLanguage
     therapeuticTextGeneratedAt
+    subGoals {
+      id
+      slug
+      title
+      description
+      status
+      createdAt
+      updatedAt
+    }
     notes {
       id
       slug
@@ -1958,6 +2080,7 @@ export const GetGoalsDocument = gql`
     status
     familyMemberId
     createdBy
+    parentGoalId
     notes {
       id
       slug

@@ -7,9 +7,25 @@ query GetGoal($id: Int, $slug: String) {
     status
     familyMemberId
     createdBy
+    parentGoalId
+    parentGoal {
+      id
+      slug
+      title
+      status
+    }
     therapeuticText
     therapeuticTextLanguage
     therapeuticTextGeneratedAt
+    subGoals {
+      id
+      slug
+      title
+      description
+      status
+      createdAt
+      updatedAt
+    }
     notes {
       id
       slug

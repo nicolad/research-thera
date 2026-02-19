@@ -6,6 +6,7 @@ query GetGoals($familyMemberId: Int, $status: String) {
     status
     familyMemberId
     createdBy
+    parentGoalId
     notes {
       id
       slug

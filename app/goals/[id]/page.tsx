@@ -14,13 +14,19 @@ import {
   Spinner,
   Link,
   Separator,
+  AlertDialog,
+  Button,
 } from "@radix-ui/themes";
 import { GlassButton } from "@/app/components/GlassButton";
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useGetGoalQuery } from "@/app/__generated__/hooks";
+import {
+  useGetGoalQuery,
+  useDeleteGoalMutation,
+} from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
+import AddSubGoalButton from "@/app/components/AddSubGoalButton";
 import "./accordion.css";
 
 function GoalPageContent() {
@@ -43,6 +49,21 @@ function GoalPageContent() {
   });
 
   const goal = data?.goal;
+
+  const [deleteGoal, { loading: deleting }] = useDeleteGoalMutation({
+    onCompleted: () => {
+      if (goal?.parentGoal) {
+        router.push(
+          goal.parentGoal.slug
+            ? `/goals/${goal.parentGoal.slug}`
+            : `/goals/${goal.parentGoal.id}`,
+        );
+      } else {
+        router.push("/goals");
+      }
+    },
+    refetchQueries: ["GetGoals", "GetGoal"],
+  });
 
   if (loading) {
     return (
@@ -82,16 +103,123 @@ function GoalPageContent() {
     router.push(`/stories/new?goalId=${goal.id}`);
   };
 
+  const handleDelete = async () => {
+    await deleteGoal({ variables: { id: goal.id } });
+  };
+
   return (
     <Flex direction="column" gap="4">
+      {/* Parent Goal Link */}
+      {goal.parentGoal && (
+        <Card
+          style={{
+            backgroundColor: "var(--amber-3)",
+            cursor: "pointer",
+            border: "1px solid var(--amber-6)",
+          }}
+          onClick={() =>
+            router.push(
+              goal.parentGoal!.slug
+                ? `/goals/${goal.parentGoal!.slug}`
+                : `/goals/${goal.parentGoal!.id}`,
+            )
+          }
+        >
+          <Flex align="center" gap="3" p="1">
+            <ArrowLeftIcon width="16" height="16" />
+            <Flex direction="column" gap="0">
+              <Text size="1" color="gray" weight="medium">
+                Parent Goal
+              </Text>
+              <Flex align="center" gap="2">
+                <Text size="3" weight="bold">
+                  {goal.parentGoal.title}
+                </Text>
+                <Badge color={getStatusColor(goal.parentGoal.status)} size="1">
+                  {goal.parentGoal.status}
+                </Badge>
+              </Flex>
+            </Flex>
+          </Flex>
+        </Card>
+      )}
+
       {/* Main Goal Card */}
-      <Card style={{ backgroundColor: "var(--indigo-3)" }}>
+      <Card
+        style={{
+          backgroundColor: goal.parentGoalId
+            ? "var(--violet-3)"
+            : "var(--indigo-3)",
+        }}
+      >
         <Flex direction="column" gap="4" p="1">
           <Flex justify="between" align="start" gap="3">
-            <Heading size="7">{goal.title}</Heading>
-            <Badge color={getStatusColor(goal.status)} size="2">
-              {goal.status}
-            </Badge>
+            <Flex direction="column" gap="1">
+              {goal.parentGoalId && (
+                <Badge
+                  color="violet"
+                  variant="soft"
+                  size="1"
+                  style={{ width: "fit-content" }}
+                >
+                  Sub-Goal
+                </Badge>
+              )}
+              <Heading size="7">{goal.title}</Heading>
+            </Flex>
+            <Flex align="center" gap="2">
+              <Badge color={getStatusColor(goal.status)} size="2">
+                {goal.status}
+              </Badge>
+              <AlertDialog.Root>
+                <AlertDialog.Trigger>
+                  <Button
+                    variant="ghost"
+                    color="red"
+                    size="2"
+                    disabled={deleting}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <TrashIcon width="16" height="16" />
+                  </Button>
+                </AlertDialog.Trigger>
+                <AlertDialog.Content style={{ maxWidth: 450 }}>
+                  <AlertDialog.Title>
+                    Delete {goal.parentGoalId ? "Sub-Goal" : "Goal"}
+                  </AlertDialog.Title>
+                  <AlertDialog.Description size="2">
+                    Are you sure you want to delete &ldquo;{goal.title}&rdquo;?
+                    This will permanently remove the{" "}
+                    {goal.parentGoalId ? "sub-goal" : "goal"} and all its
+                    associated data (stories, research, notes, etc.).
+                    {goal.subGoals && goal.subGoals.length > 0 && (
+                      <Text as="p" size="2" color="red" weight="bold" mt="2">
+                        Warning: This goal has {goal.subGoals.length} sub-goal
+                        {goal.subGoals.length !== 1 ? "s" : ""} that will also
+                        be orphaned.
+                      </Text>
+                    )}
+                  </AlertDialog.Description>
+                  <Flex gap="3" mt="4" justify="end">
+                    <AlertDialog.Cancel>
+                      <Button variant="soft" color="gray">
+                        Cancel
+                      </Button>
+                    </AlertDialog.Cancel>
+                    <AlertDialog.Action>
+                      <Button
+                        variant="solid"
+                        color="red"
+                        onClick={handleDelete}
+                        disabled={deleting}
+                      >
+                        {deleting ? "Deleting..." : "Delete"}
+                      </Button>
+                    </AlertDialog.Action>
+                  </Flex>
+                </AlertDialog.Content>
+              </AlertDialog.Root>
+            </Flex>
           </Flex>
 
           {goal.description && (
@@ -120,6 +248,72 @@ function GoalPageContent() {
               </Flex>
             )}
           </Flex>
+        </Flex>
+      </Card>
+
+      {/* Sub-Goals */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Heading size="4">
+              Sub-Goals {goal.subGoals ? `(${goal.subGoals.length})` : ""}
+            </Heading>
+            <AddSubGoalButton goalId={goal.id} />
+          </Flex>
+
+          {goal.subGoals && goal.subGoals.length > 0 ? (
+            <Flex direction="column" gap="2">
+              {goal.subGoals.map((subGoal) => (
+                <Card
+                  key={subGoal.id}
+                  style={{
+                    backgroundColor: "var(--gray-2)",
+                    cursor: "pointer",
+                  }}
+                  onClick={() =>
+                    router.push(
+                      subGoal.slug
+                        ? `/goals/${subGoal.slug}`
+                        : `/goals/${subGoal.id}`,
+                    )
+                  }
+                >
+                  <Flex direction="column" gap="2" p="3">
+                    <Flex justify="between" align="center">
+                      <Text size="3" weight="medium">
+                        {subGoal.title}
+                      </Text>
+                      <Badge color={getStatusColor(subGoal.status)} size="1">
+                        {subGoal.status}
+                      </Badge>
+                    </Flex>
+                    {subGoal.description && (
+                      <Text
+                        size="2"
+                        color="gray"
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {subGoal.description}
+                      </Text>
+                    )}
+                    <Text size="1" color="gray">
+                      Created {new Date(subGoal.createdAt).toLocaleDateString()}
+                    </Text>
+                  </Flex>
+                </Card>
+              ))}
+            </Flex>
+          ) : (
+            <Text size="2" color="gray">
+              No sub-goals yet. Break this goal into smaller steps.
+            </Text>
+          )}
         </Flex>
       </Card>
 

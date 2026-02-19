@@ -157,6 +157,11 @@ export type CreateStoryInput = {
   goalId: Scalars['Int']['input'];
 };
 
+export type CreateSubGoalInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
+};
+
 export type DeleteGoalResult = {
   __typename?: 'DeleteGoalResult';
   message?: Maybe<Scalars['String']['output']>;
@@ -294,11 +299,14 @@ export type Goal = {
   familyMemberId: Scalars['Int']['output'];
   id: Scalars['Int']['output'];
   notes: Array<Note>;
+  parentGoal?: Maybe<Goal>;
+  parentGoalId?: Maybe<Scalars['Int']['output']>;
   questions: Array<TherapeuticQuestion>;
   research: Array<Research>;
   slug?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
+  subGoals: Array<Goal>;
   therapeuticText?: Maybe<Scalars['String']['output']>;
   therapeuticTextGeneratedAt?: Maybe<Scalars['String']['output']>;
   therapeuticTextLanguage?: Maybe<Scalars['String']['output']>;
@@ -356,6 +364,7 @@ export type Mutation = {
   createGoal: Goal;
   createNote: Note;
   createStory: Story;
+  createSubGoal: Goal;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteGoal: DeleteGoalResult;
   deleteNote: DeleteNoteResult;
@@ -399,6 +408,12 @@ export type MutationcreateNoteArgs = {
 
 export type MutationcreateStoryArgs = {
   input: CreateStoryInput;
+};
+
+
+export type MutationcreateSubGoalArgs = {
+  goalId: Scalars['Int']['input'];
+  input: CreateSubGoalInput;
 };
 
 
@@ -882,6 +897,7 @@ export type ResolversTypes = {
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
   CreateStoryInput: CreateStoryInput;
+  CreateSubGoalInput: CreateSubGoalInput;
   DeleteGoalResult: ResolverTypeWrapper<DeleteGoalResult>;
   DeleteNoteResult: ResolverTypeWrapper<DeleteNoteResult>;
   DeleteQuestionsResult: ResolverTypeWrapper<DeleteQuestionsResult>;
@@ -897,7 +913,7 @@ export type ResolversTypes = {
   GenerateQuestionsResult: ResolverTypeWrapper<GenerateQuestionsResult>;
   GenerateResearchResult: ResolverTypeWrapper<GenerateResearchResult>;
   GenerationJob: ResolverTypeWrapper<Omit<GenerationJob, 'status' | 'type'> & { status: ResolversTypes['JobStatus'], type: ResolversTypes['JobType'] }>;
-  Goal: ResolverTypeWrapper<Omit<Goal, 'notes' | 'research' | 'userStories'> & { notes: Array<ResolversTypes['Note']>, research: Array<ResolversTypes['Research']>, userStories: Array<ResolversTypes['Story']> }>;
+  Goal: ResolverTypeWrapper<Omit<Goal, 'notes' | 'parentGoal' | 'research' | 'subGoals' | 'userStories'> & { notes: Array<ResolversTypes['Note']>, parentGoal?: Maybe<ResolversTypes['Goal']>, research: Array<ResolversTypes['Research']>, subGoals: Array<ResolversTypes['Goal']>, userStories: Array<ResolversTypes['Story']> }>;
   GoalStory: ResolverTypeWrapper<GoalStory>;
   JobError: ResolverTypeWrapper<JobError>;
   JobResult: ResolverTypeWrapper<JobResult>;
@@ -948,6 +964,7 @@ export type ResolversParentTypes = {
   CreateGoalInput: CreateGoalInput;
   CreateNoteInput: CreateNoteInput;
   CreateStoryInput: CreateStoryInput;
+  CreateSubGoalInput: CreateSubGoalInput;
   DeleteGoalResult: DeleteGoalResult;
   DeleteNoteResult: DeleteNoteResult;
   DeleteQuestionsResult: DeleteQuestionsResult;
@@ -962,7 +979,7 @@ export type ResolversParentTypes = {
   GenerateQuestionsResult: GenerateQuestionsResult;
   GenerateResearchResult: GenerateResearchResult;
   GenerationJob: GenerationJob;
-  Goal: Omit<Goal, 'notes' | 'research' | 'userStories'> & { notes: Array<ResolversParentTypes['Note']>, research: Array<ResolversParentTypes['Research']>, userStories: Array<ResolversParentTypes['Story']> };
+  Goal: Omit<Goal, 'notes' | 'parentGoal' | 'research' | 'subGoals' | 'userStories'> & { notes: Array<ResolversParentTypes['Note']>, parentGoal?: Maybe<ResolversParentTypes['Goal']>, research: Array<ResolversParentTypes['Research']>, subGoals: Array<ResolversParentTypes['Goal']>, userStories: Array<ResolversParentTypes['Story']> };
   GoalStory: GoalStory;
   JobError: JobError;
   JobResult: JobResult;
@@ -1172,11 +1189,14 @@ export type GoalResolvers<ContextType = GraphQLContext, ParentType extends Resol
   familyMemberId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
+  parentGoal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType>;
+  parentGoalId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   questions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType>;
   research?: Resolver<Array<ResolversTypes['Research']>, ParentType, ContextType>;
   slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   stories?: Resolver<Array<ResolversTypes['GoalStory']>, ParentType, ContextType>;
+  subGoals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType>;
   therapeuticText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   therapeuticTextGeneratedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   therapeuticTextLanguage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1223,6 +1243,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   createGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationcreateGoalArgs, 'input'>>;
   createNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationcreateNoteArgs, 'input'>>;
   createStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationcreateStoryArgs, 'input'>>;
+  createSubGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationcreateSubGoalArgs, 'goalId' | 'input'>>;
   deleteClaimCard?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationdeleteClaimCardArgs, 'id'>>;
   deleteGoal?: Resolver<ResolversTypes['DeleteGoalResult'], ParentType, ContextType, RequireFields<MutationdeleteGoalArgs, 'id'>>;
   deleteNote?: Resolver<ResolversTypes['DeleteNoteResult'], ParentType, ContextType, RequireFields<MutationdeleteNoteArgs, 'id'>>;

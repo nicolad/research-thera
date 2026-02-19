@@ -127,6 +127,11 @@ input CreateStoryInput {
   goalId: Int!
 }
 
+input CreateSubGoalInput {
+  description: String
+  title: String!
+}
+
 type DeleteGoalResult {
   message: String
   success: Boolean!
@@ -251,11 +256,14 @@ type Goal {
   familyMemberId: Int!
   id: Int!
   notes: [Note!]!
+  parentGoal: Goal
+  parentGoalId: Int
   questions: [TherapeuticQuestion!]!
   research: [Research!]!
   slug: String
   status: String!
   stories: [GoalStory!]!
+  subGoals: [Goal!]!
   therapeuticText: String
   therapeuticTextGeneratedAt: String
   therapeuticTextLanguage: String
@@ -311,6 +319,7 @@ type Mutation {
   createGoal(input: CreateGoalInput!): Goal!
   createNote(input: CreateNoteInput!): Note!
   createStory(input: CreateStoryInput!): Story!
+  createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
   deleteClaimCard(id: ID!): Boolean!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteNote(id: Int!): DeleteNoteResult!

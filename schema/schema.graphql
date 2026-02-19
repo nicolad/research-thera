@@ -27,6 +27,8 @@ type Mutation {
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   deleteGoal(id: Int!): DeleteGoalResult!
 
+  createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
+
   # Async generation workflows
   generateResearch(goalId: Int!): GenerateResearchResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
@@ -111,6 +113,9 @@ type Goal {
   title: String!
   description: String
   status: String!
+  parentGoalId: Int
+  parentGoal: Goal
+  subGoals: [Goal!]!
   createdAt: String!
   updatedAt: String!
   research: [Research!]!
@@ -288,6 +293,11 @@ type AudioSegmentInfo {
 
 input CreateGoalInput {
   familyMemberId: Int!
+  title: String!
+  description: String
+}
+
+input CreateSubGoalInput {
   title: String!
   description: String
 }

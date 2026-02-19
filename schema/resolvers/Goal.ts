@@ -37,4 +37,46 @@ export const Goal: GoalResolvers = {
     }
     return d1Tools.listStories(parent.id, userEmail);
   },
+
+  subGoals: async (parent, _args, ctx) => {
+    const userEmail = ctx.userEmail;
+    if (!userEmail) {
+      return [];
+    }
+    const allGoals = await d1Tools.listGoals(userEmail);
+    return allGoals
+      .filter((g) => g.parentGoalId === parent.id)
+      .map((g) => ({
+        ...g,
+        research: [],
+        questions: [],
+        stories: [],
+        userStories: [],
+        notes: [],
+        subGoals: [],
+        parentGoal: null,
+      })) as any;
+  },
+
+  parentGoal: async (parent, _args, ctx) => {
+    const parentGoalId = (parent as any).parentGoalId;
+    if (!parentGoalId || !ctx.userEmail) {
+      return null;
+    }
+    try {
+      const goal = await d1Tools.getGoal(parentGoalId, ctx.userEmail);
+      return {
+        ...goal,
+        research: [],
+        questions: [],
+        stories: [],
+        userStories: [],
+        notes: [],
+        subGoals: [],
+        parentGoal: null,
+      } as any;
+    } catch {
+      return null;
+    }
+  },
 };

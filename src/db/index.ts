@@ -41,6 +41,7 @@ export async function getGoal(goalId: number, createdBy: string) {
     title: row.title as string,
     description: (row.description as string) || null,
     status: row.status as string,
+    parentGoalId: (row.parent_goal_id as number) || null,
     therapeuticText: (row.therapeutic_text as string) || null,
     therapeuticTextLanguage: (row.therapeutic_text_language as string) || null,
     therapeuticTextGeneratedAt:
@@ -69,6 +70,7 @@ export async function getGoalBySlug(slug: string, createdBy: string) {
     title: row.title as string,
     description: (row.description as string) || null,
     status: row.status as string,
+    parentGoalId: (row.parent_goal_id as number) || null,
     therapeuticText: (row.therapeutic_text as string) || null,
     therapeuticTextLanguage: (row.therapeutic_text_language as string) || null,
     therapeuticTextGeneratedAt:
@@ -106,6 +108,7 @@ export async function listGoals(
     title: row.title as string,
     description: (row.description as string) || null,
     status: row.status as string,
+    parentGoalId: (row.parent_goal_id as number) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }));
@@ -117,12 +120,13 @@ export async function createGoal(params: {
   slug?: string;
   title: string;
   description?: string | null;
+  parentGoalId?: number | null;
 }) {
   const status = "active";
 
   const result = await d1.execute({
-    sql: `INSERT INTO goals (family_member_id, user_id, slug, title, description, status)
-          VALUES (?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO goals (family_member_id, user_id, slug, title, description, status, parent_goal_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
           RETURNING id`,
     args: [
       params.familyMemberId,
@@ -131,6 +135,7 @@ export async function createGoal(params: {
       params.title,
       params.description || null,
       status,
+      params.parentGoalId || null,
     ],
   });
 
