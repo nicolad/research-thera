@@ -984,7 +984,7 @@ export type GetGoalQueryVariables = Exact<{
 }>;
 
 
-export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
+export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, createdAt: string, updatedAt: string, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }>, subgoals: Array<{ __typename?: 'Subgoal', id: number, goalId: number, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string }> } | null };
 
 export type GetGoalsQueryVariables = Exact<{
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
@@ -1999,6 +1999,15 @@ export const GetGoalDocument = gql`
       goalId
       createdBy
       content
+      createdAt
+      updatedAt
+    }
+    subgoals {
+      id
+      goalId
+      title
+      description
+      status
       createdAt
       updatedAt
     }

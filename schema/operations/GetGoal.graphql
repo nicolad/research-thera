@@ -35,6 +35,15 @@ query GetGoal($id: Int, $slug: String) {
       createdAt
       updatedAt
     }
+    subgoals {
+      id
+      goalId
+      title
+      description
+      status
+      createdAt
+      updatedAt
+    }
     createdAt
     updatedAt
   }
