@@ -923,12 +923,12 @@ export async function updateGenerationJob(
   }
 
   if (updates.result) {
-    fields.push("result_json = ?");
+    fields.push("result = ?");
     args.push(JSON.stringify(updates.result));
   }
 
   if (updates.error) {
-    fields.push("error_json = ?");
+    fields.push("error = ?");
     args.push(JSON.stringify(updates.error));
   }
 

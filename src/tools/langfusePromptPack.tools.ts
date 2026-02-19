@@ -177,7 +177,7 @@ async function upsertLangfuseTextPrompt(params: {
 
 /**
  * Ensures goal-specific prompts exist in Langfuse.
- * - If missing OR signature mismatch => generate with DeepSeek + create new prompt version.
+ * - If missing OR signature mismatch => generate with OpenAI + create new prompt version.
  * - Else reuse existing latest version.
  */
 export async function ensureLangfusePromptPackForGoal(params: {
@@ -219,7 +219,7 @@ export async function ensureLangfusePromptPackForGoal(params: {
     };
   }
 
-  console.log("🔄 Generating new Langfuse prompt templates with DeepSeek...");
+  console.log("🔄 Generating new Langfuse prompt templates with OpenAI...");
 
   // Allowed variables for Langfuse mustache templates
   const plannerVars = [

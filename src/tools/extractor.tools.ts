@@ -48,11 +48,11 @@ async function getCompiledTextPrompt(params: {
  * NOTE: This is what your Langfuse planner template must produce.
  */
 const PlanSchema = z.object({
-  goalType: z.enum([
-    "career_interview_self_advocacy",
-    "communication_training",
-    "interview_training",
-  ]),
+  goalType: z
+    .string()
+    .describe(
+      "Type of therapeutic/psychological goal (e.g., 'anxiety_reduction', 'denial_coping', 'behavioral_change')",
+    ),
   keywords: z.array(z.string()).min(3),
   inclusion: z.array(z.string()).default([]),
   exclusion: z.array(z.string()).default([]),
@@ -66,13 +66,17 @@ const PlanSchema = z.object({
 export type ResearchPlan = z.infer<typeof PlanSchema>;
 
 /**
- * Extractor output schema (career-focused, not clinical therapy)
+ * Extractor output schema (generic therapeutic/psychological research)
  */
 const CareerResearchSchema = z.object({
   domain: z.enum([
-    "io_psych",
-    "career_coaching",
-    "communication_training",
+    "cbt",
+    "act",
+    "dbt",
+    "behavioral",
+    "psychodynamic",
+    "somatic",
+    "humanistic",
     "other",
   ]),
   paperMeta: z.object({
@@ -155,7 +159,7 @@ function convertLegacyToCareerSchema(
   legacy: ExtractedResearch,
 ): ExtractedCareerResearch {
   return {
-    domain: "career_coaching", // default domain for legacy conversions
+    domain: "other", // default domain for legacy conversions
     paperMeta: {
       title: legacy.title,
       authors: legacy.authors,
@@ -188,17 +192,8 @@ export async function planResearchQuery(params: {
   description: string;
   notes: string[];
   plannerPromptName: string; // from workflow ensure step
-  timeHorizonDays?: number;
-  roleFamily?: string;
 }): Promise<ResearchPlan> {
-  const {
-    title,
-    description,
-    notes,
-    plannerPromptName,
-    timeHorizonDays = 14,
-    roleFamily = "software engineering",
-  } = params;
+  const { title, description, notes, plannerPromptName } = params;
 
   const compiledPrompt = await getCompiledTextPrompt({
     name: plannerPromptName,
@@ -206,8 +201,6 @@ export async function planResearchQuery(params: {
       goalTitle: title,
       goalDescription: description,
       notes: notes.join("\n- "),
-      timeHorizonDays,
-      roleFamily,
     },
   });
 
@@ -254,7 +247,7 @@ export async function extractResearch(params: {
 
 REQUIRED JSON OUTPUT FORMAT:
 {
-  "domain": "io_psych" | "career_coaching" | "communication_training" | "other",
+  "domain": "cbt" | "act" | "dbt" | "behavioral" | "psychodynamic" | "somatic" | "humanistic" | "other",
   "paperMeta": {
     "title": "string",
     "authors": ["string"],
@@ -347,7 +340,7 @@ STRICT FILTERING:
 
   return {
     ...object,
-    extractedBy: "mastra:deepseek-chat:v1",
+    extractedBy: "mastra:gpt-4o-mini:v1",
   };
 }
 
@@ -385,7 +378,7 @@ Instructions:
 
   return {
     ...object,
-    extractedBy: "mastra:deepseek-chat:v1-repaired",
+    extractedBy: "mastra:gpt-4o-mini:v1-repaired",
   };
 }
 
@@ -419,40 +412,21 @@ export async function planResearchQueryLegacy(params: {
       inclusion: z.array(z.string()).describe("Inclusion criteria"),
       exclusion: z.array(z.string()).describe("Exclusion criteria"),
     }),
-    prompt: `Plan a research query strategy for this WORKPLACE/CAREER PSYCHOLOGY goal.
+    prompt: `Plan a research query strategy for this therapeutic/psychological goal.
 
 Goal: ${title}
 Description: ${description}
 Notes: ${notes.join("\n- ")}
 
-Generate MULTIPLE diverse queries to maximize recall from different databases.
-
-CRITICAL DOMAIN MAPPING:
-- This is about WORKPLACE/CAREER PSYCHOLOGY and ORGANIZATIONAL BEHAVIOR
-- Use terms like: "occupational psychology", "industrial-organizational psychology", "I-O psychology"
-- NEVER use "occupational therapy" (that's rehabilitation medicine)
-- For interviews: "job interview", "employment interview", "structured interview", "behavioral interview"
-- For self-advocacy: "self-promotion", "impression management", "self-efficacy", "assertiveness"
+Generate MULTIPLE diverse queries to maximize recall from different psychological/therapy databases.
 
 QUERY STRATEGY:
-1. Semantic Scholar queries (20-40): Mix broad + specific, use synonyms
-   Examples: "job interview anxiety", "employment interview self-efficacy", "workplace impression management"
+1. Semantic Scholar queries (20-40): Mix broad + specific, use synonyms and related constructs
+2. Crossref queries (20-45): Use natural language phrases common in therapy/psychology literature
+3. PubMed queries (20-40): Use MeSH terms and clinical psychology terminology
 
-2. Crossref queries (20-45): Use natural language, include context
-   Examples: "interview preparation coaching", "self-advocacy workplace", "interview anxiety reduction"
-
-3. PubMed queries (20-40): Use MeSH terms if biomedical overlap exists
-   Examples: "social anxiety AND interviews", "self-efficacy AND employment"
-
-STRICT EXCLUSIONS:
-- forensic, legal, police, witness, court, criminal, abuse
-- child, pediatric, school counseling (unless specifically about career counseling for students)
-- medical diagnostic interviews
-- pre-admission interviews (medical school)
-
-THERAPEUTIC FOCUS:
-- Stick to psychological interventions: CBT, coaching, training programs
-- Include terms: anxiety, confidence, skills training, self-efficacy, coaching
+Focus on finding psychological research relevant to the specific therapeutic goal.
+Include queries about: therapeutic interventions, mechanisms, evidence-based treatments, coping strategies.
 
 Return 40-87 total queries across all sources for maximum recall.`,
   });
