@@ -580,6 +580,7 @@ input GenerateOpenAIAudioInput {
 type GenerateOpenAIAudioResult {
   success: Boolean!
   message: String
+  jobId: String
   audioBuffer: String
   audioUrl: String
   key: String

@@ -40,6 +40,7 @@ export function AudioPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [ttsError, setTtsError] = useState<string | null>(null);
 
   const [generateAudio, { loading: generatingAudio }] =
     useGenerateOpenAiAudioMutation();
@@ -101,6 +102,7 @@ export function AudioPlayer({
       return;
     }
 
+    setTtsError(null);
     try {
       const result = await generateAudio({
         variables: {
@@ -116,28 +118,14 @@ export function AudioPlayer({
         },
       });
 
-      const payload = result.data?.generateOpenAIAudio;
-      if (!payload?.success) {
-        throw new Error(payload?.message || "Failed to generate audio");
+      const audioUrl = result.data?.generateOpenAIAudio?.audioUrl;
+      if (audioUrl) {
+        loadAudioSrc(audioUrl);
+        if (onAudioGenerated) onAudioGenerated();
       }
-
-      if (onAudioGenerated) onAudioGenerated();
-
-      if (
-        typeof payload.duration === "number" &&
-        Number.isFinite(payload.duration)
-      ) {
-        setDuration(payload.duration);
-      }
-
-      const src =
-        payload.audioUrl ||
-        (payload.audioBuffer ? base64ToBlob(payload.audioBuffer) : null);
-      if (!src) throw new Error("No audio data received");
-
-      loadAudioSrc(src);
-      audioRef.current?.play();
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "Audio generation failed";
+      setTtsError(msg);
       console.error("TTS Error:", error);
       stopPlayback();
     }
@@ -151,7 +139,7 @@ export function AudioPlayer({
     a.click();
   };
 
-  // Load existing audio
+  // Load existing audio when prop arrives
   useEffect(() => {
     if (existingAudioUrl && !audioSrc) {
       loadAudioSrc(existingAudioUrl);
@@ -166,6 +154,7 @@ export function AudioPlayer({
   }, []);
 
   const hasAudio = Boolean(audioSrc || existingAudioUrl);
+
   const timeLabel = duration
     ? `${formatDuration(isPlaying ? currentTime : 0)} / ${formatDuration(duration)}`
     : isPlaying
@@ -270,16 +259,28 @@ export function AudioPlayer({
   }
 
   return (
-    <Flex justify="start">
-      <Button
-        color="indigo"
-        variant="solid"
-        onClick={() => void handleTextToSpeech(true)}
-        disabled={!storyContent || generatingAudio}
-      >
-        {generatingAudio ? <Spinner /> : <SpeakerLoudIcon />}
-        Generate Audio
-      </Button>
+    <Flex direction="column" gap="2" align="start">
+      <Flex justify="start" align="center" gap="3">
+        <Button
+          color="indigo"
+          variant="solid"
+          onClick={() => void handleTextToSpeech(true)}
+          disabled={!storyContent || generatingAudio}
+        >
+          {generatingAudio ? <Spinner /> : <SpeakerLoudIcon />}
+          {generatingAudio ? "Generating…" : "Generate Audio"}
+        </Button>
+        {generatingAudio && (
+          <Text size="2" color="gray">
+            This may take a moment…
+          </Text>
+        )}
+      </Flex>
+      {ttsError && (
+        <Text size="2" color="red">
+          {ttsError}
+        </Text>
+      )}
     </Flex>
   );
 }

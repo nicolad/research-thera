@@ -1,0 +1,24 @@
+name = "tts-worker"
+main = "worker.py"
+compatibility_date = "2026-01-20"
+compatibility_flags = ["python_workers"]
+
+# D1 — same database as the main app
+[[d1_databases]]
+binding = "DB"
+database_name = "research-thera-db"
+database_id = "52b7dab0-7027-4e9e-ae30-f719bdfff993"
+
+# R2 — same bucket as the main app
+[[r2_buckets]]
+binding = "TTS_BUCKET"
+bucket_name = "longform-tts"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Secrets — set via:
+#   wrangler secret put OPENAI_API_KEY   --config workers/tts-worker/wrangler.toml
+#   wrangler secret put R2_PUBLIC_DOMAIN --config workers/tts-worker/wrangler.toml
+#   wrangler secret put WORKER_SECRET    --config workers/tts-worker/wrangler.toml
