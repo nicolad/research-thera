@@ -243,6 +243,7 @@ type GenerateOpenAIAudioResult {
   audioBuffer: String
   audioUrl: String
   duration: Float
+  jobId: String
   key: String
   message: String
   sizeBytes: Int

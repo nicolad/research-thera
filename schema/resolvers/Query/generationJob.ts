@@ -3,9 +3,7 @@ import { d1Tools } from "@/src/db";
 
 export const generationJob: NonNullable<QueryResolvers['generationJob']> = async (_parent, args, _ctx) => {
   const job = await d1Tools.getGenerationJob(args.id);
-  if (!job) {
-    throw new Error(`Generation job ${args.id} not found`);
-  }
+  if (!job) return null;
 
   return {
     id: job.id,

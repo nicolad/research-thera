@@ -5,13 +5,18 @@ import { Flex, Text, Card, Badge, Button, Spinner } from "@radix-ui/themes";
 import { SpeakerLoudIcon, StopIcon, DownloadIcon } from "@radix-ui/react-icons";
 import {
   useGenerateOpenAiAudioMutation,
+  useGetGenerationJobQuery,
+  useGetGenerationJobsQuery,
   OpenAittsVoice,
   OpenAittsModel,
   OpenAiAudioFormat,
+  JobStatus,
+  JobType,
 } from "@/app/__generated__/hooks";
 
 interface AudioPlayerProps {
   storyId: number;
+  goalId: number;
   storyContent: string;
   existingAudioUrl?: string | null;
   audioGeneratedAt?: string | null;
@@ -28,6 +33,7 @@ function formatDuration(seconds?: number | null): string {
 
 export function AudioPlayer({
   storyId,
+  goalId,
   storyContent,
   existingAudioUrl,
   audioGeneratedAt,
@@ -35,22 +41,97 @@ export function AudioPlayer({
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [ttsError, setTtsError] = useState<string | null>(null);
+  const [pollingJobId, setPollingJobId] = useState<string | null>(null);
+  const [generationMessage, setGenerationMessage] = useState<string | null>(null);
 
   const [generateAudio, { loading: generatingAudio }] =
     useGenerateOpenAiAudioMutation();
 
-  const revokeObjectUrl = () => {
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
-      objectUrlRef.current = null;
+  // Poll active job for status
+  const { data: jobData, stopPolling } = useGetGenerationJobQuery({
+    variables: { id: pollingJobId! },
+    skip: !pollingJobId,
+    pollInterval: 5000,
+    onError: () => {
+      stopPolling();
+      setPollingJobId(null);
+      setGenerationMessage(null);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setTtsError("Audio generation failed. Please try again.");
+    },
+  });
+
+  // On mount: check for any active RUNNING job for this story (survives page refresh)
+  const { data: runningJobsData } = useGetGenerationJobsQuery({
+    variables: { goalId, status: "RUNNING" },
+    skip: Boolean(existingAudioUrl) || Boolean(pollingJobId),
+    fetchPolicy: "network-only",
+  });
+
+  useEffect(() => {
+    if (pollingJobId || existingAudioUrl) return;
+    const runningJob = runningJobsData?.generationJobs?.find(
+      (j) => j.type === JobType.Audio && j.storyId === storyId,
+    );
+    if (runningJob) {
+      // If the job hasn't been updated in >10 min it's permanently stuck — show error instead of polling.
+      const isStale =
+        Date.now() - new Date(runningJob.updatedAt).getTime() > 10 * 60 * 1000;
+      if (isStale) {
+        setTtsError("Previous audio generation appears to have failed. Please try again.");
+        return;
+      }
+      setPollingJobId(runningJob.id);
+      setGenerationMessage("Audio generation in progress…");
+      // Guard against infinite polling if the job never reaches a terminal state.
+      timeoutRef.current = setTimeout(() => {
+        stopPolling();
+        setPollingJobId(null);
+        setGenerationMessage(null);
+        setTtsError("Audio generation timed out. Please try again.");
+      }, 10 * 60 * 1000);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runningJobsData, pollingJobId, existingAudioUrl, storyId]);
+
+  // React to job status changes
+  useEffect(() => {
+    const job = jobData?.generationJob;
+    if (!job) return;
+
+    if (job.status === JobStatus.Succeeded) {
+      stopPolling();
+      setPollingJobId(null);
+      setGenerationMessage(null);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      const audioUrl = job.result?.audioUrl;
+      if (audioUrl) {
+        setAudioSrc(audioUrl);
+        if (onAudioGenerated) onAudioGenerated();
+      }
+    } else if (job.status === JobStatus.Failed) {
+      stopPolling();
+      setPollingJobId(null);
+      setGenerationMessage(null);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setTtsError(job.error?.message ?? "Audio generation failed");
+    }
+  }, [jobData, stopPolling, onAudioGenerated]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
 
   const stopPlayback = () => {
     if (audioRef.current) {
@@ -58,25 +139,6 @@ export function AudioPlayer({
       audioRef.current.currentTime = 0;
     }
     setIsPlaying(false);
-  };
-
-  const loadAudioSrc = (src: string) => {
-    setAudioSrc(src);
-  };
-
-  const base64ToBlob = (base64: string): string => {
-    const cleanBase64 = base64.includes(",") ? base64.split(",")[1] : base64;
-    const binary = atob(cleanBase64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    revokeObjectUrl();
-    const blobUrl = URL.createObjectURL(
-      new Blob([bytes], { type: "audio/mpeg" }),
-    );
-    objectUrlRef.current = blobUrl;
-    return blobUrl;
   };
 
   const handleTextToSpeech = async (regenerate = false) => {
@@ -89,6 +151,7 @@ export function AudioPlayer({
       setAudioSrc("");
       setDuration(null);
       setCurrentTime(0);
+      setTtsError(null);
     }
 
     if (!regenerate && audioSrc) {
@@ -97,12 +160,13 @@ export function AudioPlayer({
     }
 
     if (!regenerate && existingAudioUrl) {
-      loadAudioSrc(existingAudioUrl);
+      setAudioSrc(existingAudioUrl);
       audioRef.current?.play();
       return;
     }
 
     setTtsError(null);
+    setGenerationMessage(null);
     try {
       const result = await generateAudio({
         variables: {
@@ -111,17 +175,25 @@ export function AudioPlayer({
             storyId,
             voice: OpenAittsVoice.Onyx,
             model: OpenAittsModel.Gpt_4OMiniTts,
-            speed: 0.9,
             responseFormat: OpenAiAudioFormat.Mp3,
             uploadToCloud: true,
           },
         },
       });
 
-      const audioUrl = result.data?.generateOpenAIAudio?.audioUrl;
-      if (audioUrl) {
-        loadAudioSrc(audioUrl);
-        if (onAudioGenerated) onAudioGenerated();
+      const response = result.data?.generateOpenAIAudio;
+      const jobId = response?.jobId;
+      if (response?.message) {
+        setGenerationMessage(response.message);
+      }
+      if (jobId) {
+        setPollingJobId(jobId);
+        timeoutRef.current = setTimeout(() => {
+          stopPolling();
+          setPollingJobId(null);
+          setGenerationMessage(null);
+          setTtsError("Audio generation timed out. Please try again.");
+        }, 10 * 60 * 1000);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Audio generation failed";
@@ -142,17 +214,11 @@ export function AudioPlayer({
   // Load existing audio when prop arrives
   useEffect(() => {
     if (existingAudioUrl && !audioSrc) {
-      loadAudioSrc(existingAudioUrl);
+      setAudioSrc(existingAudioUrl);
     }
   }, [existingAudioUrl, audioSrc]);
 
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      revokeObjectUrl();
-    };
-  }, []);
-
+  const isGenerating = generatingAudio || Boolean(pollingJobId);
   const hasAudio = Boolean(audioSrc || existingAudioUrl);
 
   const timeLabel = duration
@@ -217,9 +283,9 @@ export function AudioPlayer({
               color="indigo"
               variant="solid"
               onClick={() => void handleTextToSpeech(false)}
-              disabled={generatingAudio}
+              disabled={isGenerating}
             >
-              {generatingAudio ? (
+              {isGenerating ? (
                 <Spinner />
               ) : isPlaying ? (
                 <StopIcon />
@@ -235,10 +301,10 @@ export function AudioPlayer({
                   color="indigo"
                   variant="soft"
                   onClick={() => void handleTextToSpeech(true)}
-                  disabled={generatingAudio || !storyContent}
+                  disabled={isGenerating || !storyContent}
                 >
-                  {generatingAudio ? <Spinner /> : null}
-                  Regenerate
+                  {isGenerating ? <Spinner /> : null}
+                  {isGenerating ? "Generating…" : "Regenerate"}
                 </Button>
 
                 <Button
@@ -253,29 +319,54 @@ export function AudioPlayer({
               </>
             )}
           </Flex>
+
+          {ttsError && (
+            <Text size="2" color="red">
+              {ttsError}
+            </Text>
+          )}
         </Flex>
       </Card>
     );
   }
 
+  // No audio yet — show generate button (+ status if generating)
   return (
     <Flex direction="column" gap="2" align="start">
-      <Flex justify="start" align="center" gap="3">
-        <Button
-          color="indigo"
-          variant="solid"
-          onClick={() => void handleTextToSpeech(true)}
-          disabled={!storyContent || generatingAudio}
+      {isGenerating ? (
+        <Card
+          style={{
+            background: "var(--amber-2)",
+            borderColor: "var(--amber-6)",
+          }}
         >
-          {generatingAudio ? <Spinner /> : <SpeakerLoudIcon />}
-          {generatingAudio ? "Generating…" : "Generate Audio"}
-        </Button>
-        {generatingAudio && (
-          <Text size="2" color="gray">
-            This may take a moment…
-          </Text>
-        )}
-      </Flex>
+          <Flex align="center" gap="3" p="3">
+            <Spinner />
+            <Flex direction="column" gap="1">
+              <Text size="2" weight="medium" color="amber">
+                Generating audio…
+              </Text>
+              {generationMessage && (
+                <Text size="1" color="gray">
+                  {generationMessage}
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+        </Card>
+      ) : (
+        <Flex justify="start" align="center" gap="3">
+          <Button
+            color="indigo"
+            variant="solid"
+            onClick={() => void handleTextToSpeech(true)}
+            disabled={!storyContent}
+          >
+            <SpeakerLoudIcon />
+            Generate Audio
+          </Button>
+        </Flex>
+      )}
       {ttsError && (
         <Text size="2" color="red">
           {ttsError}

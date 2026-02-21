@@ -1111,8 +1111,8 @@ export async function getGenerationJob(id: string) {
     storyId: (row.story_id as number) || null,
     status: row.status as string,
     progress: row.progress as number,
-    result: row.result_json ? JSON.parse(row.result_json as string) : null,
-    error: row.error_json ? JSON.parse(row.error_json as string) : null,
+    result: row.result ? JSON.parse(row.result as string) : null,
+    error: row.error ? JSON.parse(row.error as string) : null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };

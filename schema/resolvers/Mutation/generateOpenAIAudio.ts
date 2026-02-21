@@ -1,5 +1,7 @@
 import type { MutationResolvers } from "./../../types.generated";
 import { d1 } from "@/src/db/d1";
+import { tasks } from "@trigger.dev/sdk/v3";
+import type { TTSPayload } from "@/src/trigger/tts-task";
 
 export const generateOpenAIAudio: NonNullable<
   MutationResolvers["generateOpenAIAudio"]
@@ -23,61 +25,57 @@ export const generateOpenAIAudio: NonNullable<
     throw new Error("Text is required");
   }
 
-  const workerUrl = process.env.TTS_WORKER_URL;
-  if (!workerUrl) {
-    console.warn("[TTS Worker] TTS_WORKER_URL is not configured");
-    return {
-      success: false,
-      message: "TTS_WORKER_URL is not configured",
-      jobId: null,
-      audioBuffer: null,
-      audioUrl: null,
-      key: null,
-      sizeBytes: null,
-      duration: null,
-    };
-  }
-
-  // Deduplication: return existing job if one is already RUNNING for this story
+  // Deduplication: check for any RUNNING job for this story.
+  // Jobs older than 10 min are considered stale (Trigger.dev MAX_DURATION_EXCEEDED
+  // does not always fire onFailure) — mark them FAILED and allow a new run.
   if (storyId) {
     const existing = await d1.execute({
-      sql: `SELECT id FROM generation_jobs
+      sql: `SELECT id, created_at FROM generation_jobs
             WHERE story_id = ? AND user_id = ? AND type = 'AUDIO' AND status = 'RUNNING'
             ORDER BY created_at DESC LIMIT 1`,
       args: [storyId, userEmail],
     });
     if (existing.rows.length > 0) {
       const existingJobId = existing.rows[0].id as string;
-      console.log(`[TTS Worker] job ${existingJobId} already running for story ${storyId}`);
-      return {
-        success: true,
-        message: "Audio generation already in progress",
-        jobId: existingJobId,
-        audioBuffer: null,
-        audioUrl: null,
-        key: null,
-        sizeBytes: null,
-        duration: null,
-      };
+      const createdAt = new Date(existing.rows[0].created_at as string).getTime();
+      const ageMs = Date.now() - createdAt;
+
+      if (ageMs < 10 * 60 * 1000) {
+        console.log(`[TTS] job ${existingJobId} already running for story ${storyId}`);
+        return {
+          success: true,
+          message: "Audio generation already in progress",
+          jobId: existingJobId,
+          audioBuffer: null,
+          audioUrl: null,
+          key: null,
+          sizeBytes: null,
+          duration: null,
+        };
+      }
+
+      // Stale job — clean it up before proceeding
+      console.warn(`[TTS] job ${existingJobId} stale after ${Math.round(ageMs / 1000)}s, marking FAILED`);
+      await d1.execute({
+        sql: `UPDATE generation_jobs SET status = 'FAILED', error = ?, updated_at = datetime('now') WHERE id = ?`,
+        args: [JSON.stringify({ message: "Job timed out (stale RUNNING state)" }), existingJobId],
+      }).catch(() => {});
     }
   }
 
-  // Create a new RUNNING job for tracking + deduplication
+  // Create a RUNNING job in D1 for tracking + deduplication
   const jobId = crypto.randomUUID();
   if (storyId) {
-    // goalId is required by the schema — fetch it from the story row
     const storyRow = await d1.execute({
       sql: `SELECT goal_id FROM stories WHERE id = ? AND user_id = ?`,
       args: [storyId, userEmail],
     });
-    const goalId = storyRow.rows[0]?.goal_id as number | undefined;
-    if (goalId) {
-      await d1.execute({
-        sql: `INSERT INTO generation_jobs (id, user_id, type, goal_id, story_id, status, progress)
-              VALUES (?, ?, 'AUDIO', ?, ?, 'RUNNING', 0)`,
-        args: [jobId, userEmail, goalId, storyId],
-      });
-    }
+    const goalId = (storyRow.rows[0]?.goal_id as number | undefined) ?? null;
+    await d1.execute({
+      sql: `INSERT INTO generation_jobs (id, user_id, type, goal_id, story_id, status, progress)
+            VALUES (?, ?, 'AUDIO', ?, ?, 'RUNNING', 0)`,
+      args: [jobId, userEmail, goalId, storyId],
+    });
   }
 
   const openAIVoice = voice?.toLowerCase() ?? "onyx";
@@ -89,9 +87,10 @@ export const generateOpenAIAudio: NonNullable<
         : "tts-1";
   const format = responseFormat?.toLowerCase() ?? "mp3";
 
-  const payload = {
+  // Dispatch to Trigger.dev — returns a run handle immediately; task runs async.
+  const ttsPayload: TTSPayload = {
     text,
-    storyId,
+    storyId: storyId != null ? String(storyId) : null,
     jobId,
     voice: openAIVoice,
     model: openAIModel,
@@ -101,22 +100,29 @@ export const generateOpenAIAudio: NonNullable<
     ...(instructions ? { instructions } : {}),
   };
 
-  // Fire-and-forget: dispatch to the CF worker, await only the 202 ACK (~200ms).
-  // The worker uses ctx.waitUntil to process TTS async and updates the job in D1.
   try {
-    const resp = await fetch(workerUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Worker-Secret": process.env.WORKER_SECRET ?? "",
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) {
-      console.error(`[TTS Worker] rejected: ${resp.status}`, await resp.text());
-    }
+    await tasks.trigger("tts-generate-audio", ttsPayload);
   } catch (err) {
-    console.error("[TTS Worker] dispatch error:", err);
+    // Trigger dispatch failed — mark the D1 job as FAILED so the client stops polling
+    const errorMessage = err instanceof Error ? err.message : "Failed to dispatch TTS job";
+    console.error("[TTS] trigger dispatch failed:", errorMessage);
+    if (jobId) {
+      const now = new Date().toISOString();
+      await d1.execute({
+        sql: `UPDATE generation_jobs SET status = 'FAILED', error = ?, updated_at = ? WHERE id = ?`,
+        args: [JSON.stringify({ message: errorMessage }), now, jobId],
+      }).catch(() => {});
+    }
+    return {
+      success: false,
+      message: errorMessage,
+      jobId,
+      audioBuffer: null,
+      audioUrl: null,
+      key: null,
+      sizeBytes: null,
+      duration: null,
+    };
   }
 
   return {

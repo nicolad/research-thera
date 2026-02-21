@@ -2,6 +2,8 @@ import {
   S3Client,
   PutObjectCommand,
   PutObjectCommandInput,
+  GetObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -65,6 +67,29 @@ export async function uploadToR2(
     bucket: R2_BUCKET_NAME,
     sizeBytes: body.length,
   };
+}
+
+/**
+ * Download a file from Cloudflare R2 as a Buffer
+ */
+export async function downloadFromR2(key: string): Promise<Buffer> {
+  const response = await r2Client.send(
+    new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }),
+  );
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+/**
+ * Delete a file from Cloudflare R2
+ */
+export async function deleteFromR2(key: string): Promise<void> {
+  await r2Client.send(
+    new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }),
+  );
 }
 
 /**

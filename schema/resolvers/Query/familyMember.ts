@@ -1,7 +1,7 @@
 import type { QueryResolvers } from "./../../types.generated";
 import { d1Tools } from "@/src/db";
 
-export const familyMember: NonNullable<QueryResolvers["familyMember"]> = async (
+export const familyMember: NonNullable<QueryResolvers['familyMember']> = async (
   _parent,
   args,
   ctx,

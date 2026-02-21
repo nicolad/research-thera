@@ -51,3 +51,4 @@ next-env.d.ts
 # Cloned repositories
 better-auth/
 src/elevenlabs-examples/
+.trigger/

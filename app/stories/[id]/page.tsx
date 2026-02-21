@@ -199,6 +199,7 @@ function StoryPageContent() {
               {/* Audio Player Component */}
               <AudioPlayer
                 storyId={story.id}
+                goalId={story.goalId}
                 storyContent={story.content}
                 existingAudioUrl={story.audioUrl}
                 audioGeneratedAt={story.audioGeneratedAt}

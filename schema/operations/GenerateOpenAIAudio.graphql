@@ -2,6 +2,7 @@ mutation GenerateOpenAIAudio($input: GenerateOpenAIAudioInput!) {
   generateOpenAIAudio(input: $input) {
     success
     message
+    jobId
     audioBuffer
     audioUrl
     sizeBytes

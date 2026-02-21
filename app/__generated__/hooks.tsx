@@ -284,6 +284,7 @@ export type GenerateOpenAiAudioResult = {
   audioBuffer?: Maybe<Scalars['String']['output']>;
   audioUrl?: Maybe<Scalars['String']['output']>;
   duration?: Maybe<Scalars['Float']['output']>;
+  jobId?: Maybe<Scalars['String']['output']>;
   key?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   sizeBytes?: Maybe<Scalars['Int']['output']>;
@@ -1018,7 +1019,7 @@ export type GenerateOpenAiAudioMutationVariables = Exact<{
 }>;
 
 
-export type GenerateOpenAiAudioMutation = { __typename?: 'Mutation', generateOpenAIAudio: { __typename?: 'GenerateOpenAIAudioResult', success: boolean, message?: string | null, audioBuffer?: string | null, audioUrl?: string | null, sizeBytes?: number | null, duration?: number | null } };
+export type GenerateOpenAiAudioMutation = { __typename?: 'Mutation', generateOpenAIAudio: { __typename?: 'GenerateOpenAIAudioResult', success: boolean, message?: string | null, jobId?: string | null, audioBuffer?: string | null, audioUrl?: string | null, sizeBytes?: number | null, duration?: number | null } };
 
 export type GenerateResearchMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
@@ -1043,6 +1044,21 @@ export type GetFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetFamilyMembersQuery = { __typename?: 'Query', familyMembers: Array<{ __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string }> };
+
+export type GetGenerationJobQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetGenerationJobQuery = { __typename?: 'Query', generationJob?: { __typename?: 'GenerationJob', id: string, status: JobStatus, progress: number, updatedAt: string, result?: { __typename?: 'JobResult', audioUrl?: string | null } | null, error?: { __typename?: 'JobError', message: string } | null } | null };
+
+export type GetGenerationJobsQueryVariables = Exact<{
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetGenerationJobsQuery = { __typename?: 'Query', generationJobs: Array<{ __typename?: 'GenerationJob', id: string, type: JobType, storyId?: number | null, status: JobStatus, progress: number, updatedAt: string, result?: { __typename?: 'JobResult', audioUrl?: string | null } | null, error?: { __typename?: 'JobError', message: string } | null }> };
 
 export type GetGoalQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
@@ -1993,6 +2009,7 @@ export const GenerateOpenAiAudioDocument = gql`
   generateOpenAIAudio(input: $input) {
     success
     message
+    jobId
     audioBuffer
     audioUrl
     sizeBytes
@@ -2225,6 +2242,113 @@ export type GetFamilyMembersQueryHookResult = ReturnType<typeof useGetFamilyMemb
 export type GetFamilyMembersLazyQueryHookResult = ReturnType<typeof useGetFamilyMembersLazyQuery>;
 export type GetFamilyMembersSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMembersSuspenseQuery>;
 export type GetFamilyMembersQueryResult = Apollo.QueryResult<GetFamilyMembersQuery, GetFamilyMembersQueryVariables>;
+export const GetGenerationJobDocument = gql`
+    query GetGenerationJob($id: String!) {
+  generationJob(id: $id) {
+    id
+    status
+    progress
+    result {
+      audioUrl
+    }
+    error {
+      message
+    }
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetGenerationJobQuery__
+ *
+ * To run a query within a React component, call `useGetGenerationJobQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGenerationJobQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGenerationJobQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetGenerationJobQuery(baseOptions: Apollo.QueryHookOptions<GetGenerationJobQuery, GetGenerationJobQueryVariables> & ({ variables: GetGenerationJobQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGenerationJobQuery, GetGenerationJobQueryVariables>(GetGenerationJobDocument, options);
+      }
+export function useGetGenerationJobLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGenerationJobQuery, GetGenerationJobQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGenerationJobQuery, GetGenerationJobQueryVariables>(GetGenerationJobDocument, options);
+        }
+// @ts-ignore
+export function useGetGenerationJobSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetGenerationJobQuery, GetGenerationJobQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenerationJobQuery, GetGenerationJobQueryVariables>;
+export function useGetGenerationJobSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenerationJobQuery, GetGenerationJobQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenerationJobQuery | undefined, GetGenerationJobQueryVariables>;
+export function useGetGenerationJobSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenerationJobQuery, GetGenerationJobQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGenerationJobQuery, GetGenerationJobQueryVariables>(GetGenerationJobDocument, options);
+        }
+export type GetGenerationJobQueryHookResult = ReturnType<typeof useGetGenerationJobQuery>;
+export type GetGenerationJobLazyQueryHookResult = ReturnType<typeof useGetGenerationJobLazyQuery>;
+export type GetGenerationJobSuspenseQueryHookResult = ReturnType<typeof useGetGenerationJobSuspenseQuery>;
+export type GetGenerationJobQueryResult = Apollo.QueryResult<GetGenerationJobQuery, GetGenerationJobQueryVariables>;
+export const GetGenerationJobsDocument = gql`
+    query GetGenerationJobs($goalId: Int, $status: String) {
+  generationJobs(goalId: $goalId, status: $status) {
+    id
+    type
+    storyId
+    status
+    progress
+    result {
+      audioUrl
+    }
+    error {
+      message
+    }
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetGenerationJobsQuery__
+ *
+ * To run a query within a React component, call `useGetGenerationJobsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGenerationJobsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGenerationJobsQuery({
+ *   variables: {
+ *      goalId: // value for 'goalId'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useGetGenerationJobsQuery(baseOptions?: Apollo.QueryHookOptions<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>(GetGenerationJobsDocument, options);
+      }
+export function useGetGenerationJobsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>(GetGenerationJobsDocument, options);
+        }
+// @ts-ignore
+export function useGetGenerationJobsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>;
+export function useGetGenerationJobsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenerationJobsQuery | undefined, GetGenerationJobsQueryVariables>;
+export function useGetGenerationJobsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>(GetGenerationJobsDocument, options);
+        }
+export type GetGenerationJobsQueryHookResult = ReturnType<typeof useGetGenerationJobsQuery>;
+export type GetGenerationJobsLazyQueryHookResult = ReturnType<typeof useGetGenerationJobsLazyQuery>;
+export type GetGenerationJobsSuspenseQueryHookResult = ReturnType<typeof useGetGenerationJobsSuspenseQuery>;
+export type GetGenerationJobsQueryResult = Apollo.QueryResult<GetGenerationJobsQuery, GetGenerationJobsQueryVariables>;
 export const GetGoalDocument = gql`
     query GetGoal($id: Int, $slug: String) {
   goal(id: $id, slug: $slug) {
