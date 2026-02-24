@@ -515,7 +515,7 @@ const DynamicFamilyListContent = dynamic(
 export default function FamilyPage() {
   return (
     <Flex direction="column" gap="6">
-      <Heading size="8">Family</Heading>
+      <Heading size="8">My Family</Heading>
       <DynamicFamilyListContent />
     </Flex>
   );

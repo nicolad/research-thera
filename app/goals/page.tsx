@@ -73,7 +73,7 @@ function GoalsListContent() {
     <Flex direction="column" gap="4">
       <Flex justify="between" align="center" wrap="wrap" gap="3">
         <Heading size="5">
-          All Goals ({goals.length})
+          My Goals ({goals.length})
           {subGoalCount > 0 && (
             <Text size="2" color="gray" weight="regular">
               {" "}

@@ -22,8 +22,8 @@ export function Breadcrumbs({ crumbs }: BreadcrumbsProps) {
             <Flex key={i} align="center" gap="1">
               {i > 0 && (
                 <ChevronRightIcon
-                  width="12"
-                  height="12"
+                  width="14"
+                  height="14"
                   color="var(--gray-9)"
                   aria-hidden="true"
                 />
@@ -38,6 +38,7 @@ export function Breadcrumbs({ crumbs }: BreadcrumbsProps) {
                 <Text
                   size="1"
                   color="gray"
+                  weight="medium"
                   aria-current={isLast ? "page" : undefined}
                 >
                   {crumb.label}

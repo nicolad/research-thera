@@ -756,7 +756,7 @@ export default function NotePage() {
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold" truncate>
-              {note?.title || "Note Details"}
+              {note?.title || "Loading note\u2026"}
             </Heading>
           </Box>
         </Flex>

@@ -33,7 +33,7 @@ export default function Home() {
       <Card size="4" style={{ background: "var(--indigo-3)" }}>
         <Flex direction="column" gap="4" align="center" py="6">
           <Badge size="2" variant="soft" color="indigo">
-            AI-Powered Therapeutic Platform
+            Research-backed &middot; Personal &middot; Private
           </Badge>
           <Heading size="9" align="center" style={{ maxWidth: "800px" }}>
             Research-Backed Therapy Notes & Reflections

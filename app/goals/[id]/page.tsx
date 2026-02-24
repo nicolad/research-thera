@@ -769,7 +769,7 @@ export default function GoalPage() {
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold" truncate>
-              {goal?.title || "Goal Details"}
+              {goal?.title || "Loading goal\u2026"}
             </Heading>
           </Box>
         </Flex>
