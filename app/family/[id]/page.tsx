@@ -19,6 +19,7 @@ import {
 } from "@radix-ui/themes";
 import { ArrowLeftIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
+import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import {
   useGetFamilyMemberQuery,
@@ -680,18 +681,16 @@ export default function FamilyMemberPage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <Button
-            variant="soft"
-            size="2"
-            radius="full"
-            color="gray"
-            onClick={() => router.push("/family")}
-          >
-            <ArrowLeftIcon />
-            <Text as="span" size="2" weight="medium">
-              Family
-            </Text>
+          <Button variant="soft" size="2" radius="full" color="gray" asChild>
+            <NextLink href="/family">
+              <ArrowLeftIcon />
+              <Text as="span" size="2" weight="medium">
+                Family
+              </Text>
+            </NextLink>
           </Button>
+
+          <Separator orientation="vertical" style={{ height: 20 }} />
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold" truncate>

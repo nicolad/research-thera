@@ -27,6 +27,7 @@ import {
 } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
+import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import {
   useGetNoteQuery,
@@ -737,23 +738,14 @@ export default function NotePage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <Link href="/notes" underline="none">
-            <Button
-              variant="soft"
-              size="2"
-              radius="full"
-              color="gray"
-              onClick={(e) => {
-                e.preventDefault();
-                router.push("/notes");
-              }}
-            >
+          <Button variant="soft" size="2" radius="full" color="gray" asChild>
+            <NextLink href="/notes">
               <ArrowLeftIcon />
               <Text as="span" size="2" weight="medium">
                 Notes
               </Text>
-            </Button>
-          </Link>
+            </NextLink>
+          </Button>
 
           <Separator.Root orientation="vertical" />
 

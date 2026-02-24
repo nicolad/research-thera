@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   Box,
+  Button,
   Flex,
   Heading,
   Text,
@@ -15,8 +16,10 @@ import {
 } from "@radix-ui/themes";
 import { GlassButton } from "@/app/components/GlassButton";
 import { AudioPlayer } from "@/app/components/AudioPlayer";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
 import { ArrowLeftIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
+import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import {
   useGetStoryQuery,
@@ -105,6 +108,18 @@ function StoryPageContent() {
 
   return (
     <Flex direction="column" gap="4">
+      <Breadcrumbs
+        crumbs={[
+          { label: "Goals", href: "/goals" },
+          {
+            label: story.goal?.title || "Goal",
+            href: story.goal
+              ? `/goals/${story.goal.slug || story.goal.id}`
+              : "/goals",
+          },
+          { label: "Story" },
+        ]}
+      />
       {/* Story Card */}
       <Card>
         <Flex direction="column" gap="4" p="4">
@@ -281,22 +296,20 @@ export default function StoryPage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <GlassButton
-            variant="secondary"
-            size="medium"
-            onClick={() => {
-              if (story?.goal?.slug) {
-                router.push(`/goals/${story.goal.slug}`);
-              } else if (story?.goalId) {
-                router.push(`/goals/${story.goalId}`);
-              } else {
-                router.push("/goals");
+          <Button variant="soft" size="2" radius="full" color="gray" asChild>
+            <NextLink
+              href={
+                story?.goal?.slug
+                  ? `/goals/${story.goal.slug}`
+                  : story?.goalId
+                    ? `/goals/${story.goalId}`
+                    : "/goals"
               }
-            }}
-          >
-            <ArrowLeftIcon />
-            Back to Goal
-          </GlassButton>
+            >
+              <ArrowLeftIcon />
+              Back to Goal
+            </NextLink>
+          </Button>
 
           <Separator orientation="vertical" />
 

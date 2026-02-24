@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Box,
+  Button,
   Flex,
   Heading,
   Text,
@@ -14,7 +15,9 @@ import {
   Spinner,
 } from "@radix-ui/themes";
 import { GlassButton } from "@/app/components/GlassButton";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import NextLink from "next/link";
 import {
   useCreateStoryMutation,
   useGetGoalQuery,
@@ -79,22 +82,20 @@ function NewStoryContent() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <GlassButton
-            variant="secondary"
-            size="medium"
-            onClick={() => {
-              if (goal?.slug) {
-                router.push(`/goals/${goal.slug}`);
-              } else if (goalId) {
-                router.push(`/goals/${goalId}`);
-              } else {
-                router.push("/goals");
+          <Button variant="soft" size="2" radius="full" color="gray" asChild>
+            <NextLink
+              href={
+                goal?.slug
+                  ? `/goals/${goal.slug}`
+                  : goalId
+                    ? `/goals/${goalId}`
+                    : "/goals"
               }
-            }}
-          >
-            <ArrowLeftIcon />
-            Back to Goal
-          </GlassButton>
+            >
+              <ArrowLeftIcon />
+              Back to Goal
+            </NextLink>
+          </Button>
 
           <Separator orientation="vertical" />
 
@@ -107,6 +108,20 @@ function NewStoryContent() {
       </Box>
 
       <Box style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
+        <Breadcrumbs
+          crumbs={[
+            { label: "Goals", href: "/goals" },
+            {
+              label: goal?.title || "Goal",
+              href: goal?.slug
+                ? `/goals/${goal.slug}`
+                : goalId
+                  ? `/goals/${goalId}`
+                  : "/goals",
+            },
+            { label: "New Story" },
+          ]}
+        />
         <Card>
           <Flex direction="column" gap="4" p="4">
             {goal && (

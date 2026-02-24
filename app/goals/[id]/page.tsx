@@ -24,6 +24,7 @@ import {
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
+import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import {
   useGetGoalQuery,
@@ -736,14 +737,12 @@ export default function GoalPage() {
           gap="4"
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
-          <GlassButton
-            variant="secondary"
-            size="medium"
-            onClick={() => router.push("/goals")}
-          >
-            <ArrowLeftIcon />
-            Goals
-          </GlassButton>
+          <Button variant="soft" size="2" radius="full" color="gray" asChild>
+            <NextLink href="/goals">
+              <ArrowLeftIcon />
+              Goals
+            </NextLink>
+          </Button>
 
           <Separator orientation="vertical" />
 
