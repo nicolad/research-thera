@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   Button,
@@ -18,6 +19,7 @@ import {
 import { useUser } from "@clerk/nextjs";
 
 export default function AddGoalButton() {
+  const router = useRouter();
   const { user } = useUser();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -29,12 +31,14 @@ export default function AddGoalButton() {
   const familyMembers = familyData?.familyMembers ?? [];
 
   const [createGoal, { loading }] = useCreateGoalMutation({
-    onCompleted: () => {
+    onCompleted: (data) => {
       setOpen(false);
       setTitle("");
       setDescription("");
       setFamilyMemberId("");
       setError(null);
+      const newGoal = data.createGoal;
+      router.push(newGoal.slug ? `/goals/${newGoal.slug}` : `/goals/${newGoal.id}`);
     },
     onError: (err) => {
       setError(err.message);

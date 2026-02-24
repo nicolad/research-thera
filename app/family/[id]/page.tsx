@@ -211,6 +211,8 @@ function FamilyMemberContent() {
     member.userId === user?.primaryEmailAddress?.emailAddress ||
     member.userId === user?.id;
 
+  const memberName = member.firstName + (member.name ? ` ${member.name}` : "");
+
   return (
     <Flex direction="column" gap="5">
       {/* Member Info */}

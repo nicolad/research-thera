@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  AlertDialog,
   Box,
   Button,
   Flex,
@@ -35,6 +36,7 @@ function StoryPageContent() {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { data, loading, error, refetch } = useGetStoryQuery({
     variables: { id: storyId },
@@ -97,11 +99,7 @@ function StoryPageContent() {
   };
 
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this story?")) {
-      await deleteStory({
-        variables: { id: storyId },
-      });
-    }
+    await deleteStory({ variables: { id: storyId } });
   };
 
   const canEdit = user?.emailAddresses[0]?.emailAddress === story.createdBy;
@@ -155,25 +153,45 @@ function StoryPageContent() {
               <Flex gap="2">
                 {!isEditing && (
                   <>
-                    <GlassButton
-                      variant="secondary"
-                      size="medium"
+                    <Button
+                      variant="soft"
+                      size="2"
                       onClick={handleEdit}
                       disabled={deleting}
                     >
                       <Pencil1Icon />
                       Edit
-                    </GlassButton>
-                    <GlassButton
-                      variant="destructive"
-                      size="medium"
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      loading={deleting}
-                    >
-                      <TrashIcon />
-                      Delete
-                    </GlassButton>
+                    </Button>
+                    <AlertDialog.Root open={deleteOpen} onOpenChange={setDeleteOpen}>
+                      <AlertDialog.Trigger>
+                        <Button
+                          variant="soft"
+                          color="red"
+                          size="2"
+                          disabled={deleting}
+                          loading={deleting}
+                        >
+                          <TrashIcon />
+                          Delete
+                        </Button>
+                      </AlertDialog.Trigger>
+                      <AlertDialog.Content maxWidth="420px">
+                        <AlertDialog.Title>Delete this story?</AlertDialog.Title>
+                        <AlertDialog.Description size="2">
+                          This story will be permanently deleted and cannot be recovered.
+                        </AlertDialog.Description>
+                        <Flex gap="3" mt="4" justify="end">
+                          <AlertDialog.Cancel>
+                            <Button variant="soft" color="gray">Cancel</Button>
+                          </AlertDialog.Cancel>
+                          <AlertDialog.Action>
+                            <Button variant="solid" color="red" onClick={handleDelete}>
+                              Delete Story
+                            </Button>
+                          </AlertDialog.Action>
+                        </Flex>
+                      </AlertDialog.Content>
+                    </AlertDialog.Root>
                   </>
                 )}
               </Flex>
@@ -190,23 +208,21 @@ function StoryPageContent() {
                 style={{ minHeight: "300px" }}
               />
               <Flex gap="2" justify="end">
-                <GlassButton
-                  variant="secondary"
-                  size="medium"
+                <Button
+                  variant="soft"
+                  color="gray"
                   onClick={() => setIsEditing(false)}
                   disabled={updating}
                 >
                   Cancel
-                </GlassButton>
-                <GlassButton
-                  variant="primary"
-                  size="medium"
+                </Button>
+                <Button
                   onClick={handleSave}
                   disabled={updating || !editContent.trim()}
                   loading={updating}
                 >
                   Save
-                </GlassButton>
+                </Button>
               </Flex>
             </Flex>
           ) : (
@@ -311,10 +327,10 @@ export default function StoryPage() {
             </NextLink>
           </Button>
 
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" style={{ height: 20 }} />
 
           <Box minWidth="0" style={{ flex: 1 }}>
-            <Heading size="8" weight="bold">
+            <Heading size="8" weight="bold" truncate>
               Story
             </Heading>
           </Box>

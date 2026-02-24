@@ -29,6 +29,7 @@ export default function UserMenu() {
           appearance={{
             elements: {
               avatarBox: "w-8 h-8",
+              userButtonTrigger: "aria-label-open-user-menu",
             },
           }}
         />

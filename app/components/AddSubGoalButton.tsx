@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   Button,
@@ -17,17 +18,20 @@ interface AddSubGoalButtonProps {
 }
 
 export default function AddSubGoalButton({ goalId }: AddSubGoalButtonProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const [createSubGoal, { loading }] = useCreateSubGoalMutation({
-    onCompleted: () => {
+    onCompleted: (data) => {
       setOpen(false);
       setTitle("");
       setDescription("");
       setError(null);
+      const newGoal = data.createSubGoal;
+      router.push(newGoal.slug ? `/goals/${newGoal.slug}` : `/goals/${newGoal.id}`);
     },
     onError: (err) => {
       setError(err.message);

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import * as Separator from "@radix-ui/react-separator";
+import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -24,6 +24,7 @@ import {
   TextField,
   Tabs,
   Box,
+  Separator,
 } from "@radix-ui/themes";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
@@ -151,6 +152,7 @@ function NotePageContent() {
   const claimsMaxHeight = "calc(100vh - 320px)";
 
   return (
+    <>
     <Grid columns={{ initial: "1", md: "3fr 1.25fr" }} gap="5">
       {/* MAIN COLUMN */}
       <Flex direction="column" gap="4" style={{ minWidth: 0 }}>
@@ -197,7 +199,7 @@ function NotePageContent() {
                 </Flex>
               </Flex>
 
-              <Separator.Root className="SectionDivider" />
+              <SeparatorPrimitive.Root className="SectionDivider" />
 
               <ScrollArea
                 type="auto"
@@ -353,7 +355,7 @@ function NotePageContent() {
                 </Flex>
               </Flex>
 
-              <Separator.Root className="SectionDivider" />
+              <SeparatorPrimitive.Root className="SectionDivider" />
 
               <ScrollArea
                 type="auto"
@@ -572,10 +574,11 @@ function NotePageContent() {
         style={{ position: "sticky", top: 24, alignSelf: "start" }}
       >
         {note.goal && (
-          <Card
-            className="GoalCard"
-            onClick={() => router.push(`/goals/${note.goal?.id}`)}
-          >
+          <Card className="GoalCard" asChild>
+            <NextLink
+              href={`/goals/${note.goal?.id}`}
+              style={{ textDecoration: "none" }}
+            >
             <Flex direction="column" gap="2">
               <Flex justify="between" align="center">
                 <Badge color="indigo" size="1">
@@ -610,7 +613,7 @@ function NotePageContent() {
                 </>
               )}
 
-              <Separator.Root className="GoalDivider" />
+              <SeparatorPrimitive.Root className="GoalDivider" />
 
               <Flex gap="2" wrap="wrap" align="center">
                 <Badge
@@ -622,10 +625,12 @@ function NotePageContent() {
                 </Badge>
               </Flex>
             </Flex>
+            </NextLink>
           </Card>
         )}
       </Flex>
     </Grid>
+    </>
   );
 }
 
@@ -747,7 +752,7 @@ export default function NotePage() {
             </NextLink>
           </Button>
 
-          <Separator.Root orientation="vertical" />
+          <Separator orientation="vertical" style={{ height: 20 }} />
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold" truncate>

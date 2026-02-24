@@ -14,11 +14,10 @@ import {
   TextArea,
   Select,
   AlertDialog,
-  Box,
   Separator,
 } from "@radix-ui/themes";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   useGetFamilyMembersQuery,
@@ -56,7 +55,6 @@ function getRelationshipColor(relationship: string | null | undefined) {
 }
 
 function FamilyListContent() {
-  const router = useRouter();
   const { user } = useUser();
   const [addOpen, setAddOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -352,10 +350,13 @@ function FamilyListContent() {
       ) : (
         <Flex direction="column" gap="3">
           {members.map((member) => (
-            <Card
+            <Link
               key={member.id}
+              href={`/family/${member.id}`}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+            <Card
               style={{ cursor: "pointer" }}
-              onClick={() => router.push(`/family/${member.id}`)}
             >
               <Flex direction="column" gap="3" p="4">
                 <Flex justify="between" align="start" gap="3">
@@ -445,6 +446,7 @@ function FamilyListContent() {
                 </Flex>
               </Flex>
             </Card>
+            </Link>
           ))}
         </Flex>
       )}
@@ -455,10 +457,13 @@ function FamilyListContent() {
           <Heading size="5">Shared With Me ({sharedMembers.length})</Heading>
           <Flex direction="column" gap="3">
             {sharedMembers.map((member) => (
-              <Card
+              <Link
                 key={member.id}
+                href={`/family/${member.id}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+              <Card
                 style={{ cursor: "pointer" }}
-                onClick={() => router.push(`/family/${member.id}`)}
               >
                 <Flex direction="column" gap="3" p="4">
                   <Flex justify="between" align="start" gap="3">
@@ -493,6 +498,7 @@ function FamilyListContent() {
                   </Text>
                 </Flex>
               </Card>
+              </Link>
             ))}
           </Flex>
         </>

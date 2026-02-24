@@ -27,7 +27,7 @@ export default function RootLayout({
             scaling="100%"
           >
             <ApolloProvider>
-              <Container size="3" style={{ padding: "2rem" }}>
+              <Container size="3" p="7">
                 <Header />
                 {children}
               </Container>

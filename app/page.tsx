@@ -79,7 +79,7 @@ export default function Home() {
               <>
                 <Button size="3" onClick={() => router.push("/goals")}>
                   <RocketIcon />
-                  Explore Goals
+                  My Goals
                 </Button>
                 <Button
                   size="3"
@@ -87,7 +87,7 @@ export default function Home() {
                   onClick={() => router.push("/notes")}
                 >
                   <FileTextIcon />
-                  View Notes
+                  My Notes
                 </Button>
               </>
             )}

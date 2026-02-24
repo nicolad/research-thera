@@ -97,7 +97,7 @@ function NewStoryContent() {
             </NextLink>
           </Button>
 
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" style={{ height: 20 }} />
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold">
@@ -152,9 +152,9 @@ function NewStoryContent() {
             />
 
             <Flex gap="2" justify="end">
-              <GlassButton
-                variant="secondary"
-                size="medium"
+              <Button
+                variant="soft"
+                color="gray"
                 onClick={() => {
                   if (goal?.slug) {
                     router.push(`/goals/${goal.slug}`);
@@ -167,16 +167,14 @@ function NewStoryContent() {
                 disabled={creatingStory}
               >
                 Cancel
-              </GlassButton>
-              <GlassButton
-                variant="primary"
-                size="medium"
+              </Button>
+              <Button
                 onClick={handleCreateStory}
                 disabled={!storyContent.trim() || creatingStory}
                 loading={creatingStory}
               >
                 Create Story
-              </GlassButton>
+              </Button>
             </Flex>
           </Flex>
         </Card>

@@ -18,6 +18,7 @@ import {
   Button,
 } from "@radix-ui/themes";
 import { GlassButton } from "@/app/components/GlassButton";
+import { Breadcrumbs } from "@/app/components/Breadcrumbs";
 import {
   ArrowLeftIcon,
   TrashIcon,
@@ -176,40 +177,56 @@ function GoalPageContent() {
     await deleteGoal({ variables: { id: goal.id } });
   };
 
+  const parentHref = goal.parentGoal
+    ? goal.parentGoal.slug
+      ? `/goals/${goal.parentGoal.slug}`
+      : `/goals/${goal.parentGoal.id}`
+    : "/goals";
+
   return (
     <Flex direction="column" gap="4">
+      <Breadcrumbs
+        crumbs={
+          goal.parentGoal
+            ? [
+                { label: "Goals", href: "/goals" },
+                { label: goal.parentGoal.title, href: parentHref },
+                { label: goal.title },
+              ]
+            : [{ label: "Goals", href: "/goals" }, { label: goal.title }]
+        }
+      />
+
       {/* Parent Goal Link */}
       {goal.parentGoal && (
         <Card
           style={{
             backgroundColor: "var(--amber-3)",
-            cursor: "pointer",
             border: "1px solid var(--amber-6)",
           }}
-          onClick={() =>
-            router.push(
-              goal.parentGoal!.slug
-                ? `/goals/${goal.parentGoal!.slug}`
-                : `/goals/${goal.parentGoal!.id}`,
-            )
-          }
+          asChild
         >
-          <Flex align="center" gap="3" p="1">
-            <ArrowLeftIcon width="16" height="16" />
-            <Flex direction="column" gap="0">
-              <Text size="1" color="gray" weight="medium">
-                Parent Goal
-              </Text>
-              <Flex align="center" gap="2">
-                <Text size="3" weight="bold">
-                  {goal.parentGoal.title}
+          <NextLink href={parentHref} style={{ textDecoration: "none" }}>
+            <Flex align="center" gap="3" p="1">
+              <ArrowLeftIcon width="16" height="16" />
+              <Flex direction="column" gap="0">
+                <Text size="1" color="gray" weight="medium">
+                  Parent Goal
                 </Text>
-                <Badge color={getStatusColor(goal.parentGoal.status)} size="1">
-                  {goal.parentGoal.status}
-                </Badge>
+                <Flex align="center" gap="2">
+                  <Text size="3" weight="bold">
+                    {goal.parentGoal.title}
+                  </Text>
+                  <Badge
+                    color={getStatusColor(goal.parentGoal.status)}
+                    size="1"
+                  >
+                    {goal.parentGoal.status}
+                  </Badge>
+                </Flex>
               </Flex>
             </Flex>
-          </Flex>
+          </NextLink>
         </Card>
       )}
 
@@ -343,18 +360,17 @@ function GoalPageContent() {
               {goal.subGoals.map((subGoal) => (
                 <Card
                   key={subGoal.id}
-                  style={{
-                    backgroundColor: "var(--gray-2)",
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    router.push(
+                  style={{ backgroundColor: "var(--gray-2)" }}
+                  asChild
+                >
+                  <NextLink
+                    href={
                       subGoal.slug
                         ? `/goals/${subGoal.slug}`
-                        : `/goals/${subGoal.id}`,
-                    )
-                  }
-                >
+                        : `/goals/${subGoal.id}`
+                    }
+                    style={{ textDecoration: "none" }}
+                  >
                   <Flex direction="column" gap="2" p="3">
                     <Flex justify="between" align="center">
                       <Text size="3" weight="medium">
@@ -383,6 +399,7 @@ function GoalPageContent() {
                       Created {new Date(subGoal.createdAt).toLocaleDateString()}
                     </Text>
                   </Flex>
+                  </NextLink>
                 </Card>
               ))}
             </Flex>
@@ -486,13 +503,11 @@ function GoalPageContent() {
             <Heading size="4">
               Stories {goal.userStories ? `(${goal.userStories.length})` : ""}
             </Heading>
-            <GlassButton
-              variant="primary"
-              size="medium"
-              onClick={handleAddStory}
-            >
-              Add Story
-            </GlassButton>
+            <Button asChild>
+              <NextLink href={goal ? `/stories/new?goalId=${goal.id}` : "/stories/new"}>
+                Add Story
+              </NextLink>
+            </Button>
           </Flex>
 
           {goal.userStories && goal.userStories.length > 0 ? (
@@ -500,12 +515,13 @@ function GoalPageContent() {
               {goal.userStories.map((story) => (
                 <Card
                   key={story.id}
-                  style={{
-                    backgroundColor: "var(--gray-2)",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => router.push(`/stories/${story.id}`)}
+                  style={{ backgroundColor: "var(--gray-2)" }}
+                  asChild
                 >
+                  <NextLink
+                    href={`/stories/${story.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
                   <Flex direction="column" gap="2" p="3">
                     <Flex align="center" gap="2">
                       <Text size="1" color="gray">
@@ -529,12 +545,13 @@ function GoalPageContent() {
                       {story.content}
                     </Text>
                   </Flex>
+                  </NextLink>
                 </Card>
               ))}
             </Flex>
           ) : (
             <Text size="2" color="gray">
-              No stories yet. Click "Add Story" to create one.
+              No stories yet. Add your first story to capture your experience.
             </Text>
           )}
         </Flex>
@@ -702,10 +719,8 @@ const DynamicGoalPageContent = dynamic(() => Promise.resolve(GoalPageContent), {
 });
 
 export default function GoalPage() {
-  const router = useRouter();
   const params = useParams();
   const goalId = parseInt(params.id as string);
-  const { user } = useUser();
 
   const { data } = useGetGoalQuery({
     variables: { id: goalId },
@@ -713,6 +728,12 @@ export default function GoalPage() {
   });
 
   const goal = data?.goal;
+  const backHref = goal?.parentGoal
+    ? goal.parentGoal.slug
+      ? `/goals/${goal.parentGoal.slug}`
+      : `/goals/${goal.parentGoal.id}`
+    : "/goals";
+  const backLabel = goal?.parentGoal ? goal.parentGoal.title : "Goals";
 
   return (
     <Flex direction="column" gap="5">
@@ -738,13 +759,13 @@ export default function GoalPage() {
           style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}
         >
           <Button variant="soft" size="2" radius="full" color="gray" asChild>
-            <NextLink href="/goals">
+            <NextLink href={backHref}>
               <ArrowLeftIcon />
-              Goals
+              {backLabel}
             </NextLink>
           </Button>
 
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" style={{ height: 20 }} />
 
           <Box minWidth="0" style={{ flex: 1 }}>
             <Heading size="8" weight="bold" truncate>
