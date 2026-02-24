@@ -5,11 +5,9 @@ import {
   Heading,
   Text,
   Card,
-  Button,
   Badge,
   Spinner,
 } from "@radix-ui/themes";
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { useGetAllNotesQuery } from "../__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
@@ -24,21 +22,11 @@ export default function NotesPage() {
 
   return (
     <Flex direction="column" gap="6">
-      <Flex align="end" gap="3">
-        <Button
-          variant="ghost"
-          onClick={() => router.push("/")}
-          style={{ cursor: "pointer" }}
-        >
-          <ArrowLeftIcon width="18" height="18" />
-          Back
-        </Button>
-        <Flex direction="column" gap="1" style={{ flex: 1 }}>
-          <Heading size="8">Notes</Heading>
-          <Text size="3" color="gray">
-            Manage your therapeutic notes and reflections
-          </Text>
-        </Flex>
+      <Flex direction="column" gap="1">
+        <Heading size="8">Notes</Heading>
+        <Text size="3" color="gray">
+          Manage your therapeutic notes and reflections
+        </Text>
       </Flex>
 
       <Card>

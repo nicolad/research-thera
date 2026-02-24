@@ -17,7 +17,7 @@ import {
   Box,
   Separator,
 } from "@radix-ui/themes";
-import { PlusIcon, ArrowLeftIcon, TrashIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -507,23 +507,9 @@ const DynamicFamilyListContent = dynamic(
 );
 
 export default function FamilyPage() {
-  const router = useRouter();
-
   return (
     <Flex direction="column" gap="6">
-      <Flex align="center" gap="3">
-        <Button
-          variant="soft"
-          size="2"
-          radius="full"
-          color="gray"
-          onClick={() => router.push("/")}
-        >
-          <ArrowLeftIcon />
-          Back
-        </Button>
-        <Heading size="8">Family</Heading>
-      </Flex>
+      <Heading size="8">Family</Heading>
       <DynamicFamilyListContent />
     </Flex>
   );

@@ -2,7 +2,8 @@
 
 import { Flex, Heading, Text, IconButton, Button } from "@radix-ui/themes";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import UserMenu from "./UserMenu";
 
 const NAV_LINKS = [
@@ -12,23 +13,19 @@ const NAV_LINKS = [
 ];
 
 export function Header() {
-  const router = useRouter();
   const pathname = usePathname();
 
   return (
     <Flex justify="between" align="start" mb="6">
       <Flex direction="column" gap="2">
-        <Flex
-          direction="column"
-          gap="1"
-          style={{ cursor: "pointer" }}
-          onClick={() => router.push("/")}
-        >
-          <Heading size="6">ResearchThera</Heading>
-          <Text size="2" color="gray">
-            Research-backed therapy notes and reflections powered by AI
-          </Text>
-        </Flex>
+        <Link href="/" style={{ textDecoration: "none", color: "inherit" }}>
+          <Flex direction="column" gap="1" style={{ cursor: "pointer" }}>
+            <Heading size="6">ResearchThera</Heading>
+            <Text size="2" color="gray">
+              Research-backed therapy notes and reflections powered by AI
+            </Text>
+          </Flex>
+        </Link>
         <Flex gap="2">
           {NAV_LINKS.map((link) => (
             <Button
@@ -36,9 +33,9 @@ export function Header() {
               variant={pathname.startsWith(link.href) ? "soft" : "ghost"}
               size="1"
               color={pathname.startsWith(link.href) ? "indigo" : "gray"}
-              onClick={() => router.push(link.href)}
+              asChild
             >
-              {link.label}
+              <Link href={link.href}>{link.label}</Link>
             </Button>
           ))}
         </Flex>
