@@ -109,8 +109,12 @@ input CreateFamilyMemberInput {
   ageYears: Int
   bio: String
   dateOfBirth: String
+  email: String
   firstName: String!
+  location: String
   name: String
+  occupation: String
+  phone: String
   relationship: String
 }
 
@@ -200,13 +204,31 @@ type FamilyMember {
   bio: String
   createdAt: String!
   dateOfBirth: String
+  email: String
   firstName: String!
   goals: [Goal!]!
   id: Int!
+  location: String
   name: String
+  occupation: String
+  phone: String
   relationship: String
+  shares: [FamilyMemberShare!]!
   updatedAt: String!
   userId: String!
+}
+
+type FamilyMemberShare {
+  createdAt: String!
+  createdBy: String!
+  email: String!
+  familyMemberId: Int!
+  role: FamilyMemberShareRole!
+}
+
+enum FamilyMemberShareRole {
+  EDITOR
+  VIEWER
 }
 
 type GenerateAudioResult {
@@ -365,7 +387,9 @@ type Mutation {
   generateTherapeuticQuestions(goalId: Int!): GenerateQuestionsResult!
   refreshClaimCard(id: ID!): ClaimCard!
   setNoteVisibility(noteId: Int!, visibility: NoteVisibility!): Note!
+  shareFamilyMember(email: String!, familyMemberId: Int!, role: FamilyMemberShareRole): FamilyMemberShare!
   shareNote(email: String!, noteId: Int!, role: NoteShareRole): NoteShare!
+  unshareFamilyMember(email: String!, familyMemberId: Int!): Boolean!
   unshareNote(email: String!, noteId: Int!): Boolean!
   updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
@@ -477,6 +501,7 @@ type Query {
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int, slug: String): Goal
   goals(familyMemberId: Int, status: String): [Goal!]!
+  mySharedFamilyMembers: [FamilyMember!]!
   mySharedNotes: [Note!]!
   note(id: Int, slug: String): Note
   notes(entityId: Int!, entityType: String!): [Note!]!
@@ -561,8 +586,12 @@ input UpdateFamilyMemberInput {
   ageYears: Int
   bio: String
   dateOfBirth: String
+  email: String
   firstName: String
+  location: String
   name: String
+  occupation: String
+  phone: String
   relationship: String
 }
 

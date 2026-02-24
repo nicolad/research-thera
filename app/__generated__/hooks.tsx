@@ -138,8 +138,12 @@ export type CreateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   firstName: Scalars['String']['input'];
+  location?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
   relationship?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -238,14 +242,33 @@ export type FamilyMember = {
   bio?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   dateOfBirth?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
   firstName: Scalars['String']['output'];
   goals: Array<Goal>;
   id: Scalars['Int']['output'];
+  location?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  occupation?: Maybe<Scalars['String']['output']>;
+  phone?: Maybe<Scalars['String']['output']>;
   relationship?: Maybe<Scalars['String']['output']>;
+  shares: Array<FamilyMemberShare>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
 };
+
+export type FamilyMemberShare = {
+  __typename?: 'FamilyMemberShare';
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  familyMemberId: Scalars['Int']['output'];
+  role: FamilyMemberShareRole;
+};
+
+export enum FamilyMemberShareRole {
+  Editor = 'EDITOR',
+  Viewer = 'VIEWER'
+}
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -414,7 +437,9 @@ export type Mutation = {
   generateTherapeuticQuestions: GenerateQuestionsResult;
   refreshClaimCard: ClaimCard;
   setNoteVisibility: Note;
+  shareFamilyMember: FamilyMemberShare;
   shareNote: NoteShare;
+  unshareFamilyMember: Scalars['Boolean']['output'];
   unshareNote: Scalars['Boolean']['output'];
   updateFamilyMember: FamilyMember;
   updateGoal: Goal;
@@ -536,10 +561,23 @@ export type MutationSetNoteVisibilityArgs = {
 };
 
 
+export type MutationShareFamilyMemberArgs = {
+  email: Scalars['String']['input'];
+  familyMemberId: Scalars['Int']['input'];
+  role?: InputMaybe<FamilyMemberShareRole>;
+};
+
+
 export type MutationShareNoteArgs = {
   email: Scalars['String']['input'];
   noteId: Scalars['Int']['input'];
   role?: InputMaybe<NoteShareRole>;
+};
+
+
+export type MutationUnshareFamilyMemberArgs = {
+  email: Scalars['String']['input'];
+  familyMemberId: Scalars['Int']['input'];
 };
 
 
@@ -681,6 +719,7 @@ export type Query = {
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
   goals: Array<Goal>;
+  mySharedFamilyMembers: Array<FamilyMember>;
   mySharedNotes: Array<Note>;
   note?: Maybe<Note>;
   notes: Array<Note>;
@@ -855,8 +894,12 @@ export type UpdateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
   relationship?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -921,7 +964,7 @@ export type CreateFamilyMemberMutationVariables = Exact<{
 }>;
 
 
-export type CreateFamilyMemberMutation = { __typename?: 'Mutation', createFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, createdAt: string } };
+export type CreateFamilyMemberMutation = { __typename?: 'Mutation', createFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, ageYears?: number | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string } };
 
 export type CreateGoalMutationVariables = Exact<{
   input: CreateGoalInput;
@@ -1040,10 +1083,17 @@ export type GetAudioFromR2QueryVariables = Exact<{
 
 export type GetAudioFromR2Query = { __typename?: 'Query', audioFromR2?: { __typename?: 'AudioFromR2Result', success: boolean, message?: string | null, audioUrl?: string | null, key?: string | null, metadata?: { __typename?: 'AudioMetadata', voice?: string | null, model?: string | null, textLength?: string | null, chunks?: string | null, generatedBy?: string | null, instructions?: string | null } | null } | null };
 
+export type GetFamilyMemberQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetFamilyMemberQuery = { __typename?: 'Query', familyMember?: { __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string, shares: Array<{ __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string, createdBy: string }>, goals: Array<{ __typename?: 'Goal', id: number, title: string, status: string, description?: string | null, createdAt: string }> } | null };
+
 export type GetFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFamilyMembersQuery = { __typename?: 'Query', familyMembers: Array<{ __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string }> };
+export type GetFamilyMembersQuery = { __typename?: 'Query', familyMembers: Array<{ __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string, shares: Array<{ __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string, createdBy: string }> }> };
 
 export type GetGenerationJobQueryVariables = Exact<{
   id: Scalars['String']['input'];
@@ -1076,6 +1126,11 @@ export type GetGoalsQueryVariables = Exact<{
 
 export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null } | null, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
 
+export type GetMySharedFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMySharedFamilyMembersQuery = { __typename?: 'Query', mySharedFamilyMembers: Array<{ __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, createdAt: string }> };
+
 export type GetNoteQueryVariables = Exact<{
   id?: InputMaybe<Scalars['Int']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
@@ -1105,6 +1160,31 @@ export type GetStoryQueryVariables = Exact<{
 
 
 export type GetStoryQuery = { __typename?: 'Query', story?: { __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, audioKey?: string | null, audioUrl?: string | null, audioGeneratedAt?: string | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, slug?: string | null } | null } | null };
+
+export type ShareFamilyMemberMutationVariables = Exact<{
+  familyMemberId: Scalars['Int']['input'];
+  email: Scalars['String']['input'];
+  role?: InputMaybe<FamilyMemberShareRole>;
+}>;
+
+
+export type ShareFamilyMemberMutation = { __typename?: 'Mutation', shareFamilyMember: { __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string } };
+
+export type UnshareFamilyMemberMutationVariables = Exact<{
+  familyMemberId: Scalars['Int']['input'];
+  email: Scalars['String']['input'];
+}>;
+
+
+export type UnshareFamilyMemberMutation = { __typename?: 'Mutation', unshareFamilyMember: boolean };
+
+export type UpdateFamilyMemberMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateFamilyMemberInput;
+}>;
+
+
+export type UpdateFamilyMemberMutation = { __typename?: 'Mutation', updateFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, ageYears?: number | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string } };
 
 export type UpdateNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1514,9 +1594,16 @@ export const CreateFamilyMemberDocument = gql`
     id
     firstName
     name
-    ageYears
     relationship
+    email
+    phone
+    location
+    occupation
+    ageYears
+    dateOfBirth
+    bio
     createdAt
+    updatedAt
   }
 }
     `;
@@ -2192,18 +2279,100 @@ export type GetAudioFromR2QueryHookResult = ReturnType<typeof useGetAudioFromR2Q
 export type GetAudioFromR2LazyQueryHookResult = ReturnType<typeof useGetAudioFromR2LazyQuery>;
 export type GetAudioFromR2SuspenseQueryHookResult = ReturnType<typeof useGetAudioFromR2SuspenseQuery>;
 export type GetAudioFromR2QueryResult = Apollo.QueryResult<GetAudioFromR2Query, GetAudioFromR2QueryVariables>;
-export const GetFamilyMembersDocument = gql`
-    query GetFamilyMembers {
-  familyMembers {
+export const GetFamilyMemberDocument = gql`
+    query GetFamilyMember($id: Int!) {
+  familyMember(id: $id) {
     id
+    userId
     firstName
     name
     ageYears
     relationship
+    email
+    phone
+    location
+    occupation
     dateOfBirth
     bio
     createdAt
     updatedAt
+    shares {
+      familyMemberId
+      email
+      role
+      createdAt
+      createdBy
+    }
+    goals {
+      id
+      title
+      status
+      description
+      createdAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetFamilyMemberQuery__
+ *
+ * To run a query within a React component, call `useGetFamilyMemberQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFamilyMemberQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFamilyMemberQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetFamilyMemberQuery(baseOptions: Apollo.QueryHookOptions<GetFamilyMemberQuery, GetFamilyMemberQueryVariables> & ({ variables: GetFamilyMemberQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>(GetFamilyMemberDocument, options);
+      }
+export function useGetFamilyMemberLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>(GetFamilyMemberDocument, options);
+        }
+// @ts-ignore
+export function useGetFamilyMemberSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>;
+export function useGetFamilyMemberSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberQuery | undefined, GetFamilyMemberQueryVariables>;
+export function useGetFamilyMemberSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>(GetFamilyMemberDocument, options);
+        }
+export type GetFamilyMemberQueryHookResult = ReturnType<typeof useGetFamilyMemberQuery>;
+export type GetFamilyMemberLazyQueryHookResult = ReturnType<typeof useGetFamilyMemberLazyQuery>;
+export type GetFamilyMemberSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMemberSuspenseQuery>;
+export type GetFamilyMemberQueryResult = Apollo.QueryResult<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>;
+export const GetFamilyMembersDocument = gql`
+    query GetFamilyMembers {
+  familyMembers {
+    id
+    userId
+    firstName
+    name
+    ageYears
+    relationship
+    email
+    phone
+    location
+    occupation
+    dateOfBirth
+    bio
+    createdAt
+    updatedAt
+    shares {
+      familyMemberId
+      email
+      role
+      createdAt
+      createdBy
+    }
   }
 }
     `;
@@ -2516,6 +2685,54 @@ export type GetGoalsQueryHookResult = ReturnType<typeof useGetGoalsQuery>;
 export type GetGoalsLazyQueryHookResult = ReturnType<typeof useGetGoalsLazyQuery>;
 export type GetGoalsSuspenseQueryHookResult = ReturnType<typeof useGetGoalsSuspenseQuery>;
 export type GetGoalsQueryResult = Apollo.QueryResult<GetGoalsQuery, GetGoalsQueryVariables>;
+export const GetMySharedFamilyMembersDocument = gql`
+    query GetMySharedFamilyMembers {
+  mySharedFamilyMembers {
+    id
+    userId
+    firstName
+    name
+    relationship
+    email
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetMySharedFamilyMembersQuery__
+ *
+ * To run a query within a React component, call `useGetMySharedFamilyMembersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMySharedFamilyMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMySharedFamilyMembersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetMySharedFamilyMembersQuery(baseOptions?: Apollo.QueryHookOptions<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>(GetMySharedFamilyMembersDocument, options);
+      }
+export function useGetMySharedFamilyMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>(GetMySharedFamilyMembersDocument, options);
+        }
+// @ts-ignore
+export function useGetMySharedFamilyMembersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>): Apollo.UseSuspenseQueryResult<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>;
+export function useGetMySharedFamilyMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>): Apollo.UseSuspenseQueryResult<GetMySharedFamilyMembersQuery | undefined, GetMySharedFamilyMembersQueryVariables>;
+export function useGetMySharedFamilyMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>(GetMySharedFamilyMembersDocument, options);
+        }
+export type GetMySharedFamilyMembersQueryHookResult = ReturnType<typeof useGetMySharedFamilyMembersQuery>;
+export type GetMySharedFamilyMembersLazyQueryHookResult = ReturnType<typeof useGetMySharedFamilyMembersLazyQuery>;
+export type GetMySharedFamilyMembersSuspenseQueryHookResult = ReturnType<typeof useGetMySharedFamilyMembersSuspenseQuery>;
+export type GetMySharedFamilyMembersQueryResult = Apollo.QueryResult<GetMySharedFamilyMembersQuery, GetMySharedFamilyMembersQueryVariables>;
 export const GetNoteDocument = gql`
     query GetNote($id: Int, $slug: String) {
   note(id: $id, slug: $slug) {
@@ -2798,6 +3015,122 @@ export type GetStoryQueryHookResult = ReturnType<typeof useGetStoryQuery>;
 export type GetStoryLazyQueryHookResult = ReturnType<typeof useGetStoryLazyQuery>;
 export type GetStorySuspenseQueryHookResult = ReturnType<typeof useGetStorySuspenseQuery>;
 export type GetStoryQueryResult = Apollo.QueryResult<GetStoryQuery, GetStoryQueryVariables>;
+export const ShareFamilyMemberDocument = gql`
+    mutation ShareFamilyMember($familyMemberId: Int!, $email: String!, $role: FamilyMemberShareRole) {
+  shareFamilyMember(familyMemberId: $familyMemberId, email: $email, role: $role) {
+    familyMemberId
+    email
+    role
+    createdAt
+  }
+}
+    `;
+export type ShareFamilyMemberMutationFn = Apollo.MutationFunction<ShareFamilyMemberMutation, ShareFamilyMemberMutationVariables>;
+
+/**
+ * __useShareFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useShareFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useShareFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [shareFamilyMemberMutation, { data, loading, error }] = useShareFamilyMemberMutation({
+ *   variables: {
+ *      familyMemberId: // value for 'familyMemberId'
+ *      email: // value for 'email'
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useShareFamilyMemberMutation(baseOptions?: Apollo.MutationHookOptions<ShareFamilyMemberMutation, ShareFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ShareFamilyMemberMutation, ShareFamilyMemberMutationVariables>(ShareFamilyMemberDocument, options);
+      }
+export type ShareFamilyMemberMutationHookResult = ReturnType<typeof useShareFamilyMemberMutation>;
+export type ShareFamilyMemberMutationResult = Apollo.MutationResult<ShareFamilyMemberMutation>;
+export type ShareFamilyMemberMutationOptions = Apollo.BaseMutationOptions<ShareFamilyMemberMutation, ShareFamilyMemberMutationVariables>;
+export const UnshareFamilyMemberDocument = gql`
+    mutation UnshareFamilyMember($familyMemberId: Int!, $email: String!) {
+  unshareFamilyMember(familyMemberId: $familyMemberId, email: $email)
+}
+    `;
+export type UnshareFamilyMemberMutationFn = Apollo.MutationFunction<UnshareFamilyMemberMutation, UnshareFamilyMemberMutationVariables>;
+
+/**
+ * __useUnshareFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useUnshareFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnshareFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unshareFamilyMemberMutation, { data, loading, error }] = useUnshareFamilyMemberMutation({
+ *   variables: {
+ *      familyMemberId: // value for 'familyMemberId'
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useUnshareFamilyMemberMutation(baseOptions?: Apollo.MutationHookOptions<UnshareFamilyMemberMutation, UnshareFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnshareFamilyMemberMutation, UnshareFamilyMemberMutationVariables>(UnshareFamilyMemberDocument, options);
+      }
+export type UnshareFamilyMemberMutationHookResult = ReturnType<typeof useUnshareFamilyMemberMutation>;
+export type UnshareFamilyMemberMutationResult = Apollo.MutationResult<UnshareFamilyMemberMutation>;
+export type UnshareFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UnshareFamilyMemberMutation, UnshareFamilyMemberMutationVariables>;
+export const UpdateFamilyMemberDocument = gql`
+    mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {
+  updateFamilyMember(id: $id, input: $input) {
+    id
+    firstName
+    name
+    relationship
+    email
+    phone
+    location
+    occupation
+    ageYears
+    dateOfBirth
+    bio
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateFamilyMemberMutationFn = Apollo.MutationFunction<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
+
+/**
+ * __useUpdateFamilyMemberMutation__
+ *
+ * To run a mutation, you first call `useUpdateFamilyMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFamilyMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFamilyMemberMutation, { data, loading, error }] = useUpdateFamilyMemberMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateFamilyMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>(UpdateFamilyMemberDocument, options);
+      }
+export type UpdateFamilyMemberMutationHookResult = ReturnType<typeof useUpdateFamilyMemberMutation>;
+export type UpdateFamilyMemberMutationResult = Apollo.MutationResult<UpdateFamilyMemberMutation>;
+export type UpdateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
 export const UpdateNoteDocument = gql`
     mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {
   updateNote(id: $id, input: $input) {

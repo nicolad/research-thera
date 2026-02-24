@@ -11,5 +11,6 @@ export const familyMembers: NonNullable<QueryResolvers['familyMembers']> = async
   return members.map((m) => ({
     ...m,
     goals: [],
+    shares: [],
   }));
 };

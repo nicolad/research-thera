@@ -36,6 +36,10 @@ export async function listFamilyMembers(userId: string) {
     relationship: (row.relationship as string) || null,
     dateOfBirth: (row.date_of_birth as string) || null,
     bio: (row.bio as string) || null,
+    email: (row.email as string) || null,
+    phone: (row.phone as string) || null,
+    location: (row.location as string) || null,
+    occupation: (row.occupation as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }));
@@ -57,6 +61,10 @@ export async function getFamilyMember(id: number) {
     relationship: (row.relationship as string) || null,
     dateOfBirth: (row.date_of_birth as string) || null,
     bio: (row.bio as string) || null,
+    email: (row.email as string) || null,
+    phone: (row.phone as string) || null,
+    location: (row.location as string) || null,
+    occupation: (row.occupation as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -70,10 +78,14 @@ export async function createFamilyMember(params: {
   relationship?: string | null;
   dateOfBirth?: string | null;
   bio?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  occupation?: string | null;
 }): Promise<number> {
   const result = await d1.execute({
-    sql: `INSERT INTO family_members (user_id, first_name, name, age_years, relationship, date_of_birth, bio, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    sql: `INSERT INTO family_members (user_id, first_name, name, age_years, relationship, date_of_birth, bio, email, phone, location, occupation, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           RETURNING id`,
     args: [
       params.userId,
@@ -83,6 +95,10 @@ export async function createFamilyMember(params: {
       params.relationship ?? null,
       params.dateOfBirth ?? null,
       params.bio ?? null,
+      params.email ?? null,
+      params.phone ?? null,
+      params.location ?? null,
+      params.occupation ?? null,
     ],
   });
   return result.rows[0].id as number;
@@ -97,6 +113,10 @@ export async function updateFamilyMember(
     relationship?: string | null;
     dateOfBirth?: string | null;
     bio?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    location?: string | null;
+    occupation?: string | null;
   },
 ) {
   const sets: string[] = [];
@@ -126,6 +146,22 @@ export async function updateFamilyMember(
     sets.push("bio = ?");
     args.push(params.bio);
   }
+  if (params.email !== undefined) {
+    sets.push("email = ?");
+    args.push(params.email);
+  }
+  if (params.phone !== undefined) {
+    sets.push("phone = ?");
+    args.push(params.phone);
+  }
+  if (params.location !== undefined) {
+    sets.push("location = ?");
+    args.push(params.location);
+  }
+  if (params.occupation !== undefined) {
+    sets.push("occupation = ?");
+    args.push(params.occupation);
+  }
 
   if (sets.length === 0) return;
 
@@ -144,6 +180,91 @@ export async function deleteFamilyMember(id: number): Promise<boolean> {
     args: [id],
   });
   return true;
+}
+
+// ============================================
+// Family Member Shares
+// ============================================
+
+export async function shareFamilyMember(
+  familyMemberId: number,
+  email: string,
+  role: "VIEWER" | "EDITOR",
+  createdBy: string,
+) {
+  const normalizedEmail = normalizeEmail(email);
+  await d1.execute({
+    sql: `INSERT INTO family_member_shares (family_member_id, email, role, created_by)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(family_member_id, email)
+          DO UPDATE SET role = excluded.role`,
+    args: [familyMemberId, normalizedEmail, role, createdBy],
+  });
+  const result = await d1.execute({
+    sql: `SELECT * FROM family_member_shares WHERE family_member_id = ? AND email = ?`,
+    args: [familyMemberId, normalizedEmail],
+  });
+  const row = result.rows[0];
+  return {
+    familyMemberId: row.family_member_id as number,
+    email: row.email as string,
+    role: row.role as "VIEWER" | "EDITOR",
+    createdAt: row.created_at as string,
+    createdBy: row.created_by as string,
+  };
+}
+
+export async function unshareFamilyMember(
+  familyMemberId: number,
+  email: string,
+): Promise<boolean> {
+  const normalizedEmail = normalizeEmail(email);
+  await d1.execute({
+    sql: `DELETE FROM family_member_shares WHERE family_member_id = ? AND email = ?`,
+    args: [familyMemberId, normalizedEmail],
+  });
+  return true;
+}
+
+export async function getFamilyMemberShares(familyMemberId: number) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM family_member_shares WHERE family_member_id = ? ORDER BY created_at DESC`,
+    args: [familyMemberId],
+  });
+  return result.rows.map((row) => ({
+    familyMemberId: row.family_member_id as number,
+    email: row.email as string,
+    role: row.role as "VIEWER" | "EDITOR",
+    createdAt: row.created_at as string,
+    createdBy: row.created_by as string,
+  }));
+}
+
+export async function getSharedFamilyMembers(viewerEmail: string) {
+  const normalizedEmail = normalizeEmail(viewerEmail);
+  const result = await d1.execute({
+    sql: `SELECT fm.* FROM family_members fm
+          JOIN family_member_shares s ON s.family_member_id = fm.id
+          WHERE s.email = ?
+          ORDER BY fm.updated_at DESC`,
+    args: [normalizedEmail],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    firstName: row.first_name as string,
+    name: (row.name as string) || null,
+    ageYears: (row.age_years as number) || null,
+    relationship: (row.relationship as string) || null,
+    dateOfBirth: (row.date_of_birth as string) || null,
+    bio: (row.bio as string) || null,
+    email: (row.email as string) || null,
+    phone: (row.phone as string) || null,
+    location: (row.location as string) || null,
+    occupation: (row.occupation as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
 }
 
 // ============================================
@@ -1204,6 +1325,11 @@ export const d1Tools = {
   createFamilyMember,
   updateFamilyMember,
   deleteFamilyMember,
+  // Family Member Shares
+  shareFamilyMember,
+  unshareFamilyMember,
+  getFamilyMemberShares,
+  getSharedFamilyMembers,
   // Goals
   getGoal,
   getGoalBySlug,

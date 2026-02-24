@@ -16,6 +16,7 @@ type Query {
   # Family Members
   familyMembers: [FamilyMember!]!
   familyMember(id: Int!): FamilyMember
+  mySharedFamilyMembers: [FamilyMember!]!
 
   # Claim Cards
   claimCard(id: ID!): ClaimCard
@@ -79,6 +80,8 @@ type Mutation {
   createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
   updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
   deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
+  shareFamilyMember(familyMemberId: Int!, email: String!, role: FamilyMemberShareRole): FamilyMemberShare!
+  unshareFamilyMember(familyMemberId: Int!, email: String!): Boolean!
 }
 
 type Subscription {
@@ -609,9 +612,14 @@ type FamilyMember {
   relationship: String
   dateOfBirth: String
   bio: String
+  email: String
+  phone: String
+  location: String
+  occupation: String
   createdAt: String!
   updatedAt: String!
   goals: [Goal!]!
+  shares: [FamilyMemberShare!]!
 }
 
 input CreateFamilyMemberInput {
@@ -621,6 +629,10 @@ input CreateFamilyMemberInput {
   relationship: String
   dateOfBirth: String
   bio: String
+  email: String
+  phone: String
+  location: String
+  occupation: String
 }
 
 input UpdateFamilyMemberInput {
@@ -630,11 +642,28 @@ input UpdateFamilyMemberInput {
   relationship: String
   dateOfBirth: String
   bio: String
+  email: String
+  phone: String
+  location: String
+  occupation: String
 }
 
 type DeleteFamilyMemberResult {
   success: Boolean!
   message: String
+}
+
+enum FamilyMemberShareRole {
+  VIEWER
+  EDITOR
+}
+
+type FamilyMemberShare {
+  familyMemberId: Int!
+  email: String!
+  role: FamilyMemberShareRole!
+  createdAt: String!
+  createdBy: String!
 }
 
 type AudioMetadata {

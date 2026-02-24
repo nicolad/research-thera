@@ -1,5 +1,5 @@
-query GetFamilyMembers {
-  familyMembers {
+query GetFamilyMember($id: Int!) {
+  familyMember(id: $id) {
     id
     userId
     firstName
@@ -20,6 +20,13 @@ query GetFamilyMembers {
       role
       createdAt
       createdBy
+    }
+    goals {
+      id
+      title
+      status
+      description
+      createdAt
     }
   }
 }

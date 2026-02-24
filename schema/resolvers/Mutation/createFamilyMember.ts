@@ -15,6 +15,10 @@ export const createFamilyMember: NonNullable<MutationResolvers['createFamilyMemb
     relationship: args.input.relationship ?? null,
     dateOfBirth: args.input.dateOfBirth ?? null,
     bio: args.input.bio ?? null,
+    email: args.input.email ?? null,
+    phone: args.input.phone ?? null,
+    location: args.input.location ?? null,
+    occupation: args.input.occupation ?? null,
   });
 
   const member = await d1Tools.getFamilyMember(id);
@@ -23,5 +27,6 @@ export const createFamilyMember: NonNullable<MutationResolvers['createFamilyMemb
   return {
     ...member,
     goals: [],
+    shares: [],
   };
 };

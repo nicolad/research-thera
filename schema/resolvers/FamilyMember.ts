@@ -13,4 +13,8 @@ export const FamilyMember: FamilyMemberResolvers = {
       research: [],
     })) as any;
   },
+  shares: async (parent, _args, _ctx) => {
+    const shares = await d1Tools.getFamilyMemberShares(parent.id);
+    return shares.map((s) => ({ ...s, role: s.role as any }));
+  },
 };

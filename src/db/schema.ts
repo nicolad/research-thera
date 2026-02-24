@@ -1,6 +1,39 @@
 import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
+export const familyMembers = sqliteTable("family_members", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  firstName: text("first_name").notNull(),
+  name: text("name"),
+  ageYears: integer("age_years"),
+  relationship: text("relationship"),
+  dateOfBirth: text("date_of_birth"),
+  bio: text("bio"),
+  email: text("email"),
+  phone: text("phone"),
+  location: text("location"),
+  occupation: text("occupation"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const familyMemberShares = sqliteTable("family_member_shares", {
+  familyMemberId: integer("family_member_id")
+    .notNull()
+    .references(() => familyMembers.id, { onDelete: "cascade" }),
+  email: text("email").notNull(), // normalized lower(trim(email))
+  role: text("role").notNull().default("VIEWER"), // VIEWER or EDITOR
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  createdBy: text("created_by").notNull(),
+});
+
 export const goals = sqliteTable("goals", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   familyMemberId: integer("family_member_id").notNull(),

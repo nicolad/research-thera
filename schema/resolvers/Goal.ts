@@ -6,7 +6,7 @@ export const Goal: GoalResolvers = {
     if (!parent.familyMemberId) return null;
     const member = await d1Tools.getFamilyMember(parent.familyMemberId);
     if (!member) return null;
-    return { ...member, goals: [] };
+    return { ...member, goals: [], shares: [] };
   },
 
   research: async (parent, _args, _ctx) => {

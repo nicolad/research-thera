@@ -1,5 +1,5 @@
-mutation CreateFamilyMember($input: CreateFamilyMemberInput!) {
-  createFamilyMember(input: $input) {
+mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {
+  updateFamilyMember(id: $id, input: $input) {
     id
     firstName
     name

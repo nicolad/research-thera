@@ -139,8 +139,12 @@ export type CreateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   firstName: Scalars['String']['input'];
+  location?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
   relationship?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -238,14 +242,32 @@ export type FamilyMember = {
   bio?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   dateOfBirth?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
   firstName: Scalars['String']['output'];
   goals: Array<Goal>;
   id: Scalars['Int']['output'];
+  location?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  occupation?: Maybe<Scalars['String']['output']>;
+  phone?: Maybe<Scalars['String']['output']>;
   relationship?: Maybe<Scalars['String']['output']>;
+  shares: Array<FamilyMemberShare>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
 };
+
+export type FamilyMemberShare = {
+  __typename?: 'FamilyMemberShare';
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  familyMemberId: Scalars['Int']['output'];
+  role: FamilyMemberShareRole;
+};
+
+export type FamilyMemberShareRole =
+  | 'EDITOR'
+  | 'VIEWER';
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -412,7 +434,9 @@ export type Mutation = {
   generateTherapeuticQuestions: GenerateQuestionsResult;
   refreshClaimCard: ClaimCard;
   setNoteVisibility: Note;
+  shareFamilyMember: FamilyMemberShare;
   shareNote: NoteShare;
+  unshareFamilyMember: Scalars['Boolean']['output'];
   unshareNote: Scalars['Boolean']['output'];
   updateFamilyMember: FamilyMember;
   updateGoal: Goal;
@@ -534,10 +558,23 @@ export type MutationsetNoteVisibilityArgs = {
 };
 
 
+export type MutationshareFamilyMemberArgs = {
+  email: Scalars['String']['input'];
+  familyMemberId: Scalars['Int']['input'];
+  role?: InputMaybe<FamilyMemberShareRole>;
+};
+
+
 export type MutationshareNoteArgs = {
   email: Scalars['String']['input'];
   noteId: Scalars['Int']['input'];
   role?: InputMaybe<NoteShareRole>;
+};
+
+
+export type MutationunshareFamilyMemberArgs = {
+  email: Scalars['String']['input'];
+  familyMemberId: Scalars['Int']['input'];
 };
 
 
@@ -673,6 +710,7 @@ export type Query = {
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
   goals: Array<Goal>;
+  mySharedFamilyMembers: Array<FamilyMember>;
   mySharedNotes: Array<Note>;
   note?: Maybe<Note>;
   notes: Array<Note>;
@@ -846,8 +884,12 @@ export type UpdateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  occupation?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
   relationship?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -975,7 +1017,9 @@ export type ResolversTypes = {
   EvidenceItem: ResolverTypeWrapper<Omit<EvidenceItem, 'polarity'> & { polarity: ResolversTypes['EvidencePolarity'] }>;
   EvidenceLocator: ResolverTypeWrapper<EvidenceLocator>;
   EvidencePolarity: ResolverTypeWrapper<'CONTRADICTS' | 'IRRELEVANT' | 'MIXED' | 'SUPPORTS'>;
-  FamilyMember: ResolverTypeWrapper<Omit<FamilyMember, 'goals'> & { goals: Array<ResolversTypes['Goal']> }>;
+  FamilyMember: ResolverTypeWrapper<Omit<FamilyMember, 'goals' | 'shares'> & { goals: Array<ResolversTypes['Goal']>, shares: Array<ResolversTypes['FamilyMemberShare']> }>;
+  FamilyMemberShare: ResolverTypeWrapper<Omit<FamilyMemberShare, 'role'> & { role: ResolversTypes['FamilyMemberShareRole'] }>;
+  FamilyMemberShareRole: ResolverTypeWrapper<'VIEWER' | 'EDITOR'>;
   GenerateAudioResult: ResolverTypeWrapper<GenerateAudioResult>;
   GenerateLongFormTextResult: ResolverTypeWrapper<GenerateLongFormTextResult>;
   GenerateOpenAIAudioInput: GenerateOpenAIAudioInput;
@@ -1045,7 +1089,8 @@ export type ResolversParentTypes = {
   DeleteStoryResult: DeleteStoryResult;
   EvidenceItem: EvidenceItem;
   EvidenceLocator: EvidenceLocator;
-  FamilyMember: Omit<FamilyMember, 'goals'> & { goals: Array<ResolversParentTypes['Goal']> };
+  FamilyMember: Omit<FamilyMember, 'goals' | 'shares'> & { goals: Array<ResolversParentTypes['Goal']>, shares: Array<ResolversParentTypes['FamilyMemberShare']> };
+  FamilyMemberShare: FamilyMemberShare;
   GenerateAudioResult: GenerateAudioResult;
   GenerateLongFormTextResult: GenerateLongFormTextResult;
   GenerateOpenAIAudioInput: GenerateOpenAIAudioInput;
@@ -1211,14 +1256,29 @@ export type FamilyMemberResolvers<ContextType = GraphQLContext, ParentType exten
   bio?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   dateOfBirth?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   goals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  occupation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   relationship?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  shares?: Resolver<Array<ResolversTypes['FamilyMemberShare']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
+
+export type FamilyMemberShareResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['FamilyMemberShare'] = ResolversParentTypes['FamilyMemberShare']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  familyMemberId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['FamilyMemberShareRole'], ParentType, ContextType>;
+};
+
+export type FamilyMemberShareRoleResolvers = EnumResolverSignature<{ EDITOR?: any, VIEWER?: any }, ResolversTypes['FamilyMemberShareRole']>;
 
 export type GenerateAudioResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GenerateAudioResult'] = ResolversParentTypes['GenerateAudioResult']> = {
   audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1355,7 +1415,9 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   generateTherapeuticQuestions?: Resolver<ResolversTypes['GenerateQuestionsResult'], ParentType, ContextType, RequireFields<MutationgenerateTherapeuticQuestionsArgs, 'goalId'>>;
   refreshClaimCard?: Resolver<ResolversTypes['ClaimCard'], ParentType, ContextType, RequireFields<MutationrefreshClaimCardArgs, 'id'>>;
   setNoteVisibility?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationsetNoteVisibilityArgs, 'noteId' | 'visibility'>>;
+  shareFamilyMember?: Resolver<ResolversTypes['FamilyMemberShare'], ParentType, ContextType, RequireFields<MutationshareFamilyMemberArgs, 'email' | 'familyMemberId'>>;
   shareNote?: Resolver<ResolversTypes['NoteShare'], ParentType, ContextType, RequireFields<MutationshareNoteArgs, 'email' | 'noteId'>>;
+  unshareFamilyMember?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationunshareFamilyMemberArgs, 'email' | 'familyMemberId'>>;
   unshareNote?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationunshareNoteArgs, 'email' | 'noteId'>>;
   updateFamilyMember?: Resolver<ResolversTypes['FamilyMember'], ParentType, ContextType, RequireFields<MutationupdateFamilyMemberArgs, 'id' | 'input'>>;
   updateGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationupdateGoalArgs, 'id' | 'input'>>;
@@ -1433,6 +1495,7 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   generationJobs?: Resolver<Array<ResolversTypes['GenerationJob']>, ParentType, ContextType, Partial<QuerygenerationJobsArgs>>;
   goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType, Partial<QuerygoalArgs>>;
   goals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType, Partial<QuerygoalsArgs>>;
+  mySharedFamilyMembers?: Resolver<Array<ResolversTypes['FamilyMember']>, ParentType, ContextType>;
   mySharedNotes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
   note?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, Partial<QuerynoteArgs>>;
   notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QuerynotesArgs, 'entityId' | 'entityType'>>;
@@ -1527,6 +1590,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   EvidenceLocator?: EvidenceLocatorResolvers<ContextType>;
   EvidencePolarity?: EvidencePolarityResolvers;
   FamilyMember?: FamilyMemberResolvers<ContextType>;
+  FamilyMemberShare?: FamilyMemberShareResolvers<ContextType>;
+  FamilyMemberShareRole?: FamilyMemberShareRoleResolvers;
   GenerateAudioResult?: GenerateAudioResultResolvers<ContextType>;
   GenerateLongFormTextResult?: GenerateLongFormTextResultResolvers<ContextType>;
   GenerateOpenAIAudioResult?: GenerateOpenAIAudioResultResolvers<ContextType>;

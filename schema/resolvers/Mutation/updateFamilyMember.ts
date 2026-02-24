@@ -14,6 +14,10 @@ export const updateFamilyMember: NonNullable<MutationResolvers['updateFamilyMemb
     relationship: args.input.relationship,
     dateOfBirth: args.input.dateOfBirth,
     bio: args.input.bio,
+    email: args.input.email,
+    phone: args.input.phone,
+    location: args.input.location,
+    occupation: args.input.occupation,
   });
 
   const member = await d1Tools.getFamilyMember(args.id);
@@ -22,5 +26,6 @@ export const updateFamilyMember: NonNullable<MutationResolvers['updateFamilyMemb
   return {
     ...member,
     goals: [],
+    shares: [],
   };
 };

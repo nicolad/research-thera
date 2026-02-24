@@ -3,9 +3,7 @@ import { d1 } from "@/src/db/d1";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { TTSPayload } from "@/src/trigger/tts-task";
 
-export const generateOpenAIAudio: NonNullable<
-  MutationResolvers["generateOpenAIAudio"]
-> = async (_parent, args, ctx) => {
+export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIAudio']> = async (_parent, args, ctx) => {
   const userEmail = ctx.userEmail;
   if (!userEmail) {
     throw new Error("Authentication required");
