@@ -20,16 +20,28 @@ import {
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 
-export default function AddGoalButton() {
+export default function AddGoalButton({
+  presetFamilyMemberId,
+  refetchQueries: extraRefetchQueries,
+  size = "3",
+}: {
+  presetFamilyMemberId?: number;
+  refetchQueries?: string[];
+  size?: "1" | "2" | "3";
+} = {}) {
   const router = useRouter();
   const { user } = useUser();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [familyMemberId, setFamilyMemberId] = useState<string>("");
+  const [familyMemberId, setFamilyMemberId] = useState<string>(
+    presetFamilyMemberId ? String(presetFamilyMemberId) : "",
+  );
   const [error, setError] = useState<string | null>(null);
 
-  const { data: familyData } = useGetFamilyMembersQuery();
+  const { data: familyData } = useGetFamilyMembersQuery({
+    skip: !!presetFamilyMemberId,
+  });
   const familyMembers = familyData?.familyMembers ?? [];
 
   const [createGoal, { loading }] = useCreateGoalMutation({
@@ -37,7 +49,7 @@ export default function AddGoalButton() {
       setOpen(false);
       setTitle("");
       setDescription("");
-      setFamilyMemberId("");
+      if (!presetFamilyMemberId) setFamilyMemberId("");
       setError(null);
       const newGoal = data.createGoal;
       router.push(newGoal.slug ? `/goals/${newGoal.slug}` : `/goals/${newGoal.id}`);
@@ -45,7 +57,7 @@ export default function AddGoalButton() {
     onError: (err) => {
       setError(err.message);
     },
-    refetchQueries: ["GetGoals"],
+    refetchQueries: ["GetGoals", ...(extraRefetchQueries ?? [])],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,7 +74,8 @@ export default function AddGoalButton() {
       return;
     }
 
-    if (!familyMemberId) {
+    const resolvedFamilyMemberId = presetFamilyMemberId ?? parseInt(familyMemberId, 10);
+    if (!resolvedFamilyMemberId) {
       setError("Please select a family member for this goal");
       return;
     }
@@ -71,7 +84,7 @@ export default function AddGoalButton() {
       await createGoal({
         variables: {
           input: {
-            familyMemberId: parseInt(familyMemberId, 10),
+            familyMemberId: resolvedFamilyMemberId,
             title: title.trim(),
             description: description.trim() || undefined,
           },
@@ -89,7 +102,7 @@ export default function AddGoalButton() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger>
-        <Button size="3">
+        <Button size={size}>
           <PlusIcon width="16" height="16" />
           Add Goal
         </Button>
@@ -129,49 +142,51 @@ export default function AddGoalButton() {
               />
             </label>
 
-            <Flex direction="column" gap="1">
-              <Text as="div" size="2" weight="medium">
-                Family Member *
-              </Text>
-              {familyMembers.length === 0 ? (
-                <Callout.Root color="amber" size="1">
-                  <Callout.Icon>
-                    <InfoCircledIcon />
-                  </Callout.Icon>
-                  <Callout.Text>
-                    No family members yet.{" "}
-                    <Dialog.Close>
-                      <NextLink
-                        href="/family"
-                        style={{ color: "var(--amber-11)", fontWeight: 500 }}
-                      >
-                        Add a family member
-                      </NextLink>
-                    </Dialog.Close>{" "}
-                    before creating a goal.
-                  </Callout.Text>
-                </Callout.Root>
-              ) : (
-                <Select.Root
-                  value={familyMemberId}
-                  onValueChange={setFamilyMemberId}
-                  disabled={loading}
-                >
-                  <Select.Trigger
-                    placeholder="Select family member…"
-                    style={{ width: "100%" }}
-                  />
-                  <Select.Content>
-                    {familyMembers.map((fm) => (
-                      <Select.Item key={fm.id} value={String(fm.id)}>
-                        {fm.firstName ?? fm.name}
-                        {fm.relationship ? ` (${fm.relationship})` : ""}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
-              )}
-            </Flex>
+            {!presetFamilyMemberId && (
+              <Flex direction="column" gap="1">
+                <Text as="div" size="2" weight="medium">
+                  Family Member *
+                </Text>
+                {familyMembers.length === 0 ? (
+                  <Callout.Root color="amber" size="1">
+                    <Callout.Icon>
+                      <InfoCircledIcon />
+                    </Callout.Icon>
+                    <Callout.Text>
+                      No family members yet.{" "}
+                      <Dialog.Close>
+                        <NextLink
+                          href="/family"
+                          style={{ color: "var(--amber-11)", fontWeight: 500 }}
+                        >
+                          Add a family member
+                        </NextLink>
+                      </Dialog.Close>{" "}
+                      before creating a goal.
+                    </Callout.Text>
+                  </Callout.Root>
+                ) : (
+                  <Select.Root
+                    value={familyMemberId}
+                    onValueChange={setFamilyMemberId}
+                    disabled={loading}
+                  >
+                    <Select.Trigger
+                      placeholder="Select family member…"
+                      style={{ width: "100%" }}
+                    />
+                    <Select.Content>
+                      {familyMembers.map((fm) => (
+                        <Select.Item key={fm.id} value={String(fm.id)}>
+                          {fm.firstName ?? fm.name}
+                          {fm.relationship ? ` (${fm.relationship})` : ""}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </Flex>
+            )}
 
             {error && (
               <Text color="red" size="2">
@@ -187,7 +202,7 @@ export default function AddGoalButton() {
               </Dialog.Close>
               <Button
                 type="submit"
-                disabled={loading || familyMembers.length === 0}
+                disabled={loading || (!presetFamilyMemberId && familyMembers.length === 0)}
               >
                 {loading ? "Creating..." : "Create Goal"}
               </Button>

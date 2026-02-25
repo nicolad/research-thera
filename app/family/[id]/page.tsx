@@ -29,6 +29,7 @@ import {
   FamilyMemberShareRole,
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
+import AddGoalButton from "@/app/components/AddGoalButton";
 
 const RELATIONSHIP_OPTIONS = [
   "self",
@@ -311,7 +312,14 @@ function FamilyMemberContent() {
       {/* Goals */}
       <Card>
         <Flex direction="column" gap="3" p="4">
-          <Heading size="4">Goals ({member.goals.length})</Heading>
+          <Flex justify="between" align="center">
+            <Heading size="4">Goals ({member.goals.length})</Heading>
+            <AddGoalButton
+              presetFamilyMemberId={id}
+              refetchQueries={["GetFamilyMember"]}
+              size="2"
+            />
+          </Flex>
           <Separator size="4" />
           {member.goals.length === 0 ? (
             <Text size="2" color="gray">
