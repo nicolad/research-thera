@@ -671,6 +671,7 @@ export type MutationUpdateStoryArgs = {
 
 export type MutationUpdateUserSettingsArgs = {
   storyLanguage: Scalars['String']['input'];
+  storyMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Note = {
@@ -1019,6 +1020,7 @@ export type UpdateStoryInput = {
 export type UserSettings = {
   __typename?: 'UserSettings';
   storyLanguage: Scalars['String']['output'];
+  storyMinutes: Scalars['Int']['output'];
   userId: Scalars['String']['output'];
 };
 
@@ -1353,14 +1355,15 @@ export type UpdateStoryMutation = { __typename?: 'Mutation', updateStory: { __ty
 export type GetUserSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetUserSettingsQuery = { __typename?: 'Query', userSettings: { __typename?: 'UserSettings', userId: string, storyLanguage: string } };
+export type GetUserSettingsQuery = { __typename?: 'Query', userSettings: { __typename?: 'UserSettings', userId: string, storyLanguage: string, storyMinutes: number } };
 
 export type UpdateUserSettingsMutationVariables = Exact<{
   storyLanguage: Scalars['String']['input'];
+  storyMinutes?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type UpdateUserSettingsMutation = { __typename?: 'Mutation', updateUserSettings: { __typename?: 'UserSettings', userId: string, storyLanguage: string } };
+export type UpdateUserSettingsMutation = { __typename?: 'Mutation', updateUserSettings: { __typename?: 'UserSettings', userId: string, storyLanguage: string, storyMinutes: number } };
 
 
 export const CheckNoteClaimsDocument = gql`
@@ -3703,6 +3706,7 @@ export const GetUserSettingsDocument = gql`
   userSettings {
     userId
     storyLanguage
+    storyMinutes
   }
 }
     `;
@@ -3742,10 +3746,11 @@ export type GetUserSettingsLazyQueryHookResult = ReturnType<typeof useGetUserSet
 export type GetUserSettingsSuspenseQueryHookResult = ReturnType<typeof useGetUserSettingsSuspenseQuery>;
 export type GetUserSettingsQueryResult = Apollo.QueryResult<GetUserSettingsQuery, GetUserSettingsQueryVariables>;
 export const UpdateUserSettingsDocument = gql`
-    mutation UpdateUserSettings($storyLanguage: String!) {
-  updateUserSettings(storyLanguage: $storyLanguage) {
+    mutation UpdateUserSettings($storyLanguage: String!, $storyMinutes: Int) {
+  updateUserSettings(storyLanguage: $storyLanguage, storyMinutes: $storyMinutes) {
     userId
     storyLanguage
+    storyMinutes
   }
 }
     `;
@@ -3765,6 +3770,7 @@ export type UpdateUserSettingsMutationFn = Apollo.MutationFunction<UpdateUserSet
  * const [updateUserSettingsMutation, { data, loading, error }] = useUpdateUserSettingsMutation({
  *   variables: {
  *      storyLanguage: // value for 'storyLanguage'
+ *      storyMinutes: // value for 'storyMinutes'
  *   },
  * });
  */

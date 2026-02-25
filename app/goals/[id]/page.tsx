@@ -232,6 +232,7 @@ function GoalPageContent() {
   const { data: userSettingsData } = useGetUserSettingsQuery();
   const storyLanguage =
     userSettingsData?.userSettings?.storyLanguage ?? "English";
+  const storyMinutes = userSettingsData?.userSettings?.storyMinutes ?? 10;
 
   const { data: storyJobData, stopPolling: stopStoryPolling } =
     useGetGenerationJobQuery({
@@ -289,7 +290,7 @@ function GoalPageContent() {
     if (!goal) return;
     setStoryMessage(null);
     await generateStory({
-      variables: { goalId: goal.id, language: storyLanguage, minutes: 10 },
+      variables: { goalId: goal.id, language: storyLanguage, minutes: storyMinutes },
     });
   };
 

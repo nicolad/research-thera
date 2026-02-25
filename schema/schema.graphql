@@ -96,7 +96,7 @@ type Mutation {
   deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
 
   # User Settings
-  updateUserSettings(storyLanguage: String!): UserSettings!
+  updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
 }
 
 type Subscription {
@@ -751,4 +751,5 @@ type DeleteJournalEntryResult {
 type UserSettings {
   userId: String!
   storyLanguage: String!
+  storyMinutes: Int!
 }

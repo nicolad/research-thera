@@ -668,6 +668,7 @@ export type MutationupdateStoryArgs = {
 
 export type MutationupdateUserSettingsArgs = {
   storyLanguage: Scalars['String']['input'];
+  storyMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Note = {
@@ -1009,6 +1010,7 @@ export type UpdateStoryInput = {
 export type UserSettings = {
   __typename?: 'UserSettings';
   storyLanguage: Scalars['String']['output'];
+  storyMinutes: Scalars['Int']['output'];
   userId: Scalars['String']['output'];
 };
 
@@ -1711,6 +1713,7 @@ export type TherapeuticQuestionResolvers<ContextType = GraphQLContext, ParentTyp
 
 export type UserSettingsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UserSettings'] = ResolversParentTypes['UserSettings']> = {
   storyLanguage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  storyMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 

@@ -1611,31 +1611,37 @@ export async function deleteJournalEntry(
 
 export async function getUserSettings(
   userId: string,
-): Promise<{ userId: string; storyLanguage: string }> {
+): Promise<{ userId: string; storyLanguage: string; storyMinutes: number }> {
   const result = await d1.execute({
     sql: `SELECT * FROM user_settings WHERE user_id = ?`,
     args: [userId],
   });
   if (result.rows.length === 0) {
-    return { userId, storyLanguage: "English" };
+    return { userId, storyLanguage: "English", storyMinutes: 10 };
   }
   const row = result.rows[0];
   return {
     userId: row.user_id as string,
     storyLanguage: (row.story_language as string) ?? "English",
+    storyMinutes: (row.story_minutes as number) ?? 10,
   };
 }
 
 export async function upsertUserSettings(
   userId: string,
   storyLanguage: string,
-): Promise<{ userId: string; storyLanguage: string }> {
+  storyMinutes: number,
+): Promise<{ userId: string; storyLanguage: string; storyMinutes: number }> {
   await d1.execute({
-    sql: `INSERT OR REPLACE INTO user_settings (user_id, story_language, created_at, updated_at)
-          VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-    args: [userId, storyLanguage],
+    sql: `INSERT INTO user_settings (user_id, story_language, story_minutes, created_at, updated_at)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ON CONFLICT(user_id) DO UPDATE SET
+            story_language = excluded.story_language,
+            story_minutes = excluded.story_minutes,
+            updated_at = CURRENT_TIMESTAMP`,
+    args: [userId, storyLanguage, storyMinutes],
   });
-  return { userId, storyLanguage };
+  return { userId, storyLanguage, storyMinutes };
 }
 
 export const d1Tools = {

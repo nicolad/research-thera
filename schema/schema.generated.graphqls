@@ -434,7 +434,7 @@ type Mutation {
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
-  updateUserSettings(storyLanguage: String!): UserSettings!
+  updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
 }
 
 type Note {
@@ -673,5 +673,6 @@ input UpdateStoryInput {
 
 type UserSettings {
   storyLanguage: String!
+  storyMinutes: Int!
   userId: String!
 }

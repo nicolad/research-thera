@@ -16,5 +16,6 @@ export const userSettings: NonNullable<QueryResolvers['userSettings']> = async (
   return {
     userId: settings.userId,
     storyLanguage: settings.storyLanguage,
+    storyMinutes: settings.storyMinutes,
   };
 };

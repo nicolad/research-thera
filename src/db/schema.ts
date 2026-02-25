@@ -262,6 +262,7 @@ export const journalEntries = sqliteTable("journal_entries", {
 export const userSettings = sqliteTable("user_settings", {
   userId: text("user_id").primaryKey(),
   storyLanguage: text("story_language").notNull().default("English"),
+  storyMinutes: integer("story_minutes").notNull().default(10),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

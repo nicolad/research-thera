@@ -2,12 +2,14 @@ query GetUserSettings {
   userSettings {
     userId
     storyLanguage
+    storyMinutes
   }
 }
 
-mutation UpdateUserSettings($storyLanguage: String!) {
-  updateUserSettings(storyLanguage: $storyLanguage) {
+mutation UpdateUserSettings($storyLanguage: String!, $storyMinutes: Int) {
+  updateUserSettings(storyLanguage: $storyLanguage, storyMinutes: $storyMinutes) {
     userId
     storyLanguage
+    storyMinutes
   }
 }
