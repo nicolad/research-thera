@@ -1373,7 +1373,7 @@ export async function getJournalEntry(id: number, userId: string) {
 }
 
 export async function createJournalEntry(params: {
-  userId: string;
+  createdBy: string;
   familyMemberId?: number | null;
   title?: string | null;
   content: string;
@@ -1391,7 +1391,7 @@ export async function createJournalEntry(params: {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           RETURNING id`,
     args: [
-      params.userId,
+      params.createdBy,
       params.familyMemberId ?? null,
       params.title ?? null,
       params.content,
@@ -1486,7 +1486,7 @@ export async function deleteJournalEntry(
 function mapJournalEntryRow(row: any) {
   return {
     id: row.id as number,
-    userId: row.user_id as string,
+    createdBy: row.user_id as string,
     familyMemberId: (row.family_member_id as number) || null,
     title: (row.title as string) || null,
     content: row.content as string,

@@ -433,6 +433,7 @@ export type JournalEntry = {
   __typename?: 'JournalEntry';
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
   entryDate: Scalars['String']['output'];
   familyMember?: Maybe<FamilyMember>;
   familyMemberId?: Maybe<Scalars['Int']['output']>;
@@ -445,7 +446,6 @@ export type JournalEntry = {
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
-  userId: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -1493,6 +1493,7 @@ export type JobTypeResolvers = EnumResolverSignature<{ AUDIO?: any, LONGFORM?: a
 export type JournalEntryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['JournalEntry'] = ResolversParentTypes['JournalEntry']> = {
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   entryDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   familyMember?: Resolver<Maybe<ResolversTypes['FamilyMember']>, ParentType, ContextType>;
   familyMemberId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1505,7 +1506,6 @@ export type JournalEntryResolvers<ContextType = GraphQLContext, ParentType exten
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {

@@ -436,6 +436,7 @@ export type JournalEntry = {
   __typename?: 'JournalEntry';
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
   entryDate: Scalars['String']['output'];
   familyMember?: Maybe<FamilyMember>;
   familyMemberId?: Maybe<Scalars['Int']['output']>;
@@ -448,7 +449,6 @@ export type JournalEntry = {
   tags?: Maybe<Array<Scalars['String']['output']>>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['String']['output'];
-  userId: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -1062,7 +1062,7 @@ export type CreateJournalEntryMutationVariables = Exact<{
 }>;
 
 
-export type CreateJournalEntryMutation = { __typename?: 'Mutation', createJournalEntry: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
+export type CreateJournalEntryMutation = { __typename?: 'Mutation', createJournalEntry: { __typename?: 'JournalEntry', id: number, createdBy: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
 
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
@@ -1233,14 +1233,14 @@ export type GetJournalEntriesQueryVariables = Exact<{
 }>;
 
 
-export type GetJournalEntriesQuery = { __typename?: 'Query', journalEntries: Array<{ __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string } | null }> };
+export type GetJournalEntriesQuery = { __typename?: 'Query', journalEntries: Array<{ __typename?: 'JournalEntry', id: number, createdBy: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string } | null }> };
 
 export type GetJournalEntryQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type GetJournalEntryQuery = { __typename?: 'Query', journalEntry?: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null } | null } | null };
+export type GetJournalEntryQuery = { __typename?: 'Query', journalEntry?: { __typename?: 'JournalEntry', id: number, createdBy: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null } | null } | null };
 
 export type GetMySharedFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1308,7 +1308,7 @@ export type UpdateJournalEntryMutationVariables = Exact<{
 }>;
 
 
-export type UpdateJournalEntryMutation = { __typename?: 'Mutation', updateJournalEntry: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
+export type UpdateJournalEntryMutation = { __typename?: 'Mutation', updateJournalEntry: { __typename?: 'JournalEntry', id: number, createdBy: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
 
 export type UpdateNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1801,7 +1801,7 @@ export const CreateJournalEntryDocument = gql`
     mutation CreateJournalEntry($input: CreateJournalEntryInput!) {
   createJournalEntry(input: $input) {
     id
-    userId
+    createdBy
     familyMemberId
     title
     content
@@ -2898,7 +2898,7 @@ export const GetJournalEntriesDocument = gql`
     toDate: $toDate
   ) {
     id
-    userId
+    createdBy
     familyMemberId
     familyMember {
       id
@@ -2966,7 +2966,7 @@ export const GetJournalEntryDocument = gql`
     query GetJournalEntry($id: Int!) {
   journalEntry(id: $id) {
     id
-    userId
+    createdBy
     familyMemberId
     familyMember {
       id
@@ -3477,7 +3477,7 @@ export const UpdateJournalEntryDocument = gql`
     mutation UpdateJournalEntry($id: Int!, $input: UpdateJournalEntryInput!) {
   updateJournalEntry(id: $id, input: $input) {
     id
-    userId
+    createdBy
     familyMemberId
     title
     content

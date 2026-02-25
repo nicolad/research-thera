@@ -1,7 +1,7 @@
 mutation CreateJournalEntry($input: CreateJournalEntryInput!) {
   createJournalEntry(input: $input) {
     id
-    userId
+    createdBy
     familyMemberId
     title
     content

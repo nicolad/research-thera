@@ -8,7 +8,7 @@ export const createJournalEntry: NonNullable<MutationResolvers['createJournalEnt
   }
 
   const id = await d1Tools.createJournalEntry({
-    userId: userEmail,
+    createdBy: userEmail,
     familyMemberId: args.input.familyMemberId ?? null,
     title: args.input.title ?? null,
     content: args.input.content,

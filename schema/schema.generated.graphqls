@@ -385,6 +385,7 @@ enum JobType {
 type JournalEntry {
   content: String!
   createdAt: String!
+  createdBy: String!
   entryDate: String!
   familyMember: FamilyMember
   familyMemberId: Int
@@ -397,7 +398,6 @@ type JournalEntry {
   tags: [String!]
   title: String
   updatedAt: String!
-  userId: String!
 }
 
 type Mutation {

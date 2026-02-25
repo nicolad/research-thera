@@ -17,7 +17,7 @@ export const JournalEntry: JournalEntryResolvers = {
     if (!parent.goalId) return null;
 
     try {
-      const goal = await d1Tools.getGoal(parent.goalId, parent.userId);
+      const goal = await d1Tools.getGoal(parent.goalId, parent.createdBy);
       return {
         ...goal,
         notes: [],

@@ -1,7 +1,7 @@
 query GetJournalEntry($id: Int!) {
   journalEntry(id: $id) {
     id
-    userId
+    createdBy
     familyMemberId
     familyMember {
       id

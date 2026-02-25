@@ -13,7 +13,7 @@ query GetJournalEntries(
     toDate: $toDate
   ) {
     id
-    userId
+    createdBy
     familyMemberId
     familyMember {
       id

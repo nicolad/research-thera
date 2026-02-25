@@ -696,7 +696,7 @@ type AudioMetadata {
 
 type JournalEntry {
   id: Int!
-  userId: String!
+  createdBy: String!
   familyMemberId: Int
   familyMember: FamilyMember
   title: String
