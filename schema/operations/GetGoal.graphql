@@ -10,6 +10,7 @@ query GetGoal($id: Int, $slug: String) {
       id
       firstName
       name
+      ageYears
       relationship
     }
     createdBy

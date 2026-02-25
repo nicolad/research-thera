@@ -34,6 +34,8 @@ const BLENDED_THRESHOLD = 0.45;
 const inputSchema = z.object({
   userId: z.string(),
   goalId: z.number().int(),
+  familyMemberName: z.string().optional(),
+  familyMemberAge: z.number().int().optional(),
 });
 
 const outputSchema = z.object({
@@ -55,6 +57,8 @@ const loadContextStep = createStep({
       description: z.string().nullable(),
     }),
     notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
   }),
   execute: async ({ inputData }) => {
     const goal = await d1Tools.getGoal(inputData.goalId, inputData.userId);
@@ -63,6 +67,21 @@ const loadContextStep = createStep({
       "Goal",
       inputData.userId,
     );
+
+    let familyMemberName: string | null = null;
+    let familyMemberAge: number | null = null;
+
+    if (goal.familyMemberId) {
+      try {
+        const fm = await d1Tools.getFamilyMember(goal.familyMemberId);
+        if (fm) {
+          familyMemberName = fm.firstName ?? fm.name ?? null;
+          familyMemberAge = fm.ageYears ?? null;
+        }
+      } catch {
+        // Non-fatal: proceed without family member context
+      }
+    }
 
     return {
       userId: inputData.userId,
@@ -73,6 +92,8 @@ const loadContextStep = createStep({
         description: goal.description,
       },
       notes: notes.map((n) => ({ id: n.id, content: n.content })),
+      familyMemberName,
+      familyMemberAge,
     };
   },
 });
@@ -89,6 +110,8 @@ const ensurePromptsStep = createStep({
       description: z.string().nullable(),
     }),
     notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
   }),
   outputSchema: z.object({
     userId: z.string(),
@@ -99,6 +122,8 @@ const ensurePromptsStep = createStep({
       description: z.string().nullable(),
     }),
     notes: z.array(z.object({ content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
     plannerPromptName: z.string(),
     extractorPromptName: z.string(),
     goalSignature: z.string(),
@@ -110,6 +135,8 @@ const ensurePromptsStep = createStep({
       goalTitle: inputData.goal.title,
       goalDescription: inputData.goal.description ?? "",
       notes: inputData.notes.map((n) => n.content),
+      familyMemberName: inputData.familyMemberName,
+      familyMemberAge: inputData.familyMemberAge,
       label: process.env.LANGFUSE_PROMPT_LABEL || "production",
     });
 
@@ -129,6 +156,8 @@ const planQueryStep = createStep({
     goalId: z.number().int(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
     plannerPromptName: z.string(),
     extractorPromptName: z.string(),
   }),
@@ -137,6 +166,8 @@ const planQueryStep = createStep({
     goalId: z.number().int(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
     plannerPromptName: z.string(),
     extractorPromptName: z.string(),
     goalType: z.string(),

@@ -647,9 +647,24 @@ function GoalPageContent() {
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Flex justify="between" align="center">
-            <Heading size="4">
-              Research {goal.research ? `(${goal.research.length})` : ""}
-            </Heading>
+            <Flex direction="column" gap="1">
+              <Heading size="4">
+                Research {goal.research ? `(${goal.research.length})` : ""}
+              </Heading>
+              {goal.familyMember && (
+                <Text size="2" color="gray">
+                  Personalized for{" "}
+                  <Text as="span" weight="medium" color="cyan">
+                    {goal.familyMember.firstName ?? goal.familyMember.name}
+                  </Text>
+                  {goal.familyMember.ageYears != null && (
+                    <Text as="span" color="gray">
+                      {" "}· age {goal.familyMember.ageYears}
+                    </Text>
+                  )}
+                </Text>
+              )}
+            </Flex>
             <Flex gap="2" align="center">
               {goal.research && goal.research.length > 0 && (
                 <AlertDialog.Root>

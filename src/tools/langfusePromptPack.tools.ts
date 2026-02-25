@@ -117,6 +117,8 @@ export async function ensureLangfusePromptPackForGoal(params: {
   goalTitle: string;
   goalDescription: string;
   notes: string[];
+  familyMemberName?: string | null;
+  familyMemberAge?: number | null;
   label?: string; // e.g. "production" | "staging"
 }) {
   const {
@@ -124,6 +126,8 @@ export async function ensureLangfusePromptPackForGoal(params: {
     goalTitle,
     goalDescription,
     notes,
+    familyMemberName,
+    familyMemberAge,
     label = "production",
   } = params;
 
@@ -133,6 +137,8 @@ export async function ensureLangfusePromptPackForGoal(params: {
       goalTitle,
       goalDescription,
       notes,
+      familyMemberName: familyMemberName ?? null,
+      familyMemberAge: familyMemberAge ?? null,
       PROMPT_TEMPLATE_VERSION,
     }),
   );
@@ -181,6 +187,10 @@ export async function ensureLangfusePromptPackForGoal(params: {
     try {
       console.log(`  Attempt ${attempt}/3...`);
 
+      const familyMemberContext = familyMemberName
+        ? `Family Member: ${familyMemberName}${familyMemberAge != null ? `, Age: ${familyMemberAge}` : ""}`
+        : "";
+
       const { object: candidate } = await generateObject({
         model: deepseek("deepseek-chat"),
         temperature: 1.0,
@@ -192,7 +202,7 @@ These prompts will be used to find and extract relevant psychological research p
 Context:
 Goal Title: ${goalTitle}
 Goal Description: ${goalDescription}
-Notes:
+${familyMemberContext ? `${familyMemberContext}\n` : ""}Notes:
 - ${notes.join("\n- ")}
 
 TASK
@@ -205,7 +215,7 @@ TEMPLATE A: plannerPrompt
   and diverse search queries for Semantic Scholar, Crossref, and PubMed.
 - Queries should target evidence-based psychological interventions, therapeutic techniques,
   and clinical research related to the goal.
-- Include fail-closed rule: if abstract is fewer than 200 characters or missing, reject the paper.
+${familyMemberContext ? `- IMPORTANT: The therapy goal is for ${familyMemberContext}. Tailor search queries to be age-appropriate and relevant to this person's developmental stage (e.g., "child", "adolescent", "adult", "older adult" as applicable). Age-specific population terms should appear in queries.\n` : ""}- Include fail-closed rule: if abstract is fewer than 200 characters or missing, reject the paper.
 - Must produce MULTIPLE smaller queries (query pack) rather than one long query for better recall.
 
 TEMPLATE B: extractorPrompt
