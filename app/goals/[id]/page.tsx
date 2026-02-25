@@ -37,6 +37,7 @@ import {
   useGetGoalQuery,
   useDeleteGoalMutation,
   useGenerateResearchMutation,
+  useGenerateLongFormTextMutation,
   useDeleteResearchMutation,
   useUpdateGoalMutation,
   useGetFamilyMembersQuery,
@@ -55,6 +56,13 @@ const STEP_LABELS: Record<number, string> = {
   65: "Preparing extraction…",
   85: "Extracting relevant findings…",
   95: "Saving papers to database…",
+};
+
+const STORY_STEP_LABELS: Record<number, string> = {
+  10: "Loading goal context…",
+  30: "Fetching research…",
+  60: "Generating story…",
+  90: "Saving story…",
 };
 
 function GoalPageContent() {
@@ -210,6 +218,71 @@ function GoalPageContent() {
     if (!goal) return;
     setResearchMessage(null);
     await generateResearch({ variables: { goalId: goal.id } });
+  };
+
+  // --- Story generation ---
+  const [storyMessage, setStoryMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [storyJobId, setStoryJobId] = useState<string | null>(null);
+
+  const { data: storyJobData, stopPolling: stopStoryPolling } =
+    useGetGenerationJobQuery({
+      variables: { id: storyJobId! },
+      skip: !storyJobId,
+      pollInterval: 2000,
+      notifyOnNetworkStatusChange: true,
+      fetchPolicy: "network-only",
+      onCompleted: (d) => {
+        const status = d.generationJob?.status;
+        if (status === "SUCCEEDED" || status === "FAILED") {
+          stopStoryPolling();
+          setStoryJobId(null);
+          if (status === "SUCCEEDED") {
+            apolloClient.refetchQueries({ include: ["GetGoal"] });
+          } else {
+            setStoryMessage({
+              text: d.generationJob?.error?.message ?? "Story generation failed.",
+              type: "error",
+            });
+          }
+        }
+      },
+    });
+  const storyJobProgress = storyJobData?.generationJob?.progress ?? 0;
+  const storyJobStatus = storyJobData?.generationJob?.status;
+  const isStoryJobRunning =
+    !!storyJobId && storyJobStatus !== "SUCCEEDED" && storyJobStatus !== "FAILED";
+
+  const [generateStory, { loading: generatingStory }] =
+    useGenerateLongFormTextMutation({
+      onCompleted: (data) => {
+        if (data.generateLongFormText.success) {
+          setStoryMessage(null);
+          if (data.generateLongFormText.jobId) {
+            setStoryJobId(data.generateLongFormText.jobId);
+          }
+        } else {
+          setStoryMessage({
+            text:
+              data.generateLongFormText.message || "Failed to generate story.",
+            type: "error",
+          });
+        }
+      },
+      onError: (err) => {
+        setStoryMessage({
+          text: err.message || "An error occurred while generating the story.",
+          type: "error",
+        });
+      },
+    });
+
+  const handleGenerateStory = async () => {
+    if (!goal) return;
+    setStoryMessage(null);
+    await generateStory({ variables: { goalId: goal.id } });
   };
 
   if (loading) {
@@ -679,6 +752,128 @@ function GoalPageContent() {
             <Text size="2" color="gray">
               No stories yet. Add your first story to capture your experience.
             </Text>
+          )}
+        </Flex>
+      </Card>
+
+      {/* Generated Stories */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Heading size="4">
+              Generated Stories{" "}
+              {goal.stories ? `(${goal.stories.length})` : ""}
+            </Heading>
+            <GlassButton
+              variant="primary"
+              size="medium"
+              loading={generatingStory}
+              disabled={isStoryJobRunning}
+              onClick={handleGenerateStory}
+            >
+              Generate Story
+            </GlassButton>
+          </Flex>
+
+          {storyMessage && (
+            <Text
+              size="2"
+              color={storyMessage.type === "success" ? "green" : "red"}
+            >
+              {storyMessage.text}
+            </Text>
+          )}
+
+          {isStoryJobRunning && (
+            <Flex direction="column" gap="2">
+              <Flex justify="between" align="center">
+                <Text size="2" color="gray">
+                  {STORY_STEP_LABELS[storyJobProgress] ?? "Generating story…"}
+                </Text>
+                {storyJobProgress > 0 && (
+                  <Text size="2" color="gray">
+                    {storyJobProgress}%
+                  </Text>
+                )}
+              </Flex>
+              <Box
+                style={{
+                  height: 6,
+                  borderRadius: 3,
+                  background: "var(--gray-4)",
+                  overflow: "hidden",
+                }}
+              >
+                {storyJobProgress > 0 ? (
+                  <Box
+                    style={{
+                      height: "100%",
+                      width: `${storyJobProgress}%`,
+                      background: "var(--violet-9)",
+                      transition: "width 0.4s ease",
+                      borderRadius: 3,
+                    }}
+                  />
+                ) : (
+                  <Box
+                    style={{
+                      height: "100%",
+                      width: "40%",
+                      background: "var(--violet-9)",
+                      borderRadius: 3,
+                      animation: "researchSweep 1.4s ease-in-out infinite",
+                    }}
+                  />
+                )}
+              </Box>
+            </Flex>
+          )}
+
+          {goal.stories && goal.stories.length > 0 ? (
+            <Flex direction="column" gap="3">
+              {goal.stories.map((story) => (
+                <Card
+                  key={story.id}
+                  style={{ backgroundColor: "var(--gray-2)" }}
+                >
+                  <Flex direction="column" gap="2" p="3">
+                    <Flex justify="between" align="center">
+                      <Flex align="center" gap="2">
+                        <Badge color="violet" size="1">
+                          {story.language}
+                        </Badge>
+                        <Badge variant="soft" size="1">
+                          {story.minutes} min
+                        </Badge>
+                      </Flex>
+                      <Text size="1" color="gray">
+                        {new Date(story.createdAt).toLocaleDateString()}
+                      </Text>
+                    </Flex>
+                    <Text
+                      size="2"
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 6,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {story.text}
+                    </Text>
+                  </Flex>
+                </Card>
+              ))}
+            </Flex>
+          ) : (
+            !isStoryJobRunning && (
+              <Text size="2" color="gray">
+                No generated stories yet. Click &ldquo;Generate Story&rdquo; to
+                create a research-backed therapeutic story for this goal.
+              </Text>
+            )
           )}
         </Flex>
       </Card>

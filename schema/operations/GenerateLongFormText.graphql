@@ -6,6 +6,8 @@ mutation GenerateLongFormText($goalId: Int!, $language: String, $minutes: Int) {
   ) {
     success
     message
+    jobId
+    storyId
     text
     audioUrl
     manifestUrl

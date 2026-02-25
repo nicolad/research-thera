@@ -1304,6 +1304,53 @@ export async function listTherapeuticQuestions(goalId: number) {
 // Goal Stories
 // ============================================
 
+export async function createGoalStory(
+  goalId: number,
+  language: string,
+  minutes: number,
+  text: string,
+) {
+  const result = await d1.execute({
+    sql: `INSERT INTO goal_stories (goal_id, language, minutes, text)
+          VALUES (?, ?, ?, ?)
+          RETURNING *`,
+    args: [goalId, language, minutes, text],
+  });
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    language: row.language as string,
+    minutes: row.minutes as number,
+    text: row.text as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function getGoalStory(id: number) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM goal_stories WHERE id = ?`,
+    args: [id],
+  });
+
+  if (result.rows.length === 0) {
+    throw new Error(`GoalStory ${id} not found`);
+  }
+
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    language: row.language as string,
+    minutes: row.minutes as number,
+    text: row.text as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
 export async function listGoalStories(goalId: number) {
   const result = await d1.execute({
     sql: `SELECT * FROM goal_stories WHERE goal_id = ? ORDER BY created_at DESC`,
@@ -1592,6 +1639,8 @@ export const d1Tools = {
   updateGenerationJob,
   getGenerationJob,
   listTherapeuticQuestions,
+  createGoalStory,
+  getGoalStory,
   listGoalStories,
   getTextSegmentsForStory,
   getAudioAssetsForStory,

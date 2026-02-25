@@ -1,5 +1,7 @@
 import { createWorkflow, createStep } from "@mastra/core/workflows";
 import { z } from "zod";
+import { createDeepSeek } from "@ai-sdk/deepseek";
+import { generateObject } from "ai";
 import { d1Tools } from "@/src/db";
 import { ragTools } from "@/src/tools/rag.tools";
 import { sourceTools } from "@/src/tools/sources.tools";
@@ -25,10 +27,10 @@ const ENRICH_CANDIDATES_LIMIT = 300;
 const ENRICH_CONCURRENCY = 15;
 const EXTRACT_CANDIDATES_LIMIT = 50;
 const EXTRACTION_BATCH_SIZE = 6;
-const PERSIST_CANDIDATES_LIMIT = 50;
-const RELEVANCE_THRESHOLD = 0.6;
-const CONFIDENCE_THRESHOLD = 0.5;
-const BLENDED_THRESHOLD = 0.45;
+const PERSIST_CANDIDATES_LIMIT = 20; // lowered from 50: quality over quantity
+const RELEVANCE_THRESHOLD = 0.75; // raised from 0.6: require clear topic match
+const CONFIDENCE_THRESHOLD = 0.55; // raised from 0.5
+const BLENDED_THRESHOLD = 0.72; // raised from 0.45 (was a dead-code no-op gate)
 
 // Input/Output schemas
 const inputSchema = z.object({
@@ -43,6 +45,175 @@ const outputSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
   count: z.number().int(),
+});
+
+/**
+ * Clinical normalization schema — output of normalizeGoalStep
+ */
+const ClinicalContextSchema = z.object({
+  translatedGoalTitle: z.string(),
+  originalLanguage: z.string(),
+  clinicalRestatement: z.string(),
+  clinicalDomain: z.string(),
+  behaviorDirection: z.enum(["INCREASE", "REDUCE", "MAINTAIN", "UNCLEAR"]),
+  developmentalTier: z.enum([
+    "preschool",
+    "early_school",
+    "middle_childhood",
+    "adolescent",
+    "adult",
+    "unknown",
+  ]),
+  requiredKeywords: z.array(z.string()),
+  excludedTopics: z.array(z.string()),
+});
+
+type ClinicalContext = z.infer<typeof ClinicalContextSchema>;
+
+/**
+ * Derive developmental tier from age (years).
+ */
+function ageToTier(age: number | null | undefined): ClinicalContext["developmentalTier"] {
+  if (!age) return "unknown";
+  if (age <= 5) return "preschool";
+  if (age <= 8) return "early_school";
+  if (age <= 12) return "middle_childhood";
+  if (age <= 17) return "adolescent";
+  return "adult";
+}
+
+/**
+ * Step 1b: Normalize goal — translate non-English titles and classify the
+ * clinical construct before Langfuse prompts are generated.
+ *
+ * This step runs between loadContextStep and ensurePromptsStep.  Without it,
+ * Romanian (or any non-English) goal titles confuse DeepSeek into generating
+ * semantically drifted search queries (e.g. "homework completion" instead of
+ * "selective mutism classroom vocalization").
+ *
+ * Failure is non-fatal: we fall back to the original title + safe defaults.
+ */
+const normalizeGoalStep = createStep({
+  id: "normalize-goal",
+  inputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    jobId: z.string().optional(),
+    goal: z.object({
+      id: z.number().int(),
+      title: z.string(),
+      description: z.string().nullable(),
+    }),
+    notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
+  }),
+  outputSchema: z.object({
+    userId: z.string(),
+    goalId: z.number().int(),
+    jobId: z.string().optional(),
+    goal: z.object({
+      id: z.number().int(),
+      title: z.string(),
+      description: z.string().nullable(),
+    }),
+    notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
+    familyMemberName: z.string().nullable(),
+    familyMemberAge: z.number().int().nullable(),
+    translatedGoalTitle: z.string(),
+    originalLanguage: z.string(),
+    clinicalRestatement: z.string(),
+    clinicalDomain: z.string(),
+    behaviorDirection: z.enum(["INCREASE", "REDUCE", "MAINTAIN", "UNCLEAR"]),
+    developmentalTier: z.enum([
+      "preschool",
+      "early_school",
+      "middle_childhood",
+      "adolescent",
+      "adult",
+      "unknown",
+    ]),
+    requiredKeywords: z.array(z.string()),
+    excludedTopics: z.array(z.string()),
+  }),
+  execute: async ({ inputData }) => {
+    const fallback: ClinicalContext = {
+      translatedGoalTitle: inputData.goal.title,
+      originalLanguage: "unknown",
+      clinicalRestatement: inputData.goal.title,
+      clinicalDomain: "behavioral_change",
+      behaviorDirection: "UNCLEAR",
+      developmentalTier: ageToTier(inputData.familyMemberAge),
+      requiredKeywords: [],
+      excludedTopics: [],
+    };
+
+    try {
+      const deepseek = createDeepSeek({ apiKey: process.env.DEEPSEEK_API_KEY });
+
+      const ageCtx = inputData.familyMemberAge
+        ? `The patient is ${inputData.familyMemberAge} years old.`
+        : "";
+      const nameCtx = inputData.familyMemberName
+        ? `Patient name: ${inputData.familyMemberName}.`
+        : "";
+      const notesCtx =
+        inputData.notes.map((n) => n.content).join("; ") || "(none)";
+
+      const { object } = await generateObject({
+        model: deepseek("deepseek-chat"),
+        schema: ClinicalContextSchema,
+        prompt: `You are a clinical psychologist specializing in translating parent/family-reported therapeutic goals into precise clinical language for academic research queries.
+
+Goal Title: "${inputData.goal.title}"
+Goal Description: "${inputData.goal.description ?? ""}"
+Notes: ${notesCtx}
+${ageCtx} ${nameCtx}
+
+TASK:
+1. Detect the language (ISO 639-1 code, e.g. "en", "ro", "fr")
+2. Translate to English if not already English
+3. Identify the SPECIFIC clinical construct (not generic "behavioral_change")
+4. Determine if goal is to INCREASE or REDUCE the behavior
+5. Infer developmental stage from age
+6. Generate 5-10 required keywords that MUST appear in relevant research papers
+7. Generate 5-10 excluded topics that are NOT relevant to this goal
+
+CLINICAL DOMAIN EXAMPLES (be this specific, never use "behavioral_change"):
+- "Face sunete la lectii" (Romanian: makes sounds during lessons) → if child context:
+  "selective_mutism" OR "adhd_vocalization" OR "vocal_stereotypy_asd"
+- "Reduce test anxiety" → "test_anxiety_children"
+- "Improve eye contact" → "social_communication_asd"
+- "Stop hitting siblings" → "aggression_children"
+- "Talk more at school" → "selective_mutism" or "school_social_anxiety"
+
+BEHAVIOR DIRECTION:
+- INCREASE: goal is to produce MORE of a behavior
+- REDUCE: goal is to produce LESS of a behavior
+- MAINTAIN: keep current level
+- UNCLEAR: cannot determine
+
+REQUIRED KEYWORDS: clinical terms that MUST appear in papers for them to be relevant.
+Example for selective mutism: ["selective mutism", "classroom vocalization", "speech anxiety", "school", "children", "behavioral intervention"]
+
+EXCLUDED TOPICS: topics that look related but are NOT relevant.
+Example for selective mutism: ["homework completion", "academic achievement", "family therapy engagement", "adolescent depression", "adult psychotherapy"]
+
+Return JSON matching the schema exactly.`,
+      });
+
+      console.log(
+        `🌐 Goal normalized: "${inputData.goal.title}" → "${object.translatedGoalTitle}" (${object.clinicalDomain}, ${object.behaviorDirection})`,
+      );
+
+      return { ...inputData, ...object };
+    } catch (err) {
+      console.warn(
+        `⚠️ Goal normalization failed, using fallback: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return { ...inputData, ...fallback };
+    }
+  },
 });
 
 // Step 1: Load context
@@ -104,6 +275,24 @@ const loadContextStep = createStep({
   },
 });
 
+const clinicalContextFields = {
+  translatedGoalTitle: z.string(),
+  originalLanguage: z.string(),
+  clinicalRestatement: z.string(),
+  clinicalDomain: z.string(),
+  behaviorDirection: z.enum(["INCREASE", "REDUCE", "MAINTAIN", "UNCLEAR"]),
+  developmentalTier: z.enum([
+    "preschool",
+    "early_school",
+    "middle_childhood",
+    "adolescent",
+    "adult",
+    "unknown",
+  ]),
+  requiredKeywords: z.array(z.string()),
+  excludedTopics: z.array(z.string()),
+};
+
 // Step 2: Ensure Langfuse prompts exist (DeepSeek generates goal-specific templates)
 const ensurePromptsStep = createStep({
   id: "ensure-langfuse-prompts",
@@ -119,6 +308,7 @@ const ensurePromptsStep = createStep({
     notes: z.array(z.object({ id: z.number().int(), content: z.string() })),
     familyMemberName: z.string().nullable(),
     familyMemberAge: z.number().int().nullable(),
+    ...clinicalContextFields,
   }),
   outputSchema: z.object({
     userId: z.string(),
@@ -136,6 +326,7 @@ const ensurePromptsStep = createStep({
     extractorPromptName: z.string(),
     goalSignature: z.string(),
     createdNewVersion: z.boolean(),
+    ...clinicalContextFields,
   }),
   execute: async ({ inputData }) => {
     if (inputData.jobId) {
@@ -143,12 +334,20 @@ const ensurePromptsStep = createStep({
     }
     const ensured = await langfusePromptPackTools.ensure({
       goalId: inputData.goalId,
-      goalTitle: inputData.goal.title,
+      // Use the translated/normalized title so DeepSeek generates correct domain queries
+      goalTitle: inputData.translatedGoalTitle,
       goalDescription: inputData.goal.description ?? "",
       notes: inputData.notes.map((n) => n.content),
       familyMemberName: inputData.familyMemberName,
       familyMemberAge: inputData.familyMemberAge,
       label: process.env.LANGFUSE_PROMPT_LABEL || "production",
+      // Clinical context from normalizeGoalStep — used as hard constraints in planner prompt
+      clinicalDomain: inputData.clinicalDomain,
+      clinicalRestatement: inputData.clinicalRestatement,
+      behaviorDirection: inputData.behaviorDirection,
+      developmentalTier: inputData.developmentalTier,
+      requiredKeywords: inputData.requiredKeywords,
+      excludedTopics: inputData.excludedTopics,
     });
 
     return {
@@ -196,14 +395,16 @@ const planQueryStep = createStep({
     if (inputData.jobId) {
       await d1Tools.updateGenerationJob(inputData.jobId, { progress: 20 }).catch(() => {});
     }
+    // Use the translated title so the Langfuse planner prompt runs in clinical English
+    const planTitle = (inputData as any).translatedGoalTitle ?? inputData.goal.title;
+
     const rawPlan = await extractorTools.plan({
-      title: inputData.goal.title,
+      title: planTitle,
       description: inputData.goal.description ?? "",
       notes: inputData.notes.map((n) => n.content),
       plannerPromptName: inputData.plannerPromptName,
     });
 
-    // Sanitize to remove "occupational therapy" poison
     const plan = extractorTools.sanitize(rawPlan);
 
     console.log(`\n📋 Query Plan:`);
@@ -278,32 +479,33 @@ const searchStep = createStep({
 
     console.log(`\n🔍 Multi-source search with query expansion...\n`);
 
-    // Fallback queries if planner didn't provide them
+    // Fallback queries — child/behavioral defaults if planner didn't provide them.
+    // These are intentionally pediatric-focused to avoid adult-CBT drift.
     const crossrefQueries = inputData.crossrefQueries?.length
       ? inputData.crossrefQueries.slice(0, 15)
       : [
-          "evidence-based therapy intervention",
-          "behavioral change psychological treatment",
-          "cognitive behavioral therapy techniques",
-          "emotional regulation therapeutic approach",
-          "psychological resilience building",
+          "behavioral intervention children school-age evidence-based",
+          "CBT cognitive behavioral therapy children school",
+          "anxiety disorder children behavioral treatment",
+          "social skills intervention school-age children",
+          "child behavioral therapy evidence-based outcomes",
         ];
 
     const semanticQueries = inputData.semanticScholarQueries?.length
       ? inputData.semanticScholarQueries.slice(0, 20)
       : [
-          "evidence-based psychological intervention",
-          "behavioral change therapy outcomes",
-          "cognitive behavioral treatment effectiveness",
-          "emotional regulation therapy",
-          "therapeutic techniques mental health",
+          "evidence-based behavioral intervention children",
+          "CBT children anxiety school outcomes",
+          "pediatric behavioral therapy effectiveness",
+          "school-based mental health intervention children",
+          "child psychology therapeutic techniques",
         ];
 
     const pubmedQueries = inputData.pubmedQueries?.length
       ? inputData.pubmedQueries.slice(0, 12)
       : [
-          "psychological therapy intervention outcomes",
-          "behavioral treatment evidence-based",
+          "behavioral intervention children[MeSH] school",
+          "CBT anxiety children school-based treatment",
         ];
 
     console.log(`   Crossref: ${crossrefQueries.length} queries`);
@@ -347,20 +549,39 @@ const searchStep = createStep({
       `📚 Raw results: Crossref(${crossrefBatches.flat().length}), PubMed(${pubmedBatches.flat().length}), Semantic(${semanticBatches.flat().length})`,
     );
 
-    // Title blacklist: avoid obvious out-of-domain papers
-    const badTerms = [
+    // Title blacklist: avoid obvious out-of-domain papers.
+    // NOTE: "occupational therapy" intentionally removed — it's a valid co-treatment
+    // domain for pediatric communication and sensory goals.
+    const staticBadTerms = [
       "forensic",
       "witness",
       "court",
       "police",
       "legal",
-      "abuse",
-      "occupational therapy",
       "pre-admission",
+      "homework completion",
+      "homework adherence",
+      "homework refusal",
+      "dating violence",
+      "teen dating",
+      "cybersex",
+      "internet pornography",
+      "weight control",
+      "obesity intervention",
+      "gang-affiliated",
+      "delinquency",
+      "marital therapy",
+      "marriage therapy",
+      "couples therapy",
     ];
 
+    // Also incorporate excludedTopics from the clinical normalization step
+    const dynamicBadTerms: string[] = (inputData as any).excludedTopics ?? [];
+
+    const allBadTerms = [...staticBadTerms, ...dynamicBadTerms];
+
     const bad = new RegExp(
-      `\\b(${badTerms.map(escapeRegExp).join("|")})\\b`,
+      `\\b(${allBadTerms.map(escapeRegExp).join("|")})\\b`,
       "i",
     );
 
@@ -455,7 +676,9 @@ const enrichAbstractsStep = createStep({
     );
 
     const withAbstracts = enriched.filter(
-      (c: any) => (c.abstract || c._enrichedAbstract || "").length >= 150,
+      // Raised from 150 to 300 chars: a 150-char abstract is ~2 sentences,
+      // too short for the extractor to score accurately
+      (c: any) => (c.abstract || c._enrichedAbstract || "").length >= 300,
     );
 
     console.log(`   Enriched: ${enriched.length} candidates`);
@@ -551,11 +774,15 @@ const prepExtractStep = createStep({
       context: {
         goal: inputData.goal,
         notes: inputData.notes,
+        // Pass translated title so extractor scores against the correct clinical domain
+        translatedGoalTitle: inputData.translatedGoalTitle ?? inputData.goal?.title,
       },
       plan: {
         goalType: inputData.goalType,
         extractorPromptName: inputData.extractorPromptName,
         keywords: inputData.keywords,
+        // Pass requiredKeywords for keyword-overlap scoring in persistStep
+        requiredKeywords: inputData.requiredKeywords ?? [],
       },
       search: {
         candidates: inputData.candidates,
@@ -580,6 +807,7 @@ const extractAllStep = createStep({
     goalId: z.number().int(),
     jobId: z.string().optional(),
     results: z.array(z.any()),
+    requiredKeywords: z.array(z.string()).optional(),
   }),
   execute: async ({ inputData }) => {
     if (inputData.jobId) {
@@ -612,7 +840,8 @@ const extractAllStep = createStep({
           extractOnePaper({
             candidate,
             goalType: plan.goalType,
-            goalTitle: goal.title,
+            // Use translated title so extractor scores against the correct clinical domain
+            goalTitle: inputData.context.translatedGoalTitle ?? goal.title,
             goalDescription: goal.description,
             extractorPromptName: plan.extractorPromptName,
           }),
@@ -632,11 +861,12 @@ const extractAllStep = createStep({
       goalId: inputData.goalId,
       jobId: inputData.jobId,
       results,
+      requiredKeywords: inputData.plan?.requiredKeywords ?? [],
     };
   },
 });
 
-// Step 8: Persist results with two-stage quality gating
+// Step 8: Persist results with multi-stage quality gating
 const persistStep = createStep({
   id: "persist",
   inputSchema: z.object({
@@ -644,6 +874,8 @@ const persistStep = createStep({
     goalId: z.number().int(),
     jobId: z.string().optional(),
     results: z.array(z.any()),
+    // requiredKeywords from normalizeGoalStep, passed via prepExtractStep → extractAllStep
+    requiredKeywords: z.array(z.string()).optional(),
   }),
   outputSchema,
   execute: async ({ inputData }) => {
@@ -652,23 +884,43 @@ const persistStep = createStep({
     }
     console.log(`\n📊 Extraction results: ${inputData.results.length} total\n`);
 
-    // Stage 1: must have at least one key finding
-    // Stage 2: rank by blended score (70% relevance + 30% confidence), take top N
+    const requiredKeywords = (inputData.requiredKeywords ?? []).map((k) =>
+      k.toLowerCase(),
+    );
+
+    /**
+     * Keyword-overlap score: fraction of required keywords found in title + abstract.
+     * Used as a tie-breaker and a weak signal that the paper is in the right domain.
+     * Returns 0 if no requiredKeywords are defined (no penalty for legacy runs).
+     */
+    function keywordOverlapScore(research: any): number {
+      if (!requiredKeywords.length) return 0.5; // neutral if no keywords defined
+      const haystack = `${research.title ?? ""} ${research.abstract ?? ""}`.toLowerCase();
+      const hits = requiredKeywords.filter((kw) => haystack.includes(kw)).length;
+      return hits / requiredKeywords.length;
+    }
+
+    // Stage 1: must have passed extractor gate + have key findings + no rejectReason
+    // Stage 2: rank by adjusted blended score (60% LLM-blended + 40% keyword-overlap)
     const qualified = inputData.results
       .filter((r) => r.ok && r.research)
       .filter((r) => (r.research.keyFindings?.length ?? 0) > 0)
+      // Enforce rejectReason: if the LLM explicitly rejected, exclude regardless of score
+      .filter((r) => !r.rejectReason && !r.research?.rejectReason)
       .map((r) => {
         const relevance = r.research.relevanceScore ?? 0;
         const confidence = r.research.extractionConfidence ?? 0;
-        const blended = 0.7 * relevance + 0.3 * confidence;
-        return { ...r, blended };
+        const llmBlended = 0.7 * relevance + 0.3 * confidence;
+        const kwOverlap = keywordOverlapScore(r.research);
+        // Adjusted blended: 60% LLM score + 40% keyword presence
+        const adjustedBlended =
+          requiredKeywords.length > 0
+            ? 0.6 * llmBlended + 0.4 * kwOverlap
+            : llmBlended;
+        return { ...r, blended: adjustedBlended, llmBlended, kwOverlap };
       })
       .filter((r) => r.blended >= BLENDED_THRESHOLD)
       .sort((a, b) => b.blended - a.blended);
-
-    console.log(
-      `   With key findings + blended ≥ ${BLENDED_THRESHOLD}: ${qualified.length}`,
-    );
 
     const top = qualified.slice(0, PERSIST_CANDIDATES_LIMIT);
 
@@ -685,7 +937,7 @@ const persistStep = createStep({
           : research.title;
 
       console.log(
-        `   ${count + errors + 1}. [${r.blended.toFixed(2)}] ${displayTitle}`,
+        `   ${count + errors + 1}. [blended=${r.blended.toFixed(2)} llm=${r.llmBlended?.toFixed(2) ?? "?"} kw=${r.kwOverlap?.toFixed(2) ?? "?"}] ${displayTitle}`,
       );
 
       try {
@@ -735,6 +987,7 @@ export const generateTherapyResearchWorkflow = createWorkflow({
   outputSchema,
 })
   .then(loadContextStep)
+  .then(normalizeGoalStep)  // translate + clinical classify before Langfuse prompt generation
   .then(ensurePromptsStep)
   .then(planQueryStep)
   .then(searchStep)

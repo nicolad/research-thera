@@ -50,6 +50,15 @@ query GetGoal($id: Int, $slug: String) {
       journal
       url
     }
+    stories {
+      id
+      goalId
+      language
+      minutes
+      text
+      createdAt
+      updatedAt
+    }
     userStories {
       id
       goalId

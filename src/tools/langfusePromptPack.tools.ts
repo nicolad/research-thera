@@ -109,8 +109,11 @@ async function upsertLangfuseTextPrompt(params: {
 
 /**
  * Ensures goal-specific prompts exist in Langfuse.
- * - If missing OR signature mismatch => generate with OpenAI + create new prompt version.
+ * - If missing OR signature mismatch => generate with DeepSeek + create new prompt version.
  * - Else reuse existing latest version.
+ *
+ * Clinical context fields (from normalizeGoalStep) are used as hard constraints
+ * in the generated planner prompt to prevent domain drift.
  */
 export async function ensureLangfusePromptPackForGoal(params: {
   goalId: number;
@@ -119,7 +122,14 @@ export async function ensureLangfusePromptPackForGoal(params: {
   notes: string[];
   familyMemberName?: string | null;
   familyMemberAge?: number | null;
-  label?: string; // e.g. "production" | "staging"
+  label?: string;
+  // Clinical context from normalizeGoalStep — hard constraints for query planning
+  clinicalDomain?: string;
+  clinicalRestatement?: string;
+  behaviorDirection?: "INCREASE" | "REDUCE" | "MAINTAIN" | "UNCLEAR";
+  developmentalTier?: string;
+  requiredKeywords?: string[];
+  excludedTopics?: string[];
 }) {
   const {
     goalId,
@@ -129,6 +139,12 @@ export async function ensureLangfusePromptPackForGoal(params: {
     familyMemberName,
     familyMemberAge,
     label = "production",
+    clinicalDomain,
+    clinicalRestatement,
+    behaviorDirection,
+    developmentalTier,
+    requiredKeywords,
+    excludedTopics,
   } = params;
 
   const goalSignature = sha256(
@@ -139,6 +155,12 @@ export async function ensureLangfusePromptPackForGoal(params: {
       notes,
       familyMemberName: familyMemberName ?? null,
       familyMemberAge: familyMemberAge ?? null,
+      // Clinical context is part of the signature so that normalization changes
+      // invalidate the cached Langfuse prompts automatically
+      clinicalDomain: clinicalDomain ?? null,
+      clinicalRestatement: clinicalRestatement ?? null,
+      behaviorDirection: behaviorDirection ?? null,
+      developmentalTier: developmentalTier ?? null,
       PROMPT_TEMPLATE_VERSION,
     }),
   );
@@ -191,6 +213,19 @@ export async function ensureLangfusePromptPackForGoal(params: {
         ? `Family Member: ${familyMemberName}${familyMemberAge != null ? `, Age: ${familyMemberAge}` : ""}`
         : "";
 
+      // Build clinical constraint block from normalizeGoalStep output
+      const clinicalConstraintBlock = clinicalDomain
+        ? `
+CLINICAL CONTEXT (use these as HARD CONSTRAINTS — do not override):
+- Clinical Domain: ${clinicalDomain}
+- Clinical Restatement: ${clinicalRestatement ?? goalTitle}
+- Behavior Direction: ${behaviorDirection ?? "UNCLEAR"} (INCREASE = help patient do more of this; REDUCE = help patient do less of this)
+- Developmental Tier: ${developmentalTier ?? "unknown"}
+${requiredKeywords?.length ? `- Required Keywords (MUST appear in relevant papers): ${requiredKeywords.join(", ")}` : ""}
+${excludedTopics?.length ? `- Excluded Topics (papers about these are NOT relevant): ${excludedTopics.join(", ")}` : ""}
+`
+        : "";
+
       const { object: candidate } = await generateObject({
         model: deepseek("deepseek-chat"),
         temperature: 1.0,
@@ -204,25 +239,24 @@ Goal Title: ${goalTitle}
 Goal Description: ${goalDescription}
 ${familyMemberContext ? `${familyMemberContext}\n` : ""}Notes:
 - ${notes.join("\n- ")}
-
+${clinicalConstraintBlock}
 TASK
 Generate two Langfuse TEXT prompt templates (strings) that use ONLY {{variables}} for interpolation.
 
 TEMPLATE A: plannerPrompt
 - Input variables allowed: ${plannerVars.map((v) => `{{${v}}}`).join(", ")}
 - Output: JSON for a multi-source research query plan.
-- The plan should identify the therapeutic goal type, relevant psychological keywords,
-  and diverse search queries for Semantic Scholar, Crossref, and PubMed.
-- Queries should target evidence-based psychological interventions, therapeutic techniques,
-  and clinical research related to the goal.
-${familyMemberContext ? `- IMPORTANT: The therapy goal is for ${familyMemberContext}. Tailor search queries to be age-appropriate and relevant to this person's developmental stage (e.g., "child", "adolescent", "adult", "older adult" as applicable). Age-specific population terms should appear in queries.\n` : ""}- Include fail-closed rule: if abstract is fewer than 200 characters or missing, reject the paper.
+- The plan should identify the SPECIFIC therapeutic goal type (NOT "behavioral_change" — be clinically precise: e.g., "selective_mutism", "adhd_vocalization", "social_anxiety_children").
+- Queries should target evidence-based interventions, therapeutic techniques, and clinical research.
+${clinicalConstraintBlock ? `- CRITICAL: All queries MUST be anchored to the clinical domain "${clinicalDomain}". DO NOT generate queries about homework completion, family therapy engagement, adult psychotherapy, or any excluded topics listed above.\n` : ""}${familyMemberContext ? `- IMPORTANT: The therapy goal is for ${familyMemberContext}. ALL queries must target the correct developmental stage.\n` : ""}- Include fail-closed rule: if abstract is fewer than 300 characters or missing, reject the paper.
 - Must produce MULTIPLE smaller queries (query pack) rather than one long query for better recall.
+- Include population age qualifiers in queries (e.g., "children", "school-age", "adolescent") matching the patient's developmental stage.
 
 TEMPLATE B: extractorPrompt
 - Input variables allowed: ${extractorVars.map((v) => `{{${v}}}`).join(", ")}
 - Output: STRICT JSON extraction of therapeutic research relevance from a paper.
 - REQUIRED JSON FIELDS:
-  * domain: enum ["cbt", "act", "dbt", "behavioral", "psychodynamic", "somatic", "humanistic", "other"]
+  * domain: enum ["cbt", "act", "dbt", "behavioral", "psychodynamic", "somatic", "humanistic", "speech_language", "play_therapy", "aba", "parent_mediated", "neurodevelopmental", "other"]
   * paperMeta: {title, authors[], year, venue, doi, url}
   * studyType: enum ["meta-analysis", "RCT", "field study", "lab study", "quasi-experimental", "review", "other"]
   * populationContext: string or null
@@ -233,13 +267,20 @@ TEMPLATE B: extractorPrompt
   * relevanceScore: number 0-1 (how relevant to the therapeutic goal)
   * confidence: number 0-1 (confidence in the extraction quality)
   * rejectReason: string or null
-- MUST include fail-closed rule: "If abstract is missing or has fewer than 200 characters, return empty extraction with relevanceScore=0 and confidence=0 and rejectReason='insufficient_abstract'"
-- Score 0.1 or lower if paper is NOT about psychological/therapeutic research.
+- RELEVANCE SCORING RUBRIC (be strict — these thresholds will be enforced):
+  * 1.0: Paper directly studies the exact behavior/condition in {{goalTitle}} in the same population
+  * 0.8: Paper studies the same condition/behavior class in a closely related population
+  * 0.6: Paper studies an adjacent condition using the same therapeutic modality for the goal's population
+  * 0.4: Paper uses the same modality but for a different condition and/or different population
+  * 0.2: Paper is about child/clinical psychology but has no specific relevance to {{goalTitle}}
+  * 0.1 or below: Paper is NOT about the specific clinical domain of {{goalTitle}}
+${clinicalConstraintBlock ? `- CRITICAL: Papers about homework completion, family therapy engagement, academic achievement, adult psychotherapy, or any topic unrelated to "${clinicalDomain}" MUST receive relevanceScore ≤ 0.2.\n` : ""}- Population mismatch penalty: If study population age does not match the patient's developmental stage, reduce relevanceScore by 0.3.
+- MUST include fail-closed rule: "If abstract is missing or fewer than 300 characters, return relevanceScore=0, confidence=0, rejectReason='insufficient_abstract'"
 
 CRITICAL REQUIREMENTS FOR BOTH TEMPLATES:
 1. Use ONLY the allowed {{variables}} listed above - no others.
 2. Include the literal string "${metaLine}" in BOTH templates.
-3. Be specific and instructive - these prompts will guide AI to find relevant therapy research.
+3. Be specific and clinically grounded — these prompts guide AI to find precise therapy research.
 
 Return JSON with keys: plannerPrompt, extractorPrompt.
         `.trim(),
