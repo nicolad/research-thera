@@ -38,6 +38,7 @@ export const ttsChunkQueue = queue({
 export interface TTSPayload {
   text: string;
   storyId?: string | null;
+  goalStoryId?: string | null;
   jobId?: string | null;
   voice?: string;
   model?: string;
@@ -246,6 +247,7 @@ export const ttsTask = task({
     const {
       text,
       storyId,
+      goalStoryId,
       jobId,
       voice = "onyx",
       model = "gpt-4o-mini-tts",
@@ -321,7 +323,14 @@ export const ttsTask = task({
     logger.info("tts.chunks_cleaned", { storyId, count: chunkPayloads.length });
 
     // Update D1 stories row
-    if (storyId && userEmail) {
+    if (goalStoryId) {
+      const now = new Date().toISOString();
+      await d1.execute({
+        sql: `UPDATE goal_stories SET audio_key = ?, audio_url = ?, audio_generated_at = ?, updated_at = ? WHERE id = ?`,
+        args: [key, audioUrl, now, now, goalStoryId],
+      });
+      logger.info("tts.goal_story_updated", { goalStoryId, audioUrl });
+    } else if (storyId && userEmail) {
       const now = new Date().toISOString();
       await d1.execute({
         sql: `UPDATE stories SET audio_key = ?, audio_url = ?, audio_generated_at = ?, updated_at = ? WHERE id = ? AND user_id = ?`,

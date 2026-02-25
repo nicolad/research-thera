@@ -847,7 +847,12 @@ function GoalPageContent() {
                 <Card
                   key={story.id}
                   style={{ backgroundColor: "var(--gray-2)" }}
+                  asChild
                 >
+                  <NextLink
+                    href={`/stories/goal-story/${story.id}`}
+                    style={{ textDecoration: "none", cursor: "pointer" }}
+                  >
                   <Flex direction="column" gap="2" p="3">
                     <Flex justify="between" align="center">
                       <Flex align="center" gap="2">
@@ -876,6 +881,7 @@ function GoalPageContent() {
                       {story.text}
                     </Text>
                   </Flex>
+                  </NextLink>
                 </Card>
               ))}
             </Flex>

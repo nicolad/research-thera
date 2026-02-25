@@ -12,6 +12,7 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
   const {
     text,
     storyId,
+    goalStoryId,
     voice,
     model,
     speed,
@@ -23,15 +24,19 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
     throw new Error("Text is required");
   }
 
+  // Determine which entity we're generating audio for
+  const entityStoryId = storyId ?? goalStoryId;
+  const isGoalStory = goalStoryId != null;
+
   // Deduplication: check for any RUNNING job for this story.
   // Jobs older than 10 min are considered stale (Trigger.dev MAX_DURATION_EXCEEDED
   // does not always fire onFailure) — mark them FAILED and allow a new run.
-  if (storyId) {
+  if (entityStoryId) {
     const existing = await d1.execute({
       sql: `SELECT id, created_at FROM generation_jobs
             WHERE story_id = ? AND user_id = ? AND type = 'AUDIO' AND status = 'RUNNING'
             ORDER BY created_at DESC LIMIT 1`,
-      args: [storyId, userEmail],
+      args: [entityStoryId, userEmail],
     });
     if (existing.rows.length > 0) {
       const existingJobId = existing.rows[0].id as string;
@@ -39,7 +44,7 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
       const ageMs = Date.now() - createdAt;
 
       if (ageMs < 10 * 60 * 1000) {
-        console.log(`[TTS] job ${existingJobId} already running for story ${storyId}`);
+        console.log(`[TTS] job ${existingJobId} already running for story ${entityStoryId}`);
         return {
           success: true,
           message: "Audio generation already in progress",
@@ -63,7 +68,20 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
 
   // Create a RUNNING job in D1 for tracking + deduplication
   const jobId = crypto.randomUUID();
-  if (storyId) {
+
+  if (isGoalStory && goalStoryId) {
+    // Fetch goal_id from goal_stories table
+    const goalStoryRow = await d1.execute({
+      sql: `SELECT goal_id FROM goal_stories WHERE id = ?`,
+      args: [goalStoryId],
+    });
+    const goalId = (goalStoryRow.rows[0]?.goal_id as number | undefined) ?? null;
+    await d1.execute({
+      sql: `INSERT INTO generation_jobs (id, user_id, type, goal_id, story_id, status, progress)
+            VALUES (?, ?, 'AUDIO', ?, ?, 'RUNNING', 0)`,
+      args: [jobId, userEmail, goalId, goalStoryId],
+    });
+  } else if (storyId) {
     const storyRow = await d1.execute({
       sql: `SELECT goal_id FROM stories WHERE id = ? AND user_id = ?`,
       args: [storyId, userEmail],
@@ -89,6 +107,7 @@ export const generateOpenAIAudio: NonNullable<MutationResolvers['generateOpenAIA
   const ttsPayload: TTSPayload = {
     text,
     storyId: storyId != null ? String(storyId) : null,
+    goalStoryId: goalStoryId != null ? String(goalStoryId) : undefined,
     jobId,
     voice: openAIVoice,
     model: openAIModel,

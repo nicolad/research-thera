@@ -153,6 +153,9 @@ export const goalStories = sqliteTable("goal_stories", {
   language: text("language").notNull(),
   minutes: integer("minutes").notNull(),
   text: text("text").notNull(),
+  audioKey: text("audio_key"),
+  audioUrl: text("audio_url"),
+  audioGeneratedAt: text("audio_generated_at"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

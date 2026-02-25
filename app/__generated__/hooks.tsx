@@ -309,6 +309,7 @@ export type GenerateLongFormTextResult = {
 };
 
 export type GenerateOpenAiAudioInput = {
+  goalStoryId?: InputMaybe<Scalars['Int']['input']>;
   instructions?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<OpenAittsModel>;
   responseFormat?: InputMaybe<OpenAiAudioFormat>;
@@ -392,6 +393,9 @@ export type Goal = {
 export type GoalStory = {
   __typename?: 'GoalStory';
   audioAssets: Array<AudioAsset>;
+  audioGeneratedAt?: Maybe<Scalars['String']['output']>;
+  audioKey?: Maybe<Scalars['String']['output']>;
+  audioUrl?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   goalId: Scalars['Int']['output'];
   id: Scalars['Int']['output'];
@@ -782,6 +786,7 @@ export type Query = {
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
+  goalStory?: Maybe<GoalStory>;
   goals: Array<Goal>;
   journalEntries: Array<JournalEntry>;
   journalEntry?: Maybe<JournalEntry>;
@@ -831,6 +836,11 @@ export type QueryGenerationJobsArgs = {
 export type QueryGoalArgs = {
   id?: InputMaybe<Scalars['Int']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGoalStoryArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -1233,6 +1243,13 @@ export type GetGoalQueryVariables = Exact<{
 
 
 export type GetGoalQuery = { __typename?: 'Query', goal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, therapeuticText?: string | null, therapeuticTextLanguage?: string | null, therapeuticTextGeneratedAt?: string | null, storyLanguage?: string | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null } | null, parentGoal?: { __typename?: 'Goal', id: number, slug?: string | null, title: string, status: string } | null, subGoals: Array<{ __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string }>, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, content: string, noteType?: string | null, tags?: Array<string> | null, createdAt: string, updatedAt: string }>, research: Array<{ __typename?: 'Research', id: number, title: string, authors: Array<string>, year?: number | null, journal?: string | null, url?: string | null }>, stories: Array<{ __typename?: 'GoalStory', id: number, goalId: number, language: string, minutes: number, text: string, createdAt: string, updatedAt: string }>, userStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string }> } | null };
+
+export type GetGoalStoryQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetGoalStoryQuery = { __typename?: 'Query', goalStory?: { __typename?: 'GoalStory', id: number, goalId: number, language: string, minutes: number, text: string, audioKey?: string | null, audioUrl?: string | null, audioGeneratedAt?: string | null, createdAt: string, updatedAt: string } | null };
 
 export type GetGoalsQueryVariables = Exact<{
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
@@ -2875,6 +2892,58 @@ export type GetGoalQueryHookResult = ReturnType<typeof useGetGoalQuery>;
 export type GetGoalLazyQueryHookResult = ReturnType<typeof useGetGoalLazyQuery>;
 export type GetGoalSuspenseQueryHookResult = ReturnType<typeof useGetGoalSuspenseQuery>;
 export type GetGoalQueryResult = Apollo.QueryResult<GetGoalQuery, GetGoalQueryVariables>;
+export const GetGoalStoryDocument = gql`
+    query GetGoalStory($id: Int!) {
+  goalStory(id: $id) {
+    id
+    goalId
+    language
+    minutes
+    text
+    audioKey
+    audioUrl
+    audioGeneratedAt
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetGoalStoryQuery__
+ *
+ * To run a query within a React component, call `useGetGoalStoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGoalStoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGoalStoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetGoalStoryQuery(baseOptions: Apollo.QueryHookOptions<GetGoalStoryQuery, GetGoalStoryQueryVariables> & ({ variables: GetGoalStoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGoalStoryQuery, GetGoalStoryQueryVariables>(GetGoalStoryDocument, options);
+      }
+export function useGetGoalStoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGoalStoryQuery, GetGoalStoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGoalStoryQuery, GetGoalStoryQueryVariables>(GetGoalStoryDocument, options);
+        }
+// @ts-ignore
+export function useGetGoalStorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetGoalStoryQuery, GetGoalStoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetGoalStoryQuery, GetGoalStoryQueryVariables>;
+export function useGetGoalStorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGoalStoryQuery, GetGoalStoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetGoalStoryQuery | undefined, GetGoalStoryQueryVariables>;
+export function useGetGoalStorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGoalStoryQuery, GetGoalStoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGoalStoryQuery, GetGoalStoryQueryVariables>(GetGoalStoryDocument, options);
+        }
+export type GetGoalStoryQueryHookResult = ReturnType<typeof useGetGoalStoryQuery>;
+export type GetGoalStoryLazyQueryHookResult = ReturnType<typeof useGetGoalStoryLazyQuery>;
+export type GetGoalStorySuspenseQueryHookResult = ReturnType<typeof useGetGoalStorySuspenseQuery>;
+export type GetGoalStoryQueryResult = Apollo.QueryResult<GetGoalStoryQuery, GetGoalStoryQueryVariables>;
 export const GetGoalsDocument = gql`
     query GetGoals($familyMemberId: Int, $status: String) {
   goals(familyMemberId: $familyMemberId, status: $status) {

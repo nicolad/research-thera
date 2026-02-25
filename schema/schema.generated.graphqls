@@ -267,6 +267,7 @@ type GenerateLongFormTextResult {
 }
 
 input GenerateOpenAIAudioInput {
+  goalStoryId: Int
   instructions: String
   model: OpenAITTSModel
   responseFormat: OpenAIAudioFormat
@@ -344,6 +345,9 @@ type Goal {
 
 type GoalStory {
   audioAssets: [AudioAsset!]!
+  audioGeneratedAt: String
+  audioKey: String
+  audioUrl: String
   createdAt: String!
   goalId: Int!
   id: Int!
@@ -540,6 +544,7 @@ type Query {
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int, slug: String): Goal
+  goalStory(id: Int!): GoalStory
   goals(familyMemberId: Int, status: String): [Goal!]!
   journalEntries(familyMemberId: Int, fromDate: String, goalId: Int, mood: String, toDate: String): [JournalEntry!]!
   journalEntry(id: Int!): JournalEntry

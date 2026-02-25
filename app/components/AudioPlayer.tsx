@@ -15,7 +15,8 @@ import {
 } from "@/app/__generated__/hooks";
 
 interface AudioPlayerProps {
-  storyId: number;
+  storyId?: number;
+  goalStoryId?: number;
   goalId: number;
   storyContent: string;
   existingAudioUrl?: string | null;
@@ -33,12 +34,14 @@ function formatDuration(seconds?: number | null): string {
 
 export function AudioPlayer({
   storyId,
+  goalStoryId,
   goalId,
   storyContent,
   existingAudioUrl,
   audioGeneratedAt,
   onAudioGenerated,
 }: AudioPlayerProps) {
+  const effectiveStoryId = storyId ?? goalStoryId ?? 0;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,7 +81,7 @@ export function AudioPlayer({
   useEffect(() => {
     if (pollingJobId || existingAudioUrl) return;
     const runningJob = runningJobsData?.generationJobs?.find(
-      (j) => j.type === JobType.Audio && j.storyId === storyId,
+      (j) => j.type === JobType.Audio && j.storyId === effectiveStoryId,
     );
     if (runningJob) {
       // If the job hasn't been updated in >10 min it's permanently stuck — show error instead of polling.
@@ -99,7 +102,7 @@ export function AudioPlayer({
       }, 10 * 60 * 1000);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runningJobsData, pollingJobId, existingAudioUrl, storyId]);
+  }, [runningJobsData, pollingJobId, existingAudioUrl, effectiveStoryId]);
 
   // React to job status changes
   useEffect(() => {
@@ -172,7 +175,9 @@ export function AudioPlayer({
         variables: {
           input: {
             text: storyContent,
-            storyId,
+            ...(goalStoryId && !storyId
+              ? { goalStoryId }
+              : { storyId }),
             voice: OpenAittsVoice.Onyx,
             model: OpenAittsModel.Gpt_4OMiniTts,
             responseFormat: OpenAiAudioFormat.Mp3,
@@ -207,7 +212,7 @@ export function AudioPlayer({
     if (!audioSrc) return;
     const a = document.createElement("a");
     a.href = audioSrc;
-    a.download = `story-${storyId}-audio.mp3`;
+    a.download = `story-${effectiveStoryId}-audio.mp3`;
     a.click();
   };
 

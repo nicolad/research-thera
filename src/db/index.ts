@@ -1333,6 +1333,9 @@ export async function createGoalStory(
     language: row.language as string,
     minutes: row.minutes as number,
     text: row.text as string,
+    audioKey: (row.audio_key as string) || null,
+    audioUrl: (row.audio_url as string) || null,
+    audioGeneratedAt: (row.audio_generated_at as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -1355,9 +1358,24 @@ export async function getGoalStory(id: number) {
     language: row.language as string,
     minutes: row.minutes as number,
     text: row.text as string,
+    audioKey: (row.audio_key as string) || null,
+    audioUrl: (row.audio_url as string) || null,
+    audioGeneratedAt: (row.audio_generated_at as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
+}
+
+export async function updateGoalStoryAudio(
+  id: number,
+  audioKey: string,
+  audioUrl: string,
+) {
+  const now = new Date().toISOString();
+  await d1.execute({
+    sql: `UPDATE goal_stories SET audio_key = ?, audio_url = ?, audio_generated_at = ?, updated_at = ? WHERE id = ?`,
+    args: [audioKey, audioUrl, now, now, id],
+  });
 }
 
 export async function listGoalStories(goalId: number) {
@@ -1372,6 +1390,9 @@ export async function listGoalStories(goalId: number) {
     language: row.language as string,
     minutes: row.minutes as number,
     text: row.text as string,
+    audioKey: (row.audio_key as string) || null,
+    audioUrl: (row.audio_url as string) || null,
+    audioGeneratedAt: (row.audio_generated_at as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }));
@@ -1689,6 +1710,7 @@ export const d1Tools = {
   listTherapeuticQuestions,
   createGoalStory,
   getGoalStory,
+  updateGoalStoryAudio,
   listGoalStories,
   getTextSegmentsForStory,
   getAudioAssetsForStory,

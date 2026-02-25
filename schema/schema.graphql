@@ -10,6 +10,7 @@ type Query {
 
   stories(goalId: Int!): [Story!]!
   story(id: Int!): Story
+  goalStory(id: Int!): GoalStory
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
 
@@ -176,6 +177,9 @@ type GoalStory {
   language: String!
   minutes: Int!
   text: String!
+  audioKey: String
+  audioUrl: String
+  audioGeneratedAt: String
   createdAt: String!
   updatedAt: String!
   segments: [TextSegment!]!
@@ -589,6 +593,7 @@ enum OpenAIStreamFormat {
 input GenerateOpenAIAudioInput {
   text: String!
   storyId: Int
+  goalStoryId: Int
   voice: OpenAITTSVoice
   model: OpenAITTSModel
   speed: Float

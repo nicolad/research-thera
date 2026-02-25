@@ -308,6 +308,7 @@ export type GenerateLongFormTextResult = {
 };
 
 export type GenerateOpenAIAudioInput = {
+  goalStoryId?: InputMaybe<Scalars['Int']['input']>;
   instructions?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<OpenAITTSModel>;
   responseFormat?: InputMaybe<OpenAIAudioFormat>;
@@ -391,6 +392,9 @@ export type Goal = {
 export type GoalStory = {
   __typename?: 'GoalStory';
   audioAssets: Array<AudioAsset>;
+  audioGeneratedAt?: Maybe<Scalars['String']['output']>;
+  audioKey?: Maybe<Scalars['String']['output']>;
+  audioUrl?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   goalId: Scalars['Int']['output'];
   id: Scalars['Int']['output'];
@@ -773,6 +777,7 @@ export type Query = {
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
+  goalStory?: Maybe<GoalStory>;
   goals: Array<Goal>;
   journalEntries: Array<JournalEntry>;
   journalEntry?: Maybe<JournalEntry>;
@@ -822,6 +827,11 @@ export type QuerygenerationJobsArgs = {
 export type QuerygoalArgs = {
   id?: InputMaybe<Scalars['Int']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerygoalStoryArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -1481,6 +1491,9 @@ export type GoalResolvers<ContextType = GraphQLContext, ParentType extends Resol
 
 export type GoalStoryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GoalStory'] = ResolversParentTypes['GoalStory']> = {
   audioAssets?: Resolver<Array<ResolversTypes['AudioAsset']>, ParentType, ContextType>;
+  audioGeneratedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  audioKey?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   goalId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1634,6 +1647,7 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   generationJob?: Resolver<Maybe<ResolversTypes['GenerationJob']>, ParentType, ContextType, RequireFields<QuerygenerationJobArgs, 'id'>>;
   generationJobs?: Resolver<Array<ResolversTypes['GenerationJob']>, ParentType, ContextType, Partial<QuerygenerationJobsArgs>>;
   goal?: Resolver<Maybe<ResolversTypes['Goal']>, ParentType, ContextType, Partial<QuerygoalArgs>>;
+  goalStory?: Resolver<Maybe<ResolversTypes['GoalStory']>, ParentType, ContextType, RequireFields<QuerygoalStoryArgs, 'id'>>;
   goals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType, Partial<QuerygoalsArgs>>;
   journalEntries?: Resolver<Array<ResolversTypes['JournalEntry']>, ParentType, ContextType, Partial<QueryjournalEntriesArgs>>;
   journalEntry?: Resolver<Maybe<ResolversTypes['JournalEntry']>, ParentType, ContextType, RequireFields<QueryjournalEntryArgs, 'id'>>;
