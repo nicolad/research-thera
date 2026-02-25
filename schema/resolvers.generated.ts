@@ -83,9 +83,9 @@ import    { GenerateResearchResult } from './resolvers/GenerateResearchResult';
 import    { GenerationJob } from './resolvers/GenerationJob';
 import    { Goal } from './resolvers/Goal';
 import    { GoalStory } from './resolvers/GoalStory';
-import    { JournalEntry } from './resolvers/JournalEntry';
 import    { JobError } from './resolvers/JobError';
 import    { JobResult } from './resolvers/JobResult';
+import    { JournalEntry } from './resolvers/JournalEntry';
 import    { Note } from './resolvers/Note';
 import    { NoteAccess } from './resolvers/NoteAccess';
 import    { NoteShare } from './resolvers/NoteShare';
@@ -127,9 +127,9 @@ GenerateResearchResult: GenerateResearchResult,
 GenerationJob: GenerationJob,
 Goal: Goal,
 GoalStory: GoalStory,
-JournalEntry: JournalEntry,
 JobError: JobError,
 JobResult: JobResult,
+JournalEntry: JournalEntry,
 Note: Note,
 NoteAccess: NoteAccess,
 NoteShare: NoteShare,

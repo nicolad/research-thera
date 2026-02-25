@@ -124,6 +124,18 @@ input CreateGoalInput {
   title: String!
 }
 
+input CreateJournalEntryInput {
+  content: String!
+  entryDate: String!
+  familyMemberId: Int
+  goalId: Int
+  isPrivate: Boolean
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  title: String
+}
+
 input CreateNoteInput {
   content: String!
   entityId: Int!
@@ -151,6 +163,11 @@ type DeleteFamilyMemberResult {
 }
 
 type DeleteGoalResult {
+  message: String
+  success: Boolean!
+}
+
+type DeleteJournalEntryResult {
   message: String
   success: Boolean!
 }
@@ -365,17 +382,37 @@ enum JobType {
   RESEARCH
 }
 
+type JournalEntry {
+  content: String!
+  createdAt: String!
+  createdBy: String!
+  entryDate: String!
+  familyMember: FamilyMember
+  familyMemberId: Int
+  goal: Goal
+  goalId: Int
+  id: Int!
+  isPrivate: Boolean!
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  title: String
+  updatedAt: String!
+}
+
 type Mutation {
   buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
   createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
   createGoal(input: CreateGoalInput!): Goal!
+  createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
   createNote(input: CreateNoteInput!): Note!
   createStory(input: CreateStoryInput!): Story!
   createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
   deleteClaimCard(id: ID!): Boolean!
   deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
   deleteGoal(id: Int!): DeleteGoalResult!
+  deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
   deleteNote(id: Int!): DeleteNoteResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
   deleteStory(id: Int!): DeleteStoryResult!
@@ -393,6 +430,7 @@ type Mutation {
   unshareNote(email: String!, noteId: Int!): Boolean!
   updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
+  updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
 }
@@ -501,6 +539,8 @@ type Query {
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
   goal(id: Int, slug: String): Goal
   goals(familyMemberId: Int, status: String): [Goal!]!
+  journalEntries(familyMemberId: Int, fromDate: String, goalId: Int, mood: String, toDate: String): [JournalEntry!]!
+  journalEntry(id: Int!): JournalEntry
   mySharedFamilyMembers: [FamilyMember!]!
   mySharedNotes: [Note!]!
   note(id: Int, slug: String): Note
@@ -599,6 +639,18 @@ input UpdateGoalInput {
   description: String
   familyMemberId: Int
   status: String
+  title: String
+}
+
+input UpdateJournalEntryInput {
+  content: String
+  entryDate: String
+  familyMemberId: Int
+  goalId: Int
+  isPrivate: Boolean
+  mood: String
+  moodScore: Int
+  tags: [String!]
   title: String
 }
 
