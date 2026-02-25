@@ -134,6 +134,8 @@ function GoalPageContent() {
     variables: { id: researchJobId! },
     skip: !researchJobId,
     pollInterval: 2000,
+    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "network-only",
     onCompleted: (d) => {
       const status = d.generationJob?.status;
       if (status === "SUCCEEDED" || status === "FAILED") {
@@ -152,7 +154,7 @@ function GoalPageContent() {
   });
   const jobProgress = jobData?.generationJob?.progress ?? 0;
   const jobStatus = jobData?.generationJob?.status;
-  const isJobRunning = !!researchJobId && jobStatus === "RUNNING";
+  const isJobRunning = !!researchJobId && jobStatus !== "SUCCEEDED" && jobStatus !== "FAILED";
 
   const [deleteResearch, { loading: deletingResearch }] =
     useDeleteResearchMutation({
@@ -200,7 +202,8 @@ function GoalPageContent() {
           type: "error",
         });
       },
-      refetchQueries: ["GetGoal"],
+      // No refetchQueries here — the job runs asynchronously. The correct refetch
+      // happens inside onCompleted of the polling query when status === "SUCCEEDED".
     });
 
   const handleGenerateResearch = async () => {

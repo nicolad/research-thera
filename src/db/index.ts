@@ -1202,12 +1202,14 @@ export async function updateGenerationJob(
 
   if (updates.result) {
     fields.push("result = ?");
-    args.push(JSON.stringify(updates.result));
+    // updates.result is already a JSON string (callers pass JSON.stringify output)
+    args.push(typeof updates.result === "string" ? updates.result : JSON.stringify(updates.result));
   }
 
   if (updates.error) {
     fields.push("error = ?");
-    args.push(JSON.stringify(updates.error));
+    // updates.error is already a JSON string (callers pass JSON.stringify output)
+    args.push(typeof updates.error === "string" ? updates.error : JSON.stringify(updates.error));
   }
 
   fields.push("updated_at = datetime('now')");
@@ -1217,6 +1219,36 @@ export async function updateGenerationJob(
     sql: `UPDATE generation_jobs SET ${fields.join(", ")} WHERE id = ?`,
     args,
   });
+}
+
+/**
+ * Safely parses a job error stored in D1.
+ * Handles legacy double-encoded values (where JSON.stringify was applied to an
+ * already-serialized string) as well as correctly single-encoded values.
+ * Always returns an object with at least { message: string }.
+ */
+function parseJobError(raw: string): { message: string; code?: string; details?: string } {
+  try {
+    const first = JSON.parse(raw);
+    // If the first parse returns a string, it was double-encoded — parse again
+    if (typeof first === "string") {
+      try {
+        const second = JSON.parse(first);
+        if (second && typeof second === "object" && "message" in second) {
+          return second as { message: string; code?: string; details?: string };
+        }
+      } catch {
+        // Inner string is not JSON — treat it as the message
+        return { message: first };
+      }
+    }
+    if (first && typeof first === "object" && "message" in first) {
+      return first as { message: string; code?: string; details?: string };
+    }
+    return { message: String(first) };
+  } catch {
+    return { message: raw };
+  }
 }
 
 export async function getGenerationJob(id: string) {
@@ -1239,7 +1271,7 @@ export async function getGenerationJob(id: string) {
     status: row.status as string,
     progress: row.progress as number,
     result: row.result ? JSON.parse(row.result as string) : null,
-    error: row.error ? JSON.parse(row.error as string) : null,
+    error: row.error ? parseJobError(row.error as string) : null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
