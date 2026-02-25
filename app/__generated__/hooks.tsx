@@ -153,6 +153,18 @@ export type CreateGoalInput = {
   title: Scalars['String']['input'];
 };
 
+export type CreateJournalEntryInput = {
+  content: Scalars['String']['input'];
+  entryDate: Scalars['String']['input'];
+  familyMemberId?: InputMaybe<Scalars['Int']['input']>;
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  isPrivate?: InputMaybe<Scalars['Boolean']['input']>;
+  mood?: InputMaybe<Scalars['String']['input']>;
+  moodScore?: InputMaybe<Scalars['Int']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateNoteInput = {
   content: Scalars['String']['input'];
   entityId: Scalars['Int']['input'];
@@ -182,6 +194,12 @@ export type DeleteFamilyMemberResult = {
 
 export type DeleteGoalResult = {
   __typename?: 'DeleteGoalResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteJournalEntryResult = {
+  __typename?: 'DeleteJournalEntryResult';
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -414,18 +432,39 @@ export enum JobType {
   Research = 'RESEARCH'
 }
 
+export type JournalEntry = {
+  __typename?: 'JournalEntry';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  entryDate: Scalars['String']['output'];
+  familyMember?: Maybe<FamilyMember>;
+  familyMemberId?: Maybe<Scalars['Int']['output']>;
+  goal?: Maybe<Goal>;
+  goalId?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  isPrivate: Scalars['Boolean']['output'];
+  mood?: Maybe<Scalars['String']['output']>;
+  moodScore?: Maybe<Scalars['Int']['output']>;
+  tags?: Maybe<Array<Scalars['String']['output']>>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   buildClaimCards: BuildClaimCardsResult;
   checkNoteClaims: CheckNoteClaimsResult;
   createFamilyMember: FamilyMember;
   createGoal: Goal;
+  createJournalEntry: JournalEntry;
   createNote: Note;
   createStory: Story;
   createSubGoal: Goal;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteFamilyMember: DeleteFamilyMemberResult;
   deleteGoal: DeleteGoalResult;
+  deleteJournalEntry: DeleteJournalEntryResult;
   deleteNote: DeleteNoteResult;
   deleteResearch: DeleteResearchResult;
   deleteStory: DeleteStoryResult;
@@ -443,6 +482,7 @@ export type Mutation = {
   unshareNote: Scalars['Boolean']['output'];
   updateFamilyMember: FamilyMember;
   updateGoal: Goal;
+  updateJournalEntry: JournalEntry;
   updateNote: Note;
   updateStory: Story;
 };
@@ -465,6 +505,11 @@ export type MutationCreateFamilyMemberArgs = {
 
 export type MutationCreateGoalArgs = {
   input: CreateGoalInput;
+};
+
+
+export type MutationCreateJournalEntryArgs = {
+  input: CreateJournalEntryInput;
 };
 
 
@@ -495,6 +540,11 @@ export type MutationDeleteFamilyMemberArgs = {
 
 
 export type MutationDeleteGoalArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteJournalEntryArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -596,6 +646,12 @@ export type MutationUpdateFamilyMemberArgs = {
 export type MutationUpdateGoalArgs = {
   id: Scalars['Int']['input'];
   input: UpdateGoalInput;
+};
+
+
+export type MutationUpdateJournalEntryArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateJournalEntryInput;
 };
 
 
@@ -719,6 +775,8 @@ export type Query = {
   generationJobs: Array<GenerationJob>;
   goal?: Maybe<Goal>;
   goals: Array<Goal>;
+  journalEntries: Array<JournalEntry>;
+  journalEntry?: Maybe<JournalEntry>;
   mySharedFamilyMembers: Array<FamilyMember>;
   mySharedNotes: Array<Note>;
   note?: Maybe<Note>;
@@ -770,6 +828,20 @@ export type QueryGoalArgs = {
 export type QueryGoalsArgs = {
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryJournalEntriesArgs = {
+  familyMemberId?: InputMaybe<Scalars['Int']['input']>;
+  fromDate?: InputMaybe<Scalars['String']['input']>;
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  mood?: InputMaybe<Scalars['String']['input']>;
+  toDate?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryJournalEntryArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -909,6 +981,18 @@ export type UpdateGoalInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateJournalEntryInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  entryDate?: InputMaybe<Scalars['String']['input']>;
+  familyMemberId?: InputMaybe<Scalars['Int']['input']>;
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  isPrivate?: InputMaybe<Scalars['Boolean']['input']>;
+  mood?: InputMaybe<Scalars['String']['input']>;
+  moodScore?: InputMaybe<Scalars['Int']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateNoteInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   createdBy?: InputMaybe<Scalars['String']['input']>;
@@ -973,6 +1057,13 @@ export type CreateGoalMutationVariables = Exact<{
 
 export type CreateGoalMutation = { __typename?: 'Mutation', createGoal: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, createdAt: string, updatedAt: string, familyMemberId: number } };
 
+export type CreateJournalEntryMutationVariables = Exact<{
+  input: CreateJournalEntryInput;
+}>;
+
+
+export type CreateJournalEntryMutation = { __typename?: 'Mutation', createJournalEntry: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
+
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
@@ -1008,6 +1099,13 @@ export type DeleteGoalMutationVariables = Exact<{
 
 
 export type DeleteGoalMutation = { __typename?: 'Mutation', deleteGoal: { __typename?: 'DeleteGoalResult', success: boolean, message?: string | null } };
+
+export type DeleteJournalEntryMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteJournalEntryMutation = { __typename?: 'Mutation', deleteJournalEntry: { __typename?: 'DeleteJournalEntryResult', success: boolean, message?: string | null } };
 
 export type DeleteNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1126,6 +1224,24 @@ export type GetGoalsQueryVariables = Exact<{
 
 export type GetGoalsQuery = { __typename?: 'Query', goals: Array<{ __typename?: 'Goal', id: number, title: string, description?: string | null, status: string, familyMemberId: number, createdBy: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null } | null, notes: Array<{ __typename?: 'Note', id: number, slug?: string | null, noteType?: string | null, tags?: Array<string> | null, createdAt: string }> }> };
 
+export type GetJournalEntriesQueryVariables = Exact<{
+  familyMemberId?: InputMaybe<Scalars['Int']['input']>;
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  mood?: InputMaybe<Scalars['String']['input']>;
+  fromDate?: InputMaybe<Scalars['String']['input']>;
+  toDate?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetJournalEntriesQuery = { __typename?: 'Query', journalEntries: Array<{ __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string } | null }> };
+
+export type GetJournalEntryQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetJournalEntryQuery = { __typename?: 'Query', journalEntry?: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null } | null } | null };
+
 export type GetMySharedFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1185,6 +1301,14 @@ export type UpdateFamilyMemberMutationVariables = Exact<{
 
 
 export type UpdateFamilyMemberMutation = { __typename?: 'Mutation', updateFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, ageYears?: number | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string } };
+
+export type UpdateJournalEntryMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateJournalEntryInput;
+}>;
+
+
+export type UpdateJournalEntryMutation = { __typename?: 'Mutation', updateJournalEntry: { __typename?: 'JournalEntry', id: number, userId: string, familyMemberId?: number | null, title?: string | null, content: string, mood?: string | null, moodScore?: number | null, tags?: Array<string> | null, goalId?: number | null, isPrivate: boolean, entryDate: string, createdAt: string, updatedAt: string } };
 
 export type UpdateNoteMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1673,6 +1797,51 @@ export function useCreateGoalMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateGoalMutationHookResult = ReturnType<typeof useCreateGoalMutation>;
 export type CreateGoalMutationResult = Apollo.MutationResult<CreateGoalMutation>;
 export type CreateGoalMutationOptions = Apollo.BaseMutationOptions<CreateGoalMutation, CreateGoalMutationVariables>;
+export const CreateJournalEntryDocument = gql`
+    mutation CreateJournalEntry($input: CreateJournalEntryInput!) {
+  createJournalEntry(input: $input) {
+    id
+    userId
+    familyMemberId
+    title
+    content
+    mood
+    moodScore
+    tags
+    goalId
+    isPrivate
+    entryDate
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateJournalEntryMutationFn = Apollo.MutationFunction<CreateJournalEntryMutation, CreateJournalEntryMutationVariables>;
+
+/**
+ * __useCreateJournalEntryMutation__
+ *
+ * To run a mutation, you first call `useCreateJournalEntryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateJournalEntryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createJournalEntryMutation, { data, loading, error }] = useCreateJournalEntryMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateJournalEntryMutation(baseOptions?: Apollo.MutationHookOptions<CreateJournalEntryMutation, CreateJournalEntryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateJournalEntryMutation, CreateJournalEntryMutationVariables>(CreateJournalEntryDocument, options);
+      }
+export type CreateJournalEntryMutationHookResult = ReturnType<typeof useCreateJournalEntryMutation>;
+export type CreateJournalEntryMutationResult = Apollo.MutationResult<CreateJournalEntryMutation>;
+export type CreateJournalEntryMutationOptions = Apollo.BaseMutationOptions<CreateJournalEntryMutation, CreateJournalEntryMutationVariables>;
 export const CreateNoteDocument = gql`
     mutation CreateNote($input: CreateNoteInput!) {
   createNote(input: $input) {
@@ -1864,6 +2033,40 @@ export function useDeleteGoalMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteGoalMutationHookResult = ReturnType<typeof useDeleteGoalMutation>;
 export type DeleteGoalMutationResult = Apollo.MutationResult<DeleteGoalMutation>;
 export type DeleteGoalMutationOptions = Apollo.BaseMutationOptions<DeleteGoalMutation, DeleteGoalMutationVariables>;
+export const DeleteJournalEntryDocument = gql`
+    mutation DeleteJournalEntry($id: Int!) {
+  deleteJournalEntry(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteJournalEntryMutationFn = Apollo.MutationFunction<DeleteJournalEntryMutation, DeleteJournalEntryMutationVariables>;
+
+/**
+ * __useDeleteJournalEntryMutation__
+ *
+ * To run a mutation, you first call `useDeleteJournalEntryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteJournalEntryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteJournalEntryMutation, { data, loading, error }] = useDeleteJournalEntryMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteJournalEntryMutation(baseOptions?: Apollo.MutationHookOptions<DeleteJournalEntryMutation, DeleteJournalEntryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteJournalEntryMutation, DeleteJournalEntryMutationVariables>(DeleteJournalEntryDocument, options);
+      }
+export type DeleteJournalEntryMutationHookResult = ReturnType<typeof useDeleteJournalEntryMutation>;
+export type DeleteJournalEntryMutationResult = Apollo.MutationResult<DeleteJournalEntryMutation>;
+export type DeleteJournalEntryMutationOptions = Apollo.BaseMutationOptions<DeleteJournalEntryMutation, DeleteJournalEntryMutationVariables>;
 export const DeleteNoteDocument = gql`
     mutation DeleteNote($id: Int!) {
   deleteNote(id: $id) {
@@ -2685,6 +2888,145 @@ export type GetGoalsQueryHookResult = ReturnType<typeof useGetGoalsQuery>;
 export type GetGoalsLazyQueryHookResult = ReturnType<typeof useGetGoalsLazyQuery>;
 export type GetGoalsSuspenseQueryHookResult = ReturnType<typeof useGetGoalsSuspenseQuery>;
 export type GetGoalsQueryResult = Apollo.QueryResult<GetGoalsQuery, GetGoalsQueryVariables>;
+export const GetJournalEntriesDocument = gql`
+    query GetJournalEntries($familyMemberId: Int, $goalId: Int, $mood: String, $fromDate: String, $toDate: String) {
+  journalEntries(
+    familyMemberId: $familyMemberId
+    goalId: $goalId
+    mood: $mood
+    fromDate: $fromDate
+    toDate: $toDate
+  ) {
+    id
+    userId
+    familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+    }
+    title
+    content
+    mood
+    moodScore
+    tags
+    goalId
+    goal {
+      id
+      title
+    }
+    isPrivate
+    entryDate
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetJournalEntriesQuery__
+ *
+ * To run a query within a React component, call `useGetJournalEntriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJournalEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJournalEntriesQuery({
+ *   variables: {
+ *      familyMemberId: // value for 'familyMemberId'
+ *      goalId: // value for 'goalId'
+ *      mood: // value for 'mood'
+ *      fromDate: // value for 'fromDate'
+ *      toDate: // value for 'toDate'
+ *   },
+ * });
+ */
+export function useGetJournalEntriesQuery(baseOptions?: Apollo.QueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+      }
+export function useGetJournalEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+        }
+// @ts-ignore
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>;
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntriesQuery | undefined, GetJournalEntriesQueryVariables>;
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+        }
+export type GetJournalEntriesQueryHookResult = ReturnType<typeof useGetJournalEntriesQuery>;
+export type GetJournalEntriesLazyQueryHookResult = ReturnType<typeof useGetJournalEntriesLazyQuery>;
+export type GetJournalEntriesSuspenseQueryHookResult = ReturnType<typeof useGetJournalEntriesSuspenseQuery>;
+export type GetJournalEntriesQueryResult = Apollo.QueryResult<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>;
+export const GetJournalEntryDocument = gql`
+    query GetJournalEntry($id: Int!) {
+  journalEntry(id: $id) {
+    id
+    userId
+    familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+    }
+    title
+    content
+    mood
+    moodScore
+    tags
+    goalId
+    goal {
+      id
+      title
+      description
+    }
+    isPrivate
+    entryDate
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetJournalEntryQuery__
+ *
+ * To run a query within a React component, call `useGetJournalEntryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJournalEntryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJournalEntryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetJournalEntryQuery(baseOptions: Apollo.QueryHookOptions<GetJournalEntryQuery, GetJournalEntryQueryVariables> & ({ variables: GetJournalEntryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetJournalEntryQuery, GetJournalEntryQueryVariables>(GetJournalEntryDocument, options);
+      }
+export function useGetJournalEntryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetJournalEntryQuery, GetJournalEntryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetJournalEntryQuery, GetJournalEntryQueryVariables>(GetJournalEntryDocument, options);
+        }
+// @ts-ignore
+export function useGetJournalEntrySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetJournalEntryQuery, GetJournalEntryQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntryQuery, GetJournalEntryQueryVariables>;
+export function useGetJournalEntrySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntryQuery, GetJournalEntryQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntryQuery | undefined, GetJournalEntryQueryVariables>;
+export function useGetJournalEntrySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntryQuery, GetJournalEntryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetJournalEntryQuery, GetJournalEntryQueryVariables>(GetJournalEntryDocument, options);
+        }
+export type GetJournalEntryQueryHookResult = ReturnType<typeof useGetJournalEntryQuery>;
+export type GetJournalEntryLazyQueryHookResult = ReturnType<typeof useGetJournalEntryLazyQuery>;
+export type GetJournalEntrySuspenseQueryHookResult = ReturnType<typeof useGetJournalEntrySuspenseQuery>;
+export type GetJournalEntryQueryResult = Apollo.QueryResult<GetJournalEntryQuery, GetJournalEntryQueryVariables>;
 export const GetMySharedFamilyMembersDocument = gql`
     query GetMySharedFamilyMembers {
   mySharedFamilyMembers {
@@ -3131,6 +3473,52 @@ export function useUpdateFamilyMemberMutation(baseOptions?: Apollo.MutationHookO
 export type UpdateFamilyMemberMutationHookResult = ReturnType<typeof useUpdateFamilyMemberMutation>;
 export type UpdateFamilyMemberMutationResult = Apollo.MutationResult<UpdateFamilyMemberMutation>;
 export type UpdateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
+export const UpdateJournalEntryDocument = gql`
+    mutation UpdateJournalEntry($id: Int!, $input: UpdateJournalEntryInput!) {
+  updateJournalEntry(id: $id, input: $input) {
+    id
+    userId
+    familyMemberId
+    title
+    content
+    mood
+    moodScore
+    tags
+    goalId
+    isPrivate
+    entryDate
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateJournalEntryMutationFn = Apollo.MutationFunction<UpdateJournalEntryMutation, UpdateJournalEntryMutationVariables>;
+
+/**
+ * __useUpdateJournalEntryMutation__
+ *
+ * To run a mutation, you first call `useUpdateJournalEntryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateJournalEntryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateJournalEntryMutation, { data, loading, error }] = useUpdateJournalEntryMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateJournalEntryMutation(baseOptions?: Apollo.MutationHookOptions<UpdateJournalEntryMutation, UpdateJournalEntryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateJournalEntryMutation, UpdateJournalEntryMutationVariables>(UpdateJournalEntryDocument, options);
+      }
+export type UpdateJournalEntryMutationHookResult = ReturnType<typeof useUpdateJournalEntryMutation>;
+export type UpdateJournalEntryMutationResult = Apollo.MutationResult<UpdateJournalEntryMutation>;
+export type UpdateJournalEntryMutationOptions = Apollo.BaseMutationOptions<UpdateJournalEntryMutation, UpdateJournalEntryMutationVariables>;
 export const UpdateNoteDocument = gql`
     mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {
   updateNote(id: $id, input: $input) {

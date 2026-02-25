@@ -24,6 +24,16 @@ type Query {
 
   # R2 Audio
   audioFromR2(key: String!): AudioFromR2Result
+
+  # Journal
+  journalEntries(
+    familyMemberId: Int
+    goalId: Int
+    mood: String
+    fromDate: String
+    toDate: String
+  ): [JournalEntry!]!
+  journalEntry(id: Int!): JournalEntry
 }
 
 type Mutation {
@@ -75,6 +85,11 @@ type Mutation {
   generateOpenAIAudio(
     input: GenerateOpenAIAudioInput!
   ): GenerateOpenAIAudioResult!
+
+  # Journal
+  createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
+  updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
+  deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
 
   # Family Members
   createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
@@ -673,4 +688,55 @@ type AudioMetadata {
   chunks: String
   generatedBy: String
   instructions: String
+}
+
+# ============================================
+# Journal
+# ============================================
+
+type JournalEntry {
+  id: Int!
+  userId: String!
+  familyMemberId: Int
+  familyMember: FamilyMember
+  title: String
+  content: String!
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  goal: Goal
+  isPrivate: Boolean!
+  entryDate: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateJournalEntryInput {
+  familyMemberId: Int
+  title: String
+  content: String!
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  isPrivate: Boolean
+  entryDate: String!
+}
+
+input UpdateJournalEntryInput {
+  familyMemberId: Int
+  title: String
+  content: String
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  isPrivate: Boolean
+  entryDate: String
+}
+
+type DeleteJournalEntryResult {
+  success: Boolean!
+  message: String
 }

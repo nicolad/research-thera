@@ -238,6 +238,31 @@ export const notesClaims = sqliteTable("notes_claims", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const journalEntries = sqliteTable("journal_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  familyMemberId: integer("family_member_id").references(
+    () => familyMembers.id,
+    { onDelete: "set null" },
+  ),
+  title: text("title"),
+  content: text("content").notNull(),
+  mood: text("mood"), // e.g. "happy", "sad", "anxious", "calm", "grateful", "frustrated"
+  moodScore: integer("mood_score"), // 1-10 scale
+  tags: text("tags"), // JSON array
+  goalId: integer("goal_id").references(() => goals.id, {
+    onDelete: "set null",
+  }),
+  isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(true),
+  entryDate: text("entry_date").notNull(), // The date the journal entry is about (YYYY-MM-DD)
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Better Auth Tables
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
