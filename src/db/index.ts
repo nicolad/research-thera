@@ -295,6 +295,7 @@ export async function getGoal(goalId: number, createdBy: string) {
     therapeuticTextLanguage: (row.therapeutic_text_language as string) || null,
     therapeuticTextGeneratedAt:
       (row.therapeutic_text_generated_at as string) || null,
+    storyLanguage: (row.story_language as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -324,6 +325,7 @@ export async function getGoalBySlug(slug: string, createdBy: string) {
     therapeuticTextLanguage: (row.therapeutic_text_language as string) || null,
     therapeuticTextGeneratedAt:
       (row.therapeutic_text_generated_at as string) || null,
+    storyLanguage: (row.story_language as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -358,6 +360,7 @@ export async function listGoals(
     description: (row.description as string) || null,
     status: row.status as string,
     parentGoalId: (row.parent_goal_id as number) || null,
+    storyLanguage: (row.story_language as string) || null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }));
@@ -400,6 +403,7 @@ export async function updateGoal(
     title?: string;
     description?: string | null;
     status?: string;
+    storyLanguage?: string | null;
   },
 ) {
   const fields: string[] = [];
@@ -428,6 +432,11 @@ export async function updateGoal(
   if (updates.status !== undefined) {
     fields.push("status = ?");
     args.push(updates.status);
+  }
+
+  if (updates.storyLanguage !== undefined) {
+    fields.push("story_language = ?");
+    args.push(updates.storyLanguage);
   }
 
   fields.push("updated_at = datetime('now')");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
@@ -226,6 +226,14 @@ function GoalPageContent() {
     type: "success" | "error";
   } | null>(null);
   const [storyJobId, setStoryJobId] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
+
+  // Sync language from goal data once loaded
+  useEffect(() => {
+    if (goal?.storyLanguage) {
+      setSelectedLanguage(goal.storyLanguage);
+    }
+  }, [goal?.storyLanguage]);
 
   const { data: storyJobData, stopPolling: stopStoryPolling } =
     useGetGenerationJobQuery({
@@ -282,7 +290,17 @@ function GoalPageContent() {
   const handleGenerateStory = async () => {
     if (!goal) return;
     setStoryMessage(null);
-    await generateStory({ variables: { goalId: goal.id } });
+    await generateStory({
+      variables: { goalId: goal.id, language: selectedLanguage, minutes: 10 },
+    });
+  };
+
+  const handleLanguageChange = async (lang: string) => {
+    setSelectedLanguage(lang);
+    if (!goal) return;
+    await updateGoal({
+      variables: { id: goal.id, input: { storyLanguage: lang } },
+    });
   };
 
   if (loading) {
@@ -764,15 +782,32 @@ function GoalPageContent() {
               Generated Stories{" "}
               {goal.stories ? `(${goal.stories.length})` : ""}
             </Heading>
-            <GlassButton
-              variant="primary"
-              size="medium"
-              loading={generatingStory}
-              disabled={isStoryJobRunning}
-              onClick={handleGenerateStory}
-            >
-              Generate Story
-            </GlassButton>
+            <Flex align="center" gap="2">
+              <Select.Root
+                value={selectedLanguage}
+                onValueChange={handleLanguageChange}
+                disabled={isStoryJobRunning}
+                size="2"
+              >
+                <Select.Trigger />
+                <Select.Content>
+                  <Select.Item value="Romanian">Romanian</Select.Item>
+                  <Select.Item value="English">English</Select.Item>
+                  <Select.Item value="French">French</Select.Item>
+                  <Select.Item value="German">German</Select.Item>
+                  <Select.Item value="Spanish">Spanish</Select.Item>
+                </Select.Content>
+              </Select.Root>
+              <GlassButton
+                variant="primary"
+                size="medium"
+                loading={generatingStory}
+                disabled={isStoryJobRunning}
+                onClick={handleGenerateStory}
+              >
+                Generate Story
+              </GlassButton>
+            </Flex>
           </Flex>
 
           {storyMessage && (

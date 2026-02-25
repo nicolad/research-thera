@@ -12,6 +12,7 @@ mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {
       name
       relationship
     }
+    storyLanguage
     createdAt
     updatedAt
   }

@@ -148,6 +148,7 @@ type Goal {
   therapeuticText: String
   therapeuticTextLanguage: String
   therapeuticTextGeneratedAt: String
+  storyLanguage: String
 }
 
 type Story {
@@ -329,6 +330,7 @@ input UpdateGoalInput {
   title: String
   description: String
   status: String
+  storyLanguage: String
 }
 
 input CreateNoteInput {

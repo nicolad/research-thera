@@ -24,6 +24,7 @@ query GetGoal($id: Int, $slug: String) {
     therapeuticText
     therapeuticTextLanguage
     therapeuticTextGeneratedAt
+    storyLanguage
     subGoals {
       id
       slug

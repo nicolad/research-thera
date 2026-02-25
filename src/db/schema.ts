@@ -47,6 +47,7 @@ export const goals = sqliteTable("goals", {
   therapeuticText: text("therapeutic_text"),
   therapeuticTextLanguage: text("therapeutic_text_language"),
   therapeuticTextGeneratedAt: text("therapeutic_text_generated_at"),
+  storyLanguage: text("story_language"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

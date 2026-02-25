@@ -17,6 +17,7 @@ export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
     title: args.input.title ?? undefined,
     description: args.input.description ?? undefined,
     status: args.input.status ?? undefined,
+    storyLanguage: args.input.storyLanguage ?? undefined,
   });
 
   // Fetch the updated goal to return it
@@ -32,6 +33,7 @@ export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
     therapeuticText: goal.therapeuticText,
     therapeuticTextLanguage: goal.therapeuticTextLanguage,
     therapeuticTextGeneratedAt: goal.therapeuticTextGeneratedAt,
+    storyLanguage: goal.storyLanguage,
     createdAt: goal.createdAt,
     updatedAt: goal.updatedAt,
     questions: [],

@@ -332,6 +332,7 @@ type Goal {
   slug: String
   status: String!
   stories: [GoalStory!]!
+  storyLanguage: String
   subGoals: [Goal!]!
   therapeuticText: String
   therapeuticTextGeneratedAt: String
@@ -639,6 +640,7 @@ input UpdateGoalInput {
   description: String
   familyMemberId: Int
   status: String
+  storyLanguage: String
   title: String
 }
 

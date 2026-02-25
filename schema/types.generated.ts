@@ -378,6 +378,7 @@ export type Goal = {
   slug?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   stories: Array<GoalStory>;
+  storyLanguage?: Maybe<Scalars['String']['output']>;
   subGoals: Array<Goal>;
   therapeuticText?: Maybe<Scalars['String']['output']>;
   therapeuticTextGeneratedAt?: Maybe<Scalars['String']['output']>;
@@ -969,6 +970,7 @@ export type UpdateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   familyMemberId?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
+  storyLanguage?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1450,6 +1452,7 @@ export type GoalResolvers<ContextType = GraphQLContext, ParentType extends Resol
   slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   stories?: Resolver<Array<ResolversTypes['GoalStory']>, ParentType, ContextType>;
+  storyLanguage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   subGoals?: Resolver<Array<ResolversTypes['Goal']>, ParentType, ContextType>;
   therapeuticText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   therapeuticTextGeneratedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
