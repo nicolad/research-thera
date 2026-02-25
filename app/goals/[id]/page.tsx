@@ -30,6 +30,7 @@ import {
   Cross2Icon,
 } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
+import { useApolloClient } from "@apollo/client";
 import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -39,6 +40,7 @@ import {
   useDeleteResearchMutation,
   useUpdateGoalMutation,
   useGetFamilyMembersQuery,
+  useGetGenerationJobQuery,
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 import AddSubGoalButton from "@/app/components/AddSubGoalButton";
@@ -49,6 +51,7 @@ function GoalPageContent() {
   const params = useParams();
   const paramValue = params.id as string;
   const { user } = useUser();
+  const apolloClient = useApolloClient();
 
   // Determine if paramValue is a number (ID) or string (slug)
   const isNumericId = /^\d+$/.test(paramValue);
@@ -114,6 +117,31 @@ function GoalPageContent() {
     text: string;
     type: "success" | "error";
   } | null>(null);
+  const [researchJobId, setResearchJobId] = useState<string | null>(null);
+
+  const { data: jobData, stopPolling } = useGetGenerationJobQuery({
+    variables: { id: researchJobId! },
+    skip: !researchJobId,
+    pollInterval: 2000,
+    onCompleted: (d) => {
+      const status = d.generationJob?.status;
+      if (status === "SUCCEEDED" || status === "FAILED") {
+        stopPolling();
+        setResearchJobId(null);
+        if (status === "SUCCEEDED") {
+          apolloClient.refetchQueries({ include: ["GetGoal"] });
+        } else {
+          setResearchMessage({
+            text: d.generationJob?.error?.message ?? "Research generation failed.",
+            type: "error",
+          });
+        }
+      }
+    },
+  });
+  const jobProgress = jobData?.generationJob?.progress ?? 0;
+  const jobStatus = jobData?.generationJob?.status;
+  const isJobRunning = !!researchJobId && jobStatus === "RUNNING";
 
   const [deleteResearch, { loading: deletingResearch }] =
     useDeleteResearchMutation({
@@ -143,12 +171,10 @@ function GoalPageContent() {
     useGenerateResearchMutation({
       onCompleted: (data) => {
         if (data.generateResearch.success) {
-          setResearchMessage({
-            text:
-              data.generateResearch.message ||
-              "Research generation started. This may take a few minutes.",
-            type: "success",
-          });
+          setResearchMessage(null);
+          if (data.generateResearch.jobId) {
+            setResearchJobId(data.generateResearch.jobId);
+          }
         } else {
           setResearchMessage({
             text:
@@ -725,6 +751,37 @@ function GoalPageContent() {
             >
               {researchMessage.text}
             </Text>
+          )}
+
+          {isJobRunning && (
+            <Flex direction="column" gap="2">
+              <Flex justify="between" align="center">
+                <Text size="2" color="gray">
+                  Searching for papers…
+                </Text>
+                <Text size="2" color="gray">
+                  {Math.round(jobProgress * 100)}%
+                </Text>
+              </Flex>
+              <Box
+                style={{
+                  height: 6,
+                  borderRadius: 3,
+                  background: "var(--gray-4)",
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  style={{
+                    height: "100%",
+                    width: `${Math.round(jobProgress * 100)}%`,
+                    background: "var(--indigo-9)",
+                    transition: "width 0.4s ease",
+                    borderRadius: 3,
+                  }}
+                />
+              </Box>
+            </Flex>
           )}
 
           {goal.research && goal.research.length > 0 ? (
