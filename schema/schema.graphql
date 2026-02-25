@@ -18,6 +18,10 @@ type Query {
   familyMember(id: Int!): FamilyMember
   mySharedFamilyMembers: [FamilyMember!]!
 
+  # Journal Entries
+  journalEntries(familyMemberId: Int, goalId: Int, mood: String, fromDate: String, toDate: String): [JournalEntry!]!
+  journalEntry(id: Int!): JournalEntry
+
   # Claim Cards
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
@@ -82,6 +86,11 @@ type Mutation {
   deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
   shareFamilyMember(familyMemberId: Int!, email: String!, role: FamilyMemberShareRole): FamilyMemberShare!
   unshareFamilyMember(familyMemberId: Int!, email: String!): Boolean!
+
+  # Journal Entries
+  createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
+  updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
+  deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
 }
 
 type Subscription {
@@ -674,4 +683,55 @@ type AudioMetadata {
   chunks: String
   generatedBy: String
   instructions: String
+}
+
+# ============================================
+# Journal Entries
+# ============================================
+
+type JournalEntry {
+  id: Int!
+  createdBy: String!
+  familyMemberId: Int
+  familyMember: FamilyMember
+  title: String
+  content: String!
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  goal: Goal
+  isPrivate: Boolean!
+  entryDate: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateJournalEntryInput {
+  familyMemberId: Int
+  title: String
+  content: String!
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  isPrivate: Boolean
+  entryDate: String!
+}
+
+input UpdateJournalEntryInput {
+  familyMemberId: Int
+  title: String
+  content: String
+  mood: String
+  moodScore: Int
+  tags: [String!]
+  goalId: Int
+  isPrivate: Boolean
+  entryDate: String
+}
+
+type DeleteJournalEntryResult {
+  success: Boolean!
+  message: String
 }

@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/notes", label: "Notes" },
   { href: "/stories", label: "Stories" },
   { href: "/family", label: "Family" },
+  { href: "/journal", label: "Journal" },
 ];
 
 export function Header() {

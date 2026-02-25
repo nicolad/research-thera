@@ -1324,6 +1324,199 @@ export async function getAudioAssetsForStory(storyId: number) {
   }));
 }
 
+// ============================================
+// Journal Entries
+// ============================================
+
+export async function listJournalEntries(
+  userId: string,
+  opts?: {
+    familyMemberId?: number;
+    goalId?: number;
+    mood?: string;
+    fromDate?: string;
+    toDate?: string;
+  },
+) {
+  let sql = `SELECT * FROM journal_entries WHERE user_id = ?`;
+  const args: any[] = [userId];
+
+  if (opts?.familyMemberId) {
+    sql += ` AND family_member_id = ?`;
+    args.push(opts.familyMemberId);
+  }
+  if (opts?.goalId) {
+    sql += ` AND goal_id = ?`;
+    args.push(opts.goalId);
+  }
+  if (opts?.mood) {
+    sql += ` AND mood = ?`;
+    args.push(opts.mood);
+  }
+  if (opts?.fromDate) {
+    sql += ` AND entry_date >= ?`;
+    args.push(opts.fromDate);
+  }
+  if (opts?.toDate) {
+    sql += ` AND entry_date <= ?`;
+    args.push(opts.toDate);
+  }
+
+  sql += ` ORDER BY entry_date DESC, created_at DESC`;
+
+  const result = await d1.execute({ sql, args });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    familyMemberId: (row.family_member_id as number) || null,
+    title: (row.title as string) || null,
+    content: row.content as string,
+    mood: (row.mood as string) || null,
+    moodScore: (row.mood_score as number) || null,
+    tags: row.tags ? JSON.parse(row.tags as string) : [],
+    goalId: (row.goal_id as number) || null,
+    isPrivate: (row.is_private as number) === 1,
+    entryDate: row.entry_date as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getJournalEntry(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM journal_entries WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    userId: row.user_id as string,
+    familyMemberId: (row.family_member_id as number) || null,
+    title: (row.title as string) || null,
+    content: row.content as string,
+    mood: (row.mood as string) || null,
+    moodScore: (row.mood_score as number) || null,
+    tags: row.tags ? JSON.parse(row.tags as string) : [],
+    goalId: (row.goal_id as number) || null,
+    isPrivate: (row.is_private as number) === 1,
+    entryDate: row.entry_date as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createJournalEntry(params: {
+  userId: string;
+  familyMemberId?: number | null;
+  title?: string | null;
+  content: string;
+  mood?: string | null;
+  moodScore?: number | null;
+  tags?: string[];
+  goalId?: number | null;
+  isPrivate?: boolean;
+  entryDate: string;
+}): Promise<number> {
+  const tagsJson = JSON.stringify(params.tags || []);
+  const isPrivate = params.isPrivate !== false ? 1 : 0;
+  const result = await d1.execute({
+    sql: `INSERT INTO journal_entries (user_id, family_member_id, title, content, mood, mood_score, tags, goal_id, is_private, entry_date, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.userId,
+      params.familyMemberId ?? null,
+      params.title ?? null,
+      params.content,
+      params.mood ?? null,
+      params.moodScore ?? null,
+      tagsJson,
+      params.goalId ?? null,
+      isPrivate,
+      params.entryDate,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateJournalEntry(
+  id: number,
+  userId: string,
+  updates: {
+    title?: string | null;
+    content?: string;
+    mood?: string | null;
+    moodScore?: number | null;
+    tags?: string[];
+    goalId?: number | null;
+    familyMemberId?: number | null;
+    isPrivate?: boolean;
+    entryDate?: string;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.title !== undefined) {
+    fields.push("title = ?");
+    args.push(updates.title);
+  }
+  if (updates.content !== undefined) {
+    fields.push("content = ?");
+    args.push(updates.content);
+  }
+  if (updates.mood !== undefined) {
+    fields.push("mood = ?");
+    args.push(updates.mood);
+  }
+  if (updates.moodScore !== undefined) {
+    fields.push("mood_score = ?");
+    args.push(updates.moodScore);
+  }
+  if (updates.tags !== undefined) {
+    fields.push("tags = ?");
+    args.push(JSON.stringify(updates.tags));
+  }
+  if (updates.goalId !== undefined) {
+    fields.push("goal_id = ?");
+    args.push(updates.goalId);
+  }
+  if (updates.familyMemberId !== undefined) {
+    fields.push("family_member_id = ?");
+    args.push(updates.familyMemberId);
+  }
+  if (updates.isPrivate !== undefined) {
+    fields.push("is_private = ?");
+    args.push(updates.isPrivate ? 1 : 0);
+  }
+  if (updates.entryDate !== undefined) {
+    fields.push("entry_date = ?");
+    args.push(updates.entryDate);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE journal_entries SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteJournalEntry(
+  id: number,
+  userId: string,
+): Promise<boolean> {
+  await d1.execute({
+    sql: `DELETE FROM journal_entries WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  return true;
+}
+
 export const d1Tools = {
   // Family Members
   listFamilyMembers,
@@ -1370,6 +1563,12 @@ export const d1Tools = {
   listGoalStories,
   getTextSegmentsForStory,
   getAudioAssetsForStory,
+  // Journal Entries
+  listJournalEntries,
+  getJournalEntry,
+  createJournalEntry,
+  updateJournalEntry,
+  deleteJournalEntry,
 };
 
 // Export d1 client for direct database access

@@ -238,6 +238,26 @@ export const notesClaims = sqliteTable("notes_claims", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const journalEntries = sqliteTable("journal_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  familyMemberId: integer("family_member_id"),
+  title: text("title"),
+  content: text("content").notNull(),
+  mood: text("mood"),
+  moodScore: integer("mood_score"),
+  tags: text("tags"), // JSON array
+  goalId: integer("goal_id"),
+  isPrivate: integer("is_private").notNull().default(1), // 1 = true, 0 = false
+  entryDate: text("entry_date").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Better Auth Tables
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
