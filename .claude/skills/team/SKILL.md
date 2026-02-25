@@ -38,6 +38,7 @@ Create an agent team from the spec at `.speckit/teams/$ARGUMENTS[0].md`.
 - `feature-build` — Full-stack implementation (4 agents)
 - `code-review` — Multi-lens PR review (4 agents)
 - `debug-squad` — Competing hypothesis debugging (4 agents)
+- `ux-review` — Live browser inspection + targeted fix (3 agents: inspector measures px, fixer patches code, lead verifies before/after)
 
 ## Example Usage
 
@@ -47,4 +48,6 @@ Create an agent team from the spec at `.speckit/teams/$ARGUMENTS[0].md`.
 /team debug-squad generateResearch returns NaN relevance scores
 /team research-pipeline Goal: CBT techniques for childhood anxiety
 /team claim-verification Note #15 claims about mindfulness efficacy
+/team ux-review nav spacing looks off on /family
+/team ux-review active menu item is misaligned
 ```

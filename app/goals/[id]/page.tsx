@@ -16,6 +16,8 @@ import {
   Separator,
   AlertDialog,
   Button,
+  Select,
+  IconButton,
 } from "@radix-ui/themes";
 import { GlassButton } from "@/app/components/GlassButton";
 import { Breadcrumbs } from "@/app/components/Breadcrumbs";
@@ -23,6 +25,9 @@ import {
   ArrowLeftIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  Pencil2Icon,
+  CheckIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import { useRouter, useParams } from "next/navigation";
 import NextLink from "next/link";
@@ -32,6 +37,8 @@ import {
   useDeleteGoalMutation,
   useGenerateResearchMutation,
   useDeleteResearchMutation,
+  useUpdateGoalMutation,
+  useGetFamilyMembersQuery,
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 import AddSubGoalButton from "@/app/components/AddSubGoalButton";
@@ -57,6 +64,36 @@ function GoalPageContent() {
   });
 
   const goal = data?.goal;
+
+  // Family member editing state
+  const [editingFamilyMember, setEditingFamilyMember] = useState(false);
+  const [selectedFamilyMemberId, setSelectedFamilyMemberId] = useState<string>("");
+
+  const { data: familyData } = useGetFamilyMembersQuery();
+  const familyMembers = familyData?.familyMembers ?? [];
+
+  const [updateGoal, { loading: updatingFamilyMember }] = useUpdateGoalMutation({
+    onCompleted: () => {
+      setEditingFamilyMember(false);
+      setSelectedFamilyMemberId("");
+    },
+    refetchQueries: ["GetGoal"],
+  });
+
+  const handleFamilyMemberSave = async () => {
+    if (!goal || !selectedFamilyMemberId) return;
+    await updateGoal({
+      variables: {
+        id: goal.id,
+        input: { familyMemberId: parseInt(selectedFamilyMemberId, 10) },
+      },
+    });
+  };
+
+  const handleFamilyMemberEditStart = () => {
+    setSelectedFamilyMemberId(goal?.familyMemberId ? String(goal.familyMemberId) : "");
+    setEditingFamilyMember(true);
+  };
 
   const [deleteGoal, { loading: deleting }] = useDeleteGoalMutation({
     onCompleted: () => {
@@ -252,13 +289,62 @@ function GoalPageContent() {
                 </Badge>
               )}
               <Heading size="7">{goal.title}</Heading>
-              {goal.familyMember && (
-                <Badge color="cyan" size="2" style={{ width: "fit-content" }}>
-                  {goal.familyMember.firstName ?? goal.familyMember.name}
-                  {goal.familyMember.relationship
-                    ? ` · ${goal.familyMember.relationship}`
-                    : ""}
-                </Badge>
+              {editingFamilyMember ? (
+                <Flex align="center" gap="2">
+                  <Select.Root
+                    value={selectedFamilyMemberId}
+                    onValueChange={setSelectedFamilyMemberId}
+                    disabled={updatingFamilyMember}
+                  >
+                    <Select.Trigger placeholder="Select family member…" />
+                    <Select.Content>
+                      {familyMembers.map((fm) => (
+                        <Select.Item key={fm.id} value={String(fm.id)}>
+                          {fm.firstName ?? fm.name}
+                          {fm.relationship ? ` (${fm.relationship})` : ""}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                  <IconButton
+                    size="1"
+                    variant="soft"
+                    color="green"
+                    disabled={!selectedFamilyMemberId || updatingFamilyMember}
+                    onClick={handleFamilyMemberSave}
+                  >
+                    <CheckIcon />
+                  </IconButton>
+                  <IconButton
+                    size="1"
+                    variant="soft"
+                    color="gray"
+                    disabled={updatingFamilyMember}
+                    onClick={() => setEditingFamilyMember(false)}
+                  >
+                    <Cross2Icon />
+                  </IconButton>
+                </Flex>
+              ) : (
+                <Flex align="center" gap="2">
+                  {goal.familyMember ? (
+                    <Badge color="cyan" size="2" style={{ width: "fit-content" }}>
+                      {goal.familyMember.firstName ?? goal.familyMember.name}
+                      {goal.familyMember.relationship
+                        ? ` · ${goal.familyMember.relationship}`
+                        : ""}
+                    </Badge>
+                  ) : null}
+                  <IconButton
+                    size="1"
+                    variant="ghost"
+                    color="gray"
+                    onClick={handleFamilyMemberEditStart}
+                    title="Change family member"
+                  >
+                    <Pencil2Icon />
+                  </IconButton>
+                </Flex>
               )}
             </Flex>
             <Flex align="center" gap="2">

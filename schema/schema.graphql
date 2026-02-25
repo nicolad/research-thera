@@ -316,6 +316,7 @@ input CreateSubGoalInput {
 }
 
 input UpdateGoalInput {
+  familyMemberId: Int
   title: String
   description: String
   status: String

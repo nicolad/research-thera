@@ -396,6 +396,7 @@ export async function updateGoal(
   createdBy: string,
   updates: {
     slug?: string;
+    familyMemberId?: number;
     title?: string;
     description?: string | null;
     status?: string;
@@ -407,6 +408,11 @@ export async function updateGoal(
   if (updates.slug !== undefined) {
     fields.push("slug = ?");
     args.push(updates.slug);
+  }
+
+  if (updates.familyMemberId !== undefined) {
+    fields.push("family_member_id = ?");
+    args.push(updates.familyMemberId);
   }
 
   if (updates.title !== undefined) {

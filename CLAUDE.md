@@ -93,7 +93,7 @@ This project uses Claude Code agent teams for parallel work. Team compositions a
 | `feature-build` | `.speckit/teams/feature-build.md` | lead + backend-dev + frontend-dev + qa | Full-stack feature implementation |
 | `code-review` | `.speckit/teams/code-review.md` | lead + 3 specialized reviewers | Multi-lens PR review |
 | `debug-squad` | `.speckit/teams/debug-squad.md` | lead + 3 investigators | Competing hypothesis debugging |
-| `ux-review` | `.speckit/teams/ux-review.md` | lead + ux-auditor + interaction-designer | Multi-lens UX review (accessibility, flows) |
+| `ux-review` | `.speckit/teams/ux-review.md` | lead + ux-inspector + ux-fixer | Live browser inspection, root-cause diagnosis, targeted fix + before/after verification |
 
 ### How to Create a Team from a Spec
 
@@ -123,8 +123,8 @@ Custom agents live in `.claude/agents/`. Each has a domain-specific prompt, tool
 - `evidence-hunter` — Finds supporting academic evidence
 - `counter-evidence` — Finds contradicting evidence
 - `evidence-judge` — Weighs evidence with GRADE framework
-- `ux-auditor` — Accessibility, visual consistency, loading/empty/error states
-- `interaction-designer` — Navigation flows, form feedback, state transitions
+- `ux-inspector` — Live browser measurement via MCP chrome-devtools; screenshots, computed styles, px-level diagnosis
+- `ux-fixer` — Minimal targeted UI fixes; knows Radix UI negative margin gotchas cold
 
 ### File Ownership (Conflict Prevention)
 

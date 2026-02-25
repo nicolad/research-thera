@@ -895,6 +895,7 @@ export type UpdateFamilyMemberInput = {
 
 export type UpdateGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  familyMemberId?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };

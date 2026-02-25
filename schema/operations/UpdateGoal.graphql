@@ -1,0 +1,18 @@
+mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {
+  updateGoal(id: $id, input: $input) {
+    id
+    slug
+    title
+    description
+    status
+    familyMemberId
+    familyMember {
+      id
+      firstName
+      name
+      relationship
+    }
+    createdAt
+    updatedAt
+  }
+}

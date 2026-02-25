@@ -34,15 +34,16 @@ export function Header() {
               </Flex>
             </Link>
             <nav aria-label="Main navigation">
-              <Flex gap="2">
+              <Flex gap="6">
                 {NAV_LINKS.map((link) => {
                   const isActive = pathname.startsWith(link.href);
                   return (
                     <Button
                       key={link.href}
-                      variant={isActive ? "soft" : "ghost"}
+                      variant="ghost"
                       size="2"
                       color={isActive ? "indigo" : "gray"}
+                      highContrast={isActive}
                       asChild
                       style={
                         isActive

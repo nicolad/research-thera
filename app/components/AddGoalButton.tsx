@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import NextLink from "next/link";
 import {
   Dialog,
   Button,
@@ -10,8 +11,9 @@ import {
   TextField,
   TextArea,
   Select,
+  Callout,
 } from "@radix-ui/themes";
-import { PlusIcon } from "@radix-ui/react-icons";
+import { PlusIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import {
   useCreateGoalMutation,
   useGetFamilyMembersQuery,
@@ -60,11 +62,16 @@ export default function AddGoalButton() {
       return;
     }
 
+    if (!familyMemberId) {
+      setError("Please select a family member for this goal");
+      return;
+    }
+
     try {
       await createGoal({
         variables: {
           input: {
-            familyMemberId: familyMemberId ? parseInt(familyMemberId, 10) : 1,
+            familyMemberId: parseInt(familyMemberId, 10),
             title: title.trim(),
             description: description.trim() || undefined,
           },
@@ -122,29 +129,49 @@ export default function AddGoalButton() {
               />
             </label>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="medium">
-                Family Member
+            <Flex direction="column" gap="1">
+              <Text as="div" size="2" weight="medium">
+                Family Member *
               </Text>
-              <Select.Root
-                value={familyMemberId}
-                onValueChange={setFamilyMemberId}
-                disabled={loading}
-              >
-                <Select.Trigger
-                  placeholder="Select family member…"
-                  style={{ width: "100%" }}
-                />
-                <Select.Content>
-                  {familyMembers.map((fm) => (
-                    <Select.Item key={fm.id} value={String(fm.id)}>
-                      {fm.firstName ?? fm.name}
-                      {fm.relationship ? ` (${fm.relationship})` : ""}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            </label>
+              {familyMembers.length === 0 ? (
+                <Callout.Root color="amber" size="1">
+                  <Callout.Icon>
+                    <InfoCircledIcon />
+                  </Callout.Icon>
+                  <Callout.Text>
+                    No family members yet.{" "}
+                    <Dialog.Close>
+                      <NextLink
+                        href="/family"
+                        style={{ color: "var(--amber-11)", fontWeight: 500 }}
+                      >
+                        Add a family member
+                      </NextLink>
+                    </Dialog.Close>{" "}
+                    before creating a goal.
+                  </Callout.Text>
+                </Callout.Root>
+              ) : (
+                <Select.Root
+                  value={familyMemberId}
+                  onValueChange={setFamilyMemberId}
+                  disabled={loading}
+                >
+                  <Select.Trigger
+                    placeholder="Select family member…"
+                    style={{ width: "100%" }}
+                  />
+                  <Select.Content>
+                    {familyMembers.map((fm) => (
+                      <Select.Item key={fm.id} value={String(fm.id)}>
+                        {fm.firstName ?? fm.name}
+                        {fm.relationship ? ` (${fm.relationship})` : ""}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            </Flex>
 
             {error && (
               <Text color="red" size="2">
@@ -158,7 +185,10 @@ export default function AddGoalButton() {
                   Cancel
                 </Button>
               </Dialog.Close>
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="submit"
+                disabled={loading || familyMembers.length === 0}
+              >
                 {loading ? "Creating..." : "Create Goal"}
               </Button>
             </Flex>

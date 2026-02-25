@@ -47,6 +47,7 @@ type Documents = {
     "mutation ShareFamilyMember($familyMemberId: Int!, $email: String!, $role: FamilyMemberShareRole) {\n  shareFamilyMember(familyMemberId: $familyMemberId, email: $email, role: $role) {\n    familyMemberId\n    email\n    role\n    createdAt\n  }\n}": typeof types.ShareFamilyMemberDocument,
     "mutation UnshareFamilyMember($familyMemberId: Int!, $email: String!) {\n  unshareFamilyMember(familyMemberId: $familyMemberId, email: $email)\n}": typeof types.UnshareFamilyMemberDocument,
     "mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {\n  updateFamilyMember(id: $id, input: $input) {\n    id\n    firstName\n    name\n    relationship\n    email\n    phone\n    location\n    occupation\n    ageYears\n    dateOfBirth\n    bio\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateFamilyMemberDocument,
+    "mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {\n  updateGoal(id: $id, input: $input) {\n    id\n    slug\n    title\n    description\n    status\n    familyMemberId\n    familyMember {\n      id\n      firstName\n      name\n      relationship\n    }\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateGoalDocument,
     "mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {\n  updateNote(id: $id, input: $input) {\n    id\n    entityId\n    entityType\n    createdBy\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument,
     "mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateStoryDocument,
 };
@@ -84,6 +85,7 @@ const documents: Documents = {
     "mutation ShareFamilyMember($familyMemberId: Int!, $email: String!, $role: FamilyMemberShareRole) {\n  shareFamilyMember(familyMemberId: $familyMemberId, email: $email, role: $role) {\n    familyMemberId\n    email\n    role\n    createdAt\n  }\n}": types.ShareFamilyMemberDocument,
     "mutation UnshareFamilyMember($familyMemberId: Int!, $email: String!) {\n  unshareFamilyMember(familyMemberId: $familyMemberId, email: $email)\n}": types.UnshareFamilyMemberDocument,
     "mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {\n  updateFamilyMember(id: $id, input: $input) {\n    id\n    firstName\n    name\n    relationship\n    email\n    phone\n    location\n    occupation\n    ageYears\n    dateOfBirth\n    bio\n    createdAt\n    updatedAt\n  }\n}": types.UpdateFamilyMemberDocument,
+    "mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {\n  updateGoal(id: $id, input: $input) {\n    id\n    slug\n    title\n    description\n    status\n    familyMemberId\n    familyMember {\n      id\n      firstName\n      name\n      relationship\n    }\n    createdAt\n    updatedAt\n  }\n}": types.UpdateGoalDocument,
     "mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {\n  updateNote(id: $id, input: $input) {\n    id\n    entityId\n    entityType\n    createdBy\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": types.UpdateNoteDocument,
     "mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}": types.UpdateStoryDocument,
 };
@@ -234,6 +236,10 @@ export function gql(source: "mutation UnshareFamilyMember($familyMemberId: Int!,
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {\n  updateFamilyMember(id: $id, input: $input) {\n    id\n    firstName\n    name\n    relationship\n    email\n    phone\n    location\n    occupation\n    ageYears\n    dateOfBirth\n    bio\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {\n  updateFamilyMember(id: $id, input: $input) {\n    id\n    firstName\n    name\n    relationship\n    email\n    phone\n    location\n    occupation\n    ageYears\n    dateOfBirth\n    bio\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {\n  updateGoal(id: $id, input: $input) {\n    id\n    slug\n    title\n    description\n    status\n    familyMemberId\n    familyMember {\n      id\n      firstName\n      name\n      relationship\n    }\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {\n  updateGoal(id: $id, input: $input) {\n    id\n    slug\n    title\n    description\n    status\n    familyMemberId\n    familyMember {\n      id\n      firstName\n      name\n      relationship\n    }\n    createdAt\n    updatedAt\n  }\n}"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

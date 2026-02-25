@@ -597,6 +597,7 @@ input UpdateFamilyMemberInput {
 
 input UpdateGoalInput {
   description: String
+  familyMemberId: Int
   status: String
   title: String
 }

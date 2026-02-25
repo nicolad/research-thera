@@ -13,6 +13,7 @@ export const updateGoal: NonNullable<MutationResolvers['updateGoal']> = async (
   }
 
   await updateGoalDb(args.id, userEmail, {
+    familyMemberId: args.input.familyMemberId ?? undefined,
     title: args.input.title ?? undefined,
     description: args.input.description ?? undefined,
     status: args.input.status ?? undefined,
