@@ -55,6 +55,7 @@ type Documents = {
     "mutation UpdateJournalEntry($id: Int!, $input: UpdateJournalEntryInput!) {\n  updateJournalEntry(id: $id, input: $input) {\n    id\n    createdBy\n    familyMemberId\n    title\n    content\n    mood\n    moodScore\n    tags\n    goalId\n    isPrivate\n    entryDate\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateJournalEntryDocument,
     "mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {\n  updateNote(id: $id, input: $input) {\n    id\n    entityId\n    entityType\n    createdBy\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateNoteDocument,
     "mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}": typeof types.UpdateStoryDocument,
+    "query GetUserSettings {\n  userSettings {\n    userId\n    storyLanguage\n  }\n}\n\nmutation UpdateUserSettings($storyLanguage: String!) {\n  updateUserSettings(storyLanguage: $storyLanguage) {\n    userId\n    storyLanguage\n  }\n}": typeof types.GetUserSettingsDocument,
 };
 const documents: Documents = {
     "mutation CheckNoteClaims($input: CheckNoteClaimsInput!) {\n  checkNoteClaims(input: $input) {\n    success\n    message\n    noteId\n    cards {\n      id\n      claim\n      scope {\n        population\n        intervention\n        comparator\n        outcome\n        timeframe\n        setting\n      }\n      verdict\n      confidence\n      evidence {\n        paper {\n          title\n          doi\n          url\n          year\n          source\n          authors\n          abstract\n          journal\n        }\n        polarity\n        excerpt\n        rationale\n        score\n        locator {\n          section\n          page\n          url\n        }\n      }\n      queries\n      createdAt\n      updatedAt\n      provenance {\n        generatedBy\n        model\n        sourceTools\n      }\n      notes\n    }\n  }\n}": types.CheckNoteClaimsDocument,
@@ -98,6 +99,7 @@ const documents: Documents = {
     "mutation UpdateJournalEntry($id: Int!, $input: UpdateJournalEntryInput!) {\n  updateJournalEntry(id: $id, input: $input) {\n    id\n    createdBy\n    familyMemberId\n    title\n    content\n    mood\n    moodScore\n    tags\n    goalId\n    isPrivate\n    entryDate\n    createdAt\n    updatedAt\n  }\n}": types.UpdateJournalEntryDocument,
     "mutation UpdateNote($id: Int!, $input: UpdateNoteInput!) {\n  updateNote(id: $id, input: $input) {\n    id\n    entityId\n    entityType\n    createdBy\n    noteType\n    content\n    createdBy\n    tags\n    createdAt\n    updatedAt\n  }\n}": types.UpdateNoteDocument,
     "mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}": types.UpdateStoryDocument,
+    "query GetUserSettings {\n  userSettings {\n    userId\n    storyLanguage\n  }\n}\n\nmutation UpdateUserSettings($storyLanguage: String!) {\n  updateUserSettings(storyLanguage: $storyLanguage) {\n    userId\n    storyLanguage\n  }\n}": types.GetUserSettingsDocument,
 };
 
 /**
@@ -278,6 +280,10 @@ export function gql(source: "mutation UpdateNote($id: Int!, $input: UpdateNoteIn
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}"): (typeof documents)["mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {\n  updateStory(id: $id, input: $input) {\n    id\n    goalId\n    createdBy\n    content\n    createdAt\n    updatedAt\n  }\n}"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "query GetUserSettings {\n  userSettings {\n    userId\n    storyLanguage\n  }\n}\n\nmutation UpdateUserSettings($storyLanguage: String!) {\n  updateUserSettings(storyLanguage: $storyLanguage) {\n    userId\n    storyLanguage\n  }\n}"): (typeof documents)["query GetUserSettings {\n  userSettings {\n    userId\n    storyLanguage\n  }\n}\n\nmutation UpdateUserSettings($storyLanguage: String!) {\n  updateUserSettings(storyLanguage: $storyLanguage) {\n    userId\n    storyLanguage\n  }\n}"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

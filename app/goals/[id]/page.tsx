@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
@@ -42,7 +42,9 @@ import {
   useUpdateGoalMutation,
   useGetFamilyMembersQuery,
   useGetGenerationJobQuery,
+  useGetUserSettingsQuery,
 } from "@/app/__generated__/hooks";
+import { UserSettingsLanguageSelector } from "@/app/components/UserSettingsLanguageSelector";
 import { useUser } from "@clerk/nextjs";
 import AddSubGoalButton from "@/app/components/AddSubGoalButton";
 import "./accordion.css";
@@ -226,14 +228,10 @@ function GoalPageContent() {
     type: "success" | "error";
   } | null>(null);
   const [storyJobId, setStoryJobId] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
 
-  // Sync language from goal data once loaded
-  useEffect(() => {
-    if (goal?.storyLanguage) {
-      setSelectedLanguage(goal.storyLanguage);
-    }
-  }, [goal?.storyLanguage]);
+  const { data: userSettingsData } = useGetUserSettingsQuery();
+  const storyLanguage =
+    userSettingsData?.userSettings?.storyLanguage ?? "English";
 
   const { data: storyJobData, stopPolling: stopStoryPolling } =
     useGetGenerationJobQuery({
@@ -291,15 +289,7 @@ function GoalPageContent() {
     if (!goal) return;
     setStoryMessage(null);
     await generateStory({
-      variables: { goalId: goal.id, language: selectedLanguage, minutes: 10 },
-    });
-  };
-
-  const handleLanguageChange = async (lang: string) => {
-    setSelectedLanguage(lang);
-    if (!goal) return;
-    await updateGoal({
-      variables: { id: goal.id, input: { storyLanguage: lang } },
+      variables: { goalId: goal.id, language: storyLanguage, minutes: 10 },
     });
   };
 
@@ -782,22 +772,8 @@ function GoalPageContent() {
               Generated Stories{" "}
               {goal.stories ? `(${goal.stories.length})` : ""}
             </Heading>
-            <Flex align="center" gap="2">
-              <Select.Root
-                value={selectedLanguage}
-                onValueChange={handleLanguageChange}
-                disabled={isStoryJobRunning}
-                size="2"
-              >
-                <Select.Trigger />
-                <Select.Content>
-                  <Select.Item value="Romanian">Romanian</Select.Item>
-                  <Select.Item value="English">English</Select.Item>
-                  <Select.Item value="French">French</Select.Item>
-                  <Select.Item value="German">German</Select.Item>
-                  <Select.Item value="Spanish">Spanish</Select.Item>
-                </Select.Content>
-              </Select.Root>
+            <Flex align="center" gap="3">
+              <UserSettingsLanguageSelector />
               <GlassButton
                 variant="primary"
                 size="medium"

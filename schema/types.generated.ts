@@ -483,6 +483,7 @@ export type Mutation = {
   updateJournalEntry: JournalEntry;
   updateNote: Note;
   updateStory: Story;
+  updateUserSettings: UserSettings;
 };
 
 
@@ -664,6 +665,11 @@ export type MutationupdateStoryArgs = {
   input: UpdateStoryInput;
 };
 
+
+export type MutationupdateUserSettingsArgs = {
+  storyLanguage: Scalars['String']['input'];
+};
+
 export type Note = {
   __typename?: 'Note';
   claimCards?: Maybe<Array<ClaimCard>>;
@@ -777,6 +783,7 @@ export type Query = {
   stories: Array<Story>;
   story?: Maybe<Story>;
   therapeuticQuestions: Array<TherapeuticQuestion>;
+  userSettings: UserSettings;
 };
 
 
@@ -999,6 +1006,12 @@ export type UpdateStoryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UserSettings = {
+  __typename?: 'UserSettings';
+  storyLanguage: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+};
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -1146,6 +1159,7 @@ export type ResolversTypes = {
   UpdateJournalEntryInput: UpdateJournalEntryInput;
   UpdateNoteInput: UpdateNoteInput;
   UpdateStoryInput: UpdateStoryInput;
+  UserSettings: ResolverTypeWrapper<UserSettings>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1212,6 +1226,7 @@ export type ResolversParentTypes = {
   UpdateJournalEntryInput: UpdateJournalEntryInput;
   UpdateNoteInput: UpdateNoteInput;
   UpdateStoryInput: UpdateStoryInput;
+  UserSettings: UserSettings;
 };
 
 export type AudioAssetResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AudioAsset'] = ResolversParentTypes['AudioAsset']> = {
@@ -1545,6 +1560,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   updateJournalEntry?: Resolver<ResolversTypes['JournalEntry'], ParentType, ContextType, RequireFields<MutationupdateJournalEntryArgs, 'id' | 'input'>>;
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
   updateStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationupdateStoryArgs, 'id' | 'input'>>;
+  updateUserSettings?: Resolver<ResolversTypes['UserSettings'], ParentType, ContextType, RequireFields<MutationupdateUserSettingsArgs, 'storyLanguage'>>;
 };
 
 export type NoteResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Note'] = ResolversParentTypes['Note']> = {
@@ -1627,6 +1643,7 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   stories?: Resolver<Array<ResolversTypes['Story']>, ParentType, ContextType, RequireFields<QuerystoriesArgs, 'goalId'>>;
   story?: Resolver<Maybe<ResolversTypes['Story']>, ParentType, ContextType, RequireFields<QuerystoryArgs, 'id'>>;
   therapeuticQuestions?: Resolver<Array<ResolversTypes['TherapeuticQuestion']>, ParentType, ContextType, RequireFields<QuerytherapeuticQuestionsArgs, 'goalId'>>;
+  userSettings?: Resolver<ResolversTypes['UserSettings'], ParentType, ContextType>;
 };
 
 export type ResearchResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Research'] = ResolversParentTypes['Research']> = {
@@ -1692,6 +1709,11 @@ export type TherapeuticQuestionResolvers<ContextType = GraphQLContext, ParentTyp
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type UserSettingsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UserSettings'] = ResolversParentTypes['UserSettings']> = {
+  storyLanguage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
   AudioAsset?: AudioAssetResolvers<ContextType>;
   AudioFromR2Result?: AudioFromR2ResultResolvers<ContextType>;
@@ -1748,5 +1770,6 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;
+  UserSettings?: UserSettingsResolvers<ContextType>;
 };
 

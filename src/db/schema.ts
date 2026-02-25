@@ -259,6 +259,17 @@ export const journalEntries = sqliteTable("journal_entries", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const userSettings = sqliteTable("user_settings", {
+  userId: text("user_id").primaryKey(),
+  storyLanguage: text("story_language").notNull().default("English"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Better Auth Tables
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),

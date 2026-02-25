@@ -434,6 +434,7 @@ type Mutation {
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
+  updateUserSettings(storyLanguage: String!): UserSettings!
 }
 
 type Note {
@@ -550,6 +551,7 @@ type Query {
   stories(goalId: Int!): [Story!]!
   story(id: Int!): Story
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
+  userSettings: UserSettings!
 }
 
 type Research {
@@ -667,4 +669,9 @@ input UpdateNoteInput {
 
 input UpdateStoryInput {
   content: String
+}
+
+type UserSettings {
+  storyLanguage: String!
+  userId: String!
 }

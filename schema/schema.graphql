@@ -28,6 +28,9 @@ type Query {
 
   # R2 Audio
   audioFromR2(key: String!): AudioFromR2Result
+
+  # User Settings
+  userSettings: UserSettings!
 }
 
 type Mutation {
@@ -91,6 +94,9 @@ type Mutation {
   createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
+
+  # User Settings
+  updateUserSettings(storyLanguage: String!): UserSettings!
 }
 
 type Subscription {
@@ -736,4 +742,13 @@ input UpdateJournalEntryInput {
 type DeleteJournalEntryResult {
   success: Boolean!
   message: String
+}
+
+# ============================================
+# User Settings
+# ============================================
+
+type UserSettings {
+  userId: String!
+  storyLanguage: String!
 }

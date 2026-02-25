@@ -1605,6 +1605,39 @@ export async function deleteJournalEntry(
   return true;
 }
 
+// ============================================
+// User Settings
+// ============================================
+
+export async function getUserSettings(
+  userId: string,
+): Promise<{ userId: string; storyLanguage: string }> {
+  const result = await d1.execute({
+    sql: `SELECT * FROM user_settings WHERE user_id = ?`,
+    args: [userId],
+  });
+  if (result.rows.length === 0) {
+    return { userId, storyLanguage: "English" };
+  }
+  const row = result.rows[0];
+  return {
+    userId: row.user_id as string,
+    storyLanguage: (row.story_language as string) ?? "English",
+  };
+}
+
+export async function upsertUserSettings(
+  userId: string,
+  storyLanguage: string,
+): Promise<{ userId: string; storyLanguage: string }> {
+  await d1.execute({
+    sql: `INSERT OR REPLACE INTO user_settings (user_id, story_language, created_at, updated_at)
+          VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+    args: [userId, storyLanguage],
+  });
+  return { userId, storyLanguage };
+}
+
 export const d1Tools = {
   // Family Members
   listFamilyMembers,
@@ -1659,6 +1692,9 @@ export const d1Tools = {
   createJournalEntry,
   updateJournalEntry,
   deleteJournalEntry,
+  // User Settings
+  getUserSettings,
+  upsertUserSettings,
 };
 
 // Export d1 client for direct database access

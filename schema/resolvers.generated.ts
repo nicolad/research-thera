@@ -20,6 +20,7 @@ import    { research as Query_research } from './resolvers/Query/research';
 import    { stories as Query_stories } from './resolvers/Query/stories';
 import    { story as Query_story } from './resolvers/Query/story';
 import    { therapeuticQuestions as Query_therapeuticQuestions } from './resolvers/Query/therapeuticQuestions';
+import    { userSettings as Query_userSettings } from './resolvers/Query/userSettings';
 import    { buildClaimCards as Mutation_buildClaimCards } from './resolvers/Mutation/buildClaimCards';
 import    { checkNoteClaims as Mutation_checkNoteClaims } from './resolvers/Mutation/checkNoteClaims';
 import    { createFamilyMember as Mutation_createFamilyMember } from './resolvers/Mutation/createFamilyMember';
@@ -52,6 +53,7 @@ import    { updateGoal as Mutation_updateGoal } from './resolvers/Mutation/updat
 import    { updateJournalEntry as Mutation_updateJournalEntry } from './resolvers/Mutation/updateJournalEntry';
 import    { updateNote as Mutation_updateNote } from './resolvers/Mutation/updateNote';
 import    { updateStory as Mutation_updateStory } from './resolvers/Mutation/updateStory';
+import    { updateUserSettings as Mutation_updateUserSettings } from './resolvers/Mutation/updateUserSettings';
 import    { audioJobStatus as Subscription_audioJobStatus } from './resolvers/Subscription/audioJobStatus';
 import    { researchJobStatus as Subscription_researchJobStatus } from './resolvers/Subscription/researchJobStatus';
 import    { AudioAsset } from './resolvers/AudioAsset';
@@ -94,9 +96,10 @@ import    { Research } from './resolvers/Research';
 import    { Story } from './resolvers/Story';
 import    { TextSegment } from './resolvers/TextSegment';
 import    { TherapeuticQuestion } from './resolvers/TherapeuticQuestion';
+import    { UserSettings } from './resolvers/UserSettings';
     export const resolvers: Resolvers = {
-      Query: { allNotes: Query_allNotes,audioFromR2: Query_audioFromR2,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,familyMember: Query_familyMember,familyMembers: Query_familyMembers,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,journalEntries: Query_journalEntries,journalEntry: Query_journalEntry,mySharedFamilyMembers: Query_mySharedFamilyMembers,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions },
-      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createFamilyMember: Mutation_createFamilyMember,createGoal: Mutation_createGoal,createJournalEntry: Mutation_createJournalEntry,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteClaimCard: Mutation_deleteClaimCard,deleteFamilyMember: Mutation_deleteFamilyMember,deleteGoal: Mutation_deleteGoal,deleteJournalEntry: Mutation_deleteJournalEntry,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareFamilyMember: Mutation_shareFamilyMember,shareNote: Mutation_shareNote,unshareFamilyMember: Mutation_unshareFamilyMember,unshareNote: Mutation_unshareNote,updateFamilyMember: Mutation_updateFamilyMember,updateGoal: Mutation_updateGoal,updateJournalEntry: Mutation_updateJournalEntry,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory },
+      Query: { allNotes: Query_allNotes,audioFromR2: Query_audioFromR2,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,familyMember: Query_familyMember,familyMembers: Query_familyMembers,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goals: Query_goals,journalEntries: Query_journalEntries,journalEntry: Query_journalEntry,mySharedFamilyMembers: Query_mySharedFamilyMembers,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions,userSettings: Query_userSettings },
+      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createFamilyMember: Mutation_createFamilyMember,createGoal: Mutation_createGoal,createJournalEntry: Mutation_createJournalEntry,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteClaimCard: Mutation_deleteClaimCard,deleteFamilyMember: Mutation_deleteFamilyMember,deleteGoal: Mutation_deleteGoal,deleteJournalEntry: Mutation_deleteJournalEntry,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareFamilyMember: Mutation_shareFamilyMember,shareNote: Mutation_shareNote,unshareFamilyMember: Mutation_unshareFamilyMember,unshareNote: Mutation_unshareNote,updateFamilyMember: Mutation_updateFamilyMember,updateGoal: Mutation_updateGoal,updateJournalEntry: Mutation_updateJournalEntry,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory,updateUserSettings: Mutation_updateUserSettings },
       Subscription: { audioJobStatus: Subscription_audioJobStatus,researchJobStatus: Subscription_researchJobStatus },
       AudioAsset: AudioAsset,
 AudioFromR2Result: AudioFromR2Result,
@@ -137,5 +140,6 @@ PaperCandidate: PaperCandidate,
 Research: Research,
 Story: Story,
 TextSegment: TextSegment,
-TherapeuticQuestion: TherapeuticQuestion
+TherapeuticQuestion: TherapeuticQuestion,
+UserSettings: UserSettings
     }
