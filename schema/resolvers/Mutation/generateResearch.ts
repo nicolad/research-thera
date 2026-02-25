@@ -20,7 +20,7 @@ export const generateResearch: NonNullable<MutationResolvers['generateResearch']
   // Fire-and-forget the workflow
   const run = await generateTherapyResearchWorkflow.createRun();
   run
-    .start({ inputData: { userId: userEmail, goalId } })
+    .start({ inputData: { userId: userEmail, goalId, jobId } })
     .then(async (result) => {
       if (result.status === "success") {
         await d1Tools.updateGenerationJob(jobId, {

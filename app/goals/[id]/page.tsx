@@ -46,6 +46,17 @@ import { useUser } from "@clerk/nextjs";
 import AddSubGoalButton from "@/app/components/AddSubGoalButton";
 import "./accordion.css";
 
+const STEP_LABELS: Record<number, string> = {
+  5: "Loading goal context…",
+  10: "Preparing search prompts…",
+  20: "Planning search queries…",
+  40: "Searching Crossref, PubMed, Semantic Scholar…",
+  60: "Enriching paper abstracts…",
+  65: "Preparing extraction…",
+  85: "Extracting relevant findings…",
+  95: "Saving papers to database…",
+};
+
 function GoalPageContent() {
   const router = useRouter();
   const params = useParams();
@@ -757,11 +768,13 @@ function GoalPageContent() {
             <Flex direction="column" gap="2">
               <Flex justify="between" align="center">
                 <Text size="2" color="gray">
-                  Searching for papers…
+                  {STEP_LABELS[jobProgress] ?? "Searching for papers…"}
                 </Text>
-                <Text size="2" color="gray">
-                  {Math.round(jobProgress * 100)}%
-                </Text>
+                {jobProgress > 0 && (
+                  <Text size="2" color="gray">
+                    {jobProgress}%
+                  </Text>
+                )}
               </Flex>
               <Box
                 style={{
@@ -771,15 +784,27 @@ function GoalPageContent() {
                   overflow: "hidden",
                 }}
               >
-                <Box
-                  style={{
-                    height: "100%",
-                    width: `${Math.round(jobProgress * 100)}%`,
-                    background: "var(--indigo-9)",
-                    transition: "width 0.4s ease",
-                    borderRadius: 3,
-                  }}
-                />
+                {jobProgress > 0 ? (
+                  <Box
+                    style={{
+                      height: "100%",
+                      width: `${jobProgress}%`,
+                      background: "var(--indigo-9)",
+                      transition: "width 0.4s ease",
+                      borderRadius: 3,
+                    }}
+                  />
+                ) : (
+                  <Box
+                    style={{
+                      height: "100%",
+                      width: "40%",
+                      background: "var(--indigo-9)",
+                      borderRadius: 3,
+                      animation: "researchSweep 1.4s ease-in-out infinite",
+                    }}
+                  />
+                )}
               </Box>
             </Flex>
           )}

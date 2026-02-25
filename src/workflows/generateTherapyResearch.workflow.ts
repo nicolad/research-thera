@@ -34,6 +34,7 @@ const BLENDED_THRESHOLD = 0.45;
 const inputSchema = z.object({
   userId: z.string(),
   goalId: z.number().int(),
+  jobId: z.string().optional(),
   familyMemberName: z.string().optional(),
   familyMemberAge: z.number().int().optional(),
 });
@@ -51,6 +52,7 @@ const loadContextStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.object({
       id: z.number().int(),
       title: z.string(),
@@ -61,6 +63,9 @@ const loadContextStep = createStep({
     familyMemberAge: z.number().int().nullable(),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 5 }).catch(() => {});
+    }
     const goal = await d1Tools.getGoal(inputData.goalId, inputData.userId);
     const notes = await d1Tools.listNotesForEntity(
       inputData.goalId,
@@ -86,6 +91,7 @@ const loadContextStep = createStep({
     return {
       userId: inputData.userId,
       goalId: inputData.goalId,
+      jobId: inputData.jobId,
       goal: {
         id: goal.id,
         title: goal.title,
@@ -104,6 +110,7 @@ const ensurePromptsStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.object({
       id: z.number().int(),
       title: z.string(),
@@ -116,6 +123,7 @@ const ensurePromptsStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.object({
       id: z.number().int(),
       title: z.string(),
@@ -130,6 +138,9 @@ const ensurePromptsStep = createStep({
     createdNewVersion: z.boolean(),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 10 }).catch(() => {});
+    }
     const ensured = await langfusePromptPackTools.ensure({
       goalId: inputData.goalId,
       goalTitle: inputData.goal.title,
@@ -144,6 +155,7 @@ const ensurePromptsStep = createStep({
       ...inputData,
       notes: inputData.notes.map((n) => ({ content: n.content })),
       ...ensured,
+      jobId: inputData.jobId,
     };
   },
 });
@@ -154,6 +166,7 @@ const planQueryStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
     familyMemberName: z.string().nullable(),
@@ -164,6 +177,7 @@ const planQueryStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.object({ title: z.string(), description: z.string().nullable() }),
     notes: z.array(z.object({ content: z.string() })),
     familyMemberName: z.string().nullable(),
@@ -179,6 +193,9 @@ const planQueryStep = createStep({
     exclusion: z.array(z.string()),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 20 }).catch(() => {});
+    }
     const rawPlan = await extractorTools.plan({
       title: inputData.goal.title,
       description: inputData.goal.description ?? "",
@@ -202,6 +219,7 @@ const planQueryStep = createStep({
       ...plan,
       goalType:
         plan.goalType ?? plan.therapeuticGoalType ?? "behavioral_change",
+      jobId: inputData.jobId,
     };
   },
 });
@@ -219,6 +237,7 @@ const searchStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.any(),
     notes: z.any(),
     plannerPromptName: z.string(),
@@ -233,6 +252,7 @@ const searchStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.any(),
     notes: z.any(),
     plannerPromptName: z.string(),
@@ -250,6 +270,9 @@ const searchStep = createStep({
     ),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 40 }).catch(() => {});
+    }
     // Increase recall aggressively; filter later
     const PER_QUERY = 50;
 
@@ -360,6 +383,7 @@ const searchStep = createStep({
     return {
       ...inputData,
       candidates: filtered,
+      jobId: inputData.jobId,
     };
   },
 });
@@ -370,6 +394,7 @@ const enrichAbstractsStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.any(),
     notes: z.any(),
     plannerPromptName: z.string(),
@@ -381,6 +406,7 @@ const enrichAbstractsStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     goal: z.any(),
     notes: z.any(),
     plannerPromptName: z.string(),
@@ -390,6 +416,9 @@ const enrichAbstractsStep = createStep({
     candidates: z.array(z.any()),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 60 }).catch(() => {});
+    }
     const candidates = inputData.candidates;
 
     console.log(`\n🔬 Enriching abstracts from OpenAlex...\n`);
@@ -438,6 +467,7 @@ const enrichAbstractsStep = createStep({
         ...withAbstracts,
         ...candidates.slice(ENRICH_CANDIDATES_LIMIT),
       ],
+      jobId: inputData.jobId,
     };
   },
 });
@@ -510,22 +540,28 @@ const prepExtractStep = createStep({
   id: "prep-extract",
   inputSchema: z.any(),
   outputSchema: z.any(),
-  execute: async ({ inputData }) => ({
-    userId: inputData.userId,
-    goalId: inputData.goalId,
-    context: {
-      goal: inputData.goal,
-      notes: inputData.notes,
-    },
-    plan: {
-      goalType: inputData.goalType,
-      extractorPromptName: inputData.extractorPromptName,
-      keywords: inputData.keywords,
-    },
-    search: {
-      candidates: inputData.candidates,
-    },
-  }),
+  execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 65 }).catch(() => {});
+    }
+    return {
+      userId: inputData.userId,
+      goalId: inputData.goalId,
+      jobId: inputData.jobId,
+      context: {
+        goal: inputData.goal,
+        notes: inputData.notes,
+      },
+      plan: {
+        goalType: inputData.goalType,
+        extractorPromptName: inputData.extractorPromptName,
+        keywords: inputData.keywords,
+      },
+      search: {
+        candidates: inputData.candidates,
+      },
+    };
+  },
 });
 
 // Step 7: Extract all candidates in batches
@@ -534,6 +570,7 @@ const extractAllStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     context: z.any(),
     plan: z.any(),
     search: z.any(),
@@ -541,9 +578,13 @@ const extractAllStep = createStep({
   outputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     results: z.array(z.any()),
   }),
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 85 }).catch(() => {});
+    }
     const goal = inputData.context.goal;
     const plan = inputData.plan;
     const candidates = inputData.search.candidates.slice(
@@ -589,6 +630,7 @@ const extractAllStep = createStep({
     return {
       userId: inputData.userId,
       goalId: inputData.goalId,
+      jobId: inputData.jobId,
       results,
     };
   },
@@ -600,10 +642,14 @@ const persistStep = createStep({
   inputSchema: z.object({
     userId: z.string(),
     goalId: z.number().int(),
+    jobId: z.string().optional(),
     results: z.array(z.any()),
   }),
   outputSchema,
   execute: async ({ inputData }) => {
+    if (inputData.jobId) {
+      await d1Tools.updateGenerationJob(inputData.jobId, { progress: 95 }).catch(() => {});
+    }
     console.log(`\n📊 Extraction results: ${inputData.results.length} total\n`);
 
     // Stage 1: must have at least one key finding

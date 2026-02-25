@@ -40,3 +40,12 @@
     height: 0;
   }
 }
+
+@keyframes researchSweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
