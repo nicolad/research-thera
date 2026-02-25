@@ -210,10 +210,6 @@ export const therapeuticAgent = new Agent({
   name: "Therapeutic Audio Agent",
   instructions: therapeuticInstructions,
   model: deepseek("deepseek-chat"),
-  // Voice removed - use OpenAI TTS via GraphQL
-  memory: new Memory({
-    storage: agentStorage,
-  }),
 });
 
 /**
