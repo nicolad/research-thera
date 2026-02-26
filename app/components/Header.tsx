@@ -52,7 +52,7 @@ export function Header() {
               <Separator orientation="vertical" style={{ height: "16px", opacity: 0.4 }} />
 
               <nav aria-label="Main navigation">
-                <Flex gap="1">
+                <Flex gap="5">
                   {NAV_LINKS.map((link) => {
                     const isActive = pathname.startsWith(link.href);
                     return (
@@ -78,7 +78,7 @@ export function Header() {
             </Flex>
 
             {/* Right: user controls */}
-            <Flex align="center" gap="2">
+            <Flex align="center" gap="4">
               <UserMenu />
               <IconButton
                 asChild
