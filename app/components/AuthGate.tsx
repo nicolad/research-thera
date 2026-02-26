@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { Card, Flex, Heading, Text, Button, Spinner } from "@radix-ui/themes";
 import { LockClosedIcon } from "@radix-ui/react-icons";
@@ -12,6 +13,13 @@ interface AuthGateProps {
 
 export function AuthGate({ children, pageName, description }: AuthGateProps) {
   const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    document.title = `${pageName} | ResearchThera`;
+    return () => {
+      document.title = "ResearchThera.com";
+    };
+  }, [pageName]);
 
   if (!isLoaded) {
     return (

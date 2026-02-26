@@ -78,13 +78,13 @@ function FamilyListContent() {
     loading: ownLoading,
     error: ownError,
     refetch: refetchOwn,
-  } = useGetFamilyMembersQuery();
+  } = useGetFamilyMembersQuery({ skip: !user });
 
   const {
     data: sharedData,
     loading: sharedLoading,
     error: sharedError,
-  } = useGetMySharedFamilyMembersQuery();
+  } = useGetMySharedFamilyMembersQuery({ skip: !user });
 
   const [createFamilyMember, { loading: creating }] =
     useCreateFamilyMemberMutation({
