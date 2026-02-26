@@ -190,7 +190,7 @@ const DynamicGoalsListContent = dynamic(
 
 export default function GoalsPage() {
   return (
-    <Flex direction="column" gap="6">
+    <Flex direction="column" gap="4">
       <Heading size="8">Goals</Heading>
       <DynamicGoalsListContent />
     </Flex>

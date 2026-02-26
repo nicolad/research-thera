@@ -107,7 +107,7 @@ function NewStoryContent() {
         </Flex>
       </Box>
 
-      <Box style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
+      <Box style={{ width: "100%" }}>
         <Breadcrumbs
           crumbs={[
             { label: "Goals", href: "/goals" },

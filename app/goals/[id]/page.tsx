@@ -1174,7 +1174,7 @@ export default function GoalPage() {
         </Flex>
       </Box>
 
-      <Box style={{ maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
+      <Box style={{ width: "100%" }}>
         <DynamicGoalPageContent />
       </Box>
     </Flex>

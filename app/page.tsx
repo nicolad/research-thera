@@ -28,10 +28,10 @@ export default function Home() {
   const isPending = !isLoaded;
 
   return (
-    <Flex direction="column" gap="8">
+    <Flex direction="column" gap="6">
       {/* Hero Section */}
       <Card size="4" style={{ background: "var(--indigo-3)" }}>
-        <Flex direction="column" gap="4" align="center" py="6">
+        <Flex direction="column" gap="4" align="center" py="4">
           <Badge size="2" variant="soft" color="indigo">
             Research-backed &middot; Personal &middot; Private
           </Badge>

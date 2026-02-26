@@ -21,7 +21,7 @@ export default function NotesPage() {
   const notes = data?.allNotes || [];
 
   return (
-    <Flex direction="column" gap="6">
+    <Flex direction="column" gap="4">
       <Flex direction="column" gap="1">
         <Heading size="8">Notes</Heading>
         <Text size="3" color="gray">

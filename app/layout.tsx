@@ -27,8 +27,8 @@ export default function RootLayout({
             scaling="100%"
           >
             <ApolloProvider>
-              <Container size="3" p="7">
-                <Header />
+              <Header />
+              <Container size="3" pb="6" px="5">
                 {children}
               </Container>
             </ApolloProvider>
