@@ -8,6 +8,7 @@ type Query {
   note(id: Int, slug: String): Note
   mySharedNotes: [Note!]!
 
+  allStories: [Story!]!
   stories(goalId: Int!): [Story!]!
   story(id: Int!): Story
   goalStory(id: Int!): GoalStory

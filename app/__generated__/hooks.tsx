@@ -778,6 +778,7 @@ export type PaperCandidate = {
 export type Query = {
   __typename?: 'Query';
   allNotes: Array<Note>;
+  allStories: Array<Story>;
   audioFromR2?: Maybe<AudioFromR2Result>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
@@ -1201,6 +1202,11 @@ export type GetAllNotesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetAllNotesQuery = { __typename?: 'Query', allNotes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, createdBy: string, noteType?: string | null, slug?: string | null, title?: string | null, content: string, tags?: Array<string> | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null, status: string } | null }> };
+
+export type GetAllStoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllStoriesQuery = { __typename?: 'Query', allStories: Array<{ __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, audioKey?: string | null, audioUrl?: string | null, audioGeneratedAt?: string | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, slug?: string | null } | null }> };
 
 export type GetAudioFromR2QueryVariables = Exact<{
   key: Scalars['String']['input'];
@@ -2486,6 +2492,61 @@ export type GetAllNotesQueryHookResult = ReturnType<typeof useGetAllNotesQuery>;
 export type GetAllNotesLazyQueryHookResult = ReturnType<typeof useGetAllNotesLazyQuery>;
 export type GetAllNotesSuspenseQueryHookResult = ReturnType<typeof useGetAllNotesSuspenseQuery>;
 export type GetAllNotesQueryResult = Apollo.QueryResult<GetAllNotesQuery, GetAllNotesQueryVariables>;
+export const GetAllStoriesDocument = gql`
+    query GetAllStories {
+  allStories {
+    id
+    goalId
+    createdBy
+    content
+    audioKey
+    audioUrl
+    audioGeneratedAt
+    createdAt
+    updatedAt
+    goal {
+      id
+      title
+      slug
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAllStoriesQuery__
+ *
+ * To run a query within a React component, call `useGetAllStoriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllStoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllStoriesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllStoriesQuery(baseOptions?: Apollo.QueryHookOptions<GetAllStoriesQuery, GetAllStoriesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllStoriesQuery, GetAllStoriesQueryVariables>(GetAllStoriesDocument, options);
+      }
+export function useGetAllStoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllStoriesQuery, GetAllStoriesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllStoriesQuery, GetAllStoriesQueryVariables>(GetAllStoriesDocument, options);
+        }
+// @ts-ignore
+export function useGetAllStoriesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAllStoriesQuery, GetAllStoriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetAllStoriesQuery, GetAllStoriesQueryVariables>;
+export function useGetAllStoriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAllStoriesQuery, GetAllStoriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetAllStoriesQuery | undefined, GetAllStoriesQueryVariables>;
+export function useGetAllStoriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAllStoriesQuery, GetAllStoriesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAllStoriesQuery, GetAllStoriesQueryVariables>(GetAllStoriesDocument, options);
+        }
+export type GetAllStoriesQueryHookResult = ReturnType<typeof useGetAllStoriesQuery>;
+export type GetAllStoriesLazyQueryHookResult = ReturnType<typeof useGetAllStoriesLazyQuery>;
+export type GetAllStoriesSuspenseQueryHookResult = ReturnType<typeof useGetAllStoriesSuspenseQuery>;
+export type GetAllStoriesQueryResult = Apollo.QueryResult<GetAllStoriesQuery, GetAllStoriesQueryVariables>;
 export const GetAudioFromR2Document = gql`
     query GetAudioFromR2($key: String!) {
   audioFromR2(key: $key) {

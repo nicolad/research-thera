@@ -1080,6 +1080,25 @@ export async function getSharedNotes(viewerEmail: string) {
 // Stories
 // ============================================
 
+export async function getAllStoriesForUser(createdBy: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM stories WHERE user_id = ? ORDER BY created_at DESC`,
+    args: [createdBy],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    goalId: row.goal_id as number,
+    createdBy: row.user_id as string,
+    content: row.content as string,
+    audioKey: row.audio_key as string | null,
+    audioUrl: row.audio_url as string | null,
+    audioGeneratedAt: row.audio_generated_at as string | null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
 export async function listStories(goalId: number, createdBy: string) {
   const result = await d1.execute({
     sql: `SELECT * FROM stories WHERE goal_id = ? AND user_id = ? ORDER BY created_at DESC`,
@@ -1699,6 +1718,7 @@ export const d1Tools = {
   unshareNote,
   getNoteShares,
   getSharedNotes,
+  getAllStoriesForUser,
   listStories,
   getStory,
   createStory,
