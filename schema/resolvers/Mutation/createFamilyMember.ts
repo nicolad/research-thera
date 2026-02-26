@@ -28,5 +28,5 @@ export const createFamilyMember: NonNullable<MutationResolvers['createFamilyMemb
     ...member,
     goals: [],
     shares: [],
-  };
+  } as any;
 };

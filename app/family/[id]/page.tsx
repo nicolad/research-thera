@@ -26,10 +26,19 @@ import {
   useUpdateFamilyMemberMutation,
   useShareFamilyMemberMutation,
   useUnshareFamilyMemberMutation,
+  useGetBehaviorObservationsQuery,
+  useDeleteBehaviorObservationMutation,
+  useGetFamilyMemberCharacteristicsQuery,
+  useDeleteFamilyMemberCharacteristicMutation,
   FamilyMemberShareRole,
+  CharacteristicCategory,
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 import AddGoalButton from "@/app/components/AddGoalButton";
+import AddBehaviorObservationButton from "@/app/components/AddBehaviorObservationButton";
+import BehaviorObservationsList from "@/app/components/BehaviorObservationsList";
+import AddCharacteristicButton from "@/app/components/AddCharacteristicButton";
+import CharacteristicsList from "@/app/components/CharacteristicsList";
 
 const RELATIONSHIP_OPTIONS = [
   "self",
@@ -132,6 +141,45 @@ function FamilyMemberContent() {
     useUnshareFamilyMemberMutation({
       refetchQueries: ["GetFamilyMember"],
     });
+
+  const { data: obsData } = useGetBehaviorObservationsQuery({
+    variables: { familyMemberId: id },
+    skip: isNaN(id),
+  });
+  const observations = obsData?.behaviorObservations ?? [];
+
+  const [deleteObservation, { loading: deletingObs }] =
+    useDeleteBehaviorObservationMutation({
+      refetchQueries: ["GetBehaviorObservations"],
+    });
+
+  const handleDeleteObservation = (obsId: number) => {
+    deleteObservation({ variables: { id: obsId } });
+  };
+
+  const { data: charData } = useGetFamilyMemberCharacteristicsQuery({
+    variables: { familyMemberId: id },
+    skip: isNaN(id),
+  });
+  const characteristics = charData?.familyMemberCharacteristics ?? [];
+  const traits = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.Trait,
+  );
+  const issues = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.Issue,
+  );
+  const problems = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.Problem,
+  );
+
+  const [deleteCharacteristic, { loading: deletingChar }] =
+    useDeleteFamilyMemberCharacteristicMutation({
+      refetchQueries: ["GetFamilyMemberCharacteristics"],
+    });
+
+  const handleDeleteCharacteristic = (charId: number) => {
+    deleteCharacteristic({ variables: { id: charId } });
+  };
 
   function openEditDialog() {
     if (!member) return;
@@ -364,6 +412,112 @@ function FamilyMemberContent() {
               ))}
             </Flex>
           )}
+        </Flex>
+      </Card>
+
+      {/* Traits */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Flex direction="column" gap="1">
+              <Heading size="4">Traits ({traits.length})</Heading>
+              <Text size="1" color="gray">
+                Part of how they function — neutral
+              </Text>
+            </Flex>
+            <AddCharacteristicButton
+              familyMemberId={id}
+              defaultCategory={CharacteristicCategory.Trait}
+              label="Add Trait"
+              refetchQueries={["GetFamilyMemberCharacteristics"]}
+              size="2"
+            />
+          </Flex>
+          <Separator size="4" />
+          <CharacteristicsList
+            items={traits}
+            onDelete={handleDeleteCharacteristic}
+            deleting={deletingChar}
+            emptyMessage="No traits added yet"
+          />
+        </Flex>
+      </Card>
+
+      {/* Issues */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Flex direction="column" gap="1">
+              <Heading size="4">Issues ({issues.length})</Heading>
+              <Text size="1" color="gray">
+                Interferes with something
+              </Text>
+            </Flex>
+            <AddCharacteristicButton
+              familyMemberId={id}
+              defaultCategory={CharacteristicCategory.Issue}
+              label="Add Issue"
+              refetchQueries={["GetFamilyMemberCharacteristics"]}
+              size="2"
+            />
+          </Flex>
+          <Separator size="4" />
+          <CharacteristicsList
+            items={issues}
+            onDelete={handleDeleteCharacteristic}
+            deleting={deletingChar}
+            emptyMessage="No issues added yet"
+          />
+        </Flex>
+      </Card>
+
+      {/* Problems */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Flex direction="column" gap="1">
+              <Heading size="4">Problems ({problems.length})</Heading>
+              <Text size="1" color="gray">
+                Requires active intervention
+              </Text>
+            </Flex>
+            <AddCharacteristicButton
+              familyMemberId={id}
+              defaultCategory={CharacteristicCategory.Problem}
+              label="Add Problem"
+              refetchQueries={["GetFamilyMemberCharacteristics"]}
+              size="2"
+            />
+          </Flex>
+          <Separator size="4" />
+          <CharacteristicsList
+            items={problems}
+            onDelete={handleDeleteCharacteristic}
+            deleting={deletingChar}
+            emptyMessage="No problems added yet"
+          />
+        </Flex>
+      </Card>
+
+      {/* Behavior Observations */}
+      <Card>
+        <Flex direction="column" gap="3" p="4">
+          <Flex justify="between" align="center">
+            <Heading size="4">
+              Behavior Observations ({observations.length})
+            </Heading>
+            <AddBehaviorObservationButton
+              familyMemberId={id}
+              refetchQueries={["GetBehaviorObservations"]}
+              size="2"
+            />
+          </Flex>
+          <Separator size="4" />
+          <BehaviorObservationsList
+            observations={observations}
+            onDelete={handleDeleteObservation}
+            deleting={deletingObs}
+          />
         </Flex>
       </Card>
 

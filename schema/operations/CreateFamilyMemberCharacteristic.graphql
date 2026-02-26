@@ -1,0 +1,12 @@
+mutation CreateFamilyMemberCharacteristic($input: CreateFamilyMemberCharacteristicInput!) {
+  createFamilyMemberCharacteristic(input: $input) {
+    id
+    familyMemberId
+    createdBy
+    category
+    title
+    description
+    createdAt
+    updatedAt
+  }
+}

@@ -262,6 +262,43 @@ export const journalEntries = sqliteTable("journal_entries", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const behaviorObservations = sqliteTable("behavior_observations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  familyMemberId: integer("family_member_id").notNull(),
+  goalId: integer("goal_id"),
+  userId: text("user_id").notNull(),
+  observedAt: text("observed_at").notNull(),
+  observationType: text("observation_type").notNull(),
+  frequency: integer("frequency"),
+  intensity: text("intensity"),
+  context: text("context"),
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const familyMemberCharacteristics = sqliteTable(
+  "family_member_characteristics",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    familyMemberId: integer("family_member_id").notNull(),
+    userId: text("user_id").notNull(),
+    category: text("category").notNull(), // TRAIT | ISSUE | PROBLEM
+    title: text("title").notNull(),
+    description: text("description"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+);
+
 export const userSettings = sqliteTable("user_settings", {
   userId: text("user_id").primaryKey(),
   storyLanguage: text("story_language").notNull().default("English"),

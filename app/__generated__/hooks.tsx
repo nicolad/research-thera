@@ -63,6 +63,37 @@ export type AudioSegmentInfo = {
   url: Scalars['String']['output'];
 };
 
+export enum BehaviorIntensity {
+  High = 'HIGH',
+  Low = 'LOW',
+  Medium = 'MEDIUM'
+}
+
+export type BehaviorObservation = {
+  __typename?: 'BehaviorObservation';
+  context?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  familyMember?: Maybe<FamilyMember>;
+  familyMemberId: Scalars['Int']['output'];
+  frequency?: Maybe<Scalars['Int']['output']>;
+  goal?: Maybe<Goal>;
+  goalId?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  intensity?: Maybe<BehaviorIntensity>;
+  notes?: Maybe<Scalars['String']['output']>;
+  observationType: BehaviorObservationType;
+  observedAt: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export enum BehaviorObservationType {
+  Avoidance = 'AVOIDANCE',
+  Partial = 'PARTIAL',
+  Refusal = 'REFUSAL',
+  TargetOccurred = 'TARGET_OCCURRED'
+}
+
 export type BuildClaimCardsInput = {
   claims?: InputMaybe<Array<Scalars['String']['input']>>;
   perSourceLimit?: InputMaybe<Scalars['Int']['input']>;
@@ -76,6 +107,12 @@ export type BuildClaimCardsResult = {
   __typename?: 'BuildClaimCardsResult';
   cards: Array<ClaimCard>;
 };
+
+export enum CharacteristicCategory {
+  Issue = 'ISSUE',
+  Problem = 'PROBLEM',
+  Trait = 'TRAIT'
+}
 
 export type CheckNoteClaimsInput = {
   evidenceTopK?: InputMaybe<Scalars['Int']['input']>;
@@ -134,6 +171,24 @@ export enum ClaimVerdict {
   Unverified = 'UNVERIFIED'
 }
 
+export type CreateBehaviorObservationInput = {
+  context?: InputMaybe<Scalars['String']['input']>;
+  familyMemberId: Scalars['Int']['input'];
+  frequency?: InputMaybe<Scalars['Int']['input']>;
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+  intensity?: InputMaybe<BehaviorIntensity>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  observationType: BehaviorObservationType;
+  observedAt: Scalars['String']['input'];
+};
+
+export type CreateFamilyMemberCharacteristicInput = {
+  category: CharacteristicCategory;
+  description?: InputMaybe<Scalars['String']['input']>;
+  familyMemberId: Scalars['Int']['input'];
+  title: Scalars['String']['input'];
+};
+
 export type CreateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
@@ -184,6 +239,18 @@ export type CreateStoryInput = {
 export type CreateSubGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type DeleteBehaviorObservationResult = {
+  __typename?: 'DeleteBehaviorObservationResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteFamilyMemberCharacteristicResult = {
+  __typename?: 'DeleteFamilyMemberCharacteristicResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type DeleteFamilyMemberResult = {
@@ -257,6 +324,7 @@ export enum EvidencePolarity {
 export type FamilyMember = {
   __typename?: 'FamilyMember';
   ageYears?: Maybe<Scalars['Int']['output']>;
+  behaviorObservations: Array<BehaviorObservation>;
   bio?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   dateOfBirth?: Maybe<Scalars['String']['output']>;
@@ -272,6 +340,24 @@ export type FamilyMember = {
   shares: Array<FamilyMemberShare>;
   updatedAt: Scalars['String']['output'];
   userId: Scalars['String']['output'];
+};
+
+
+export type FamilyMemberBehaviorObservationsArgs = {
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type FamilyMemberCharacteristic = {
+  __typename?: 'FamilyMemberCharacteristic';
+  category: CharacteristicCategory;
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  familyMember?: Maybe<FamilyMember>;
+  familyMemberId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type FamilyMemberShare = {
@@ -460,14 +546,18 @@ export type Mutation = {
   __typename?: 'Mutation';
   buildClaimCards: BuildClaimCardsResult;
   checkNoteClaims: CheckNoteClaimsResult;
+  createBehaviorObservation: BehaviorObservation;
   createFamilyMember: FamilyMember;
+  createFamilyMemberCharacteristic: FamilyMemberCharacteristic;
   createGoal: Goal;
   createJournalEntry: JournalEntry;
   createNote: Note;
   createStory: Story;
   createSubGoal: Goal;
+  deleteBehaviorObservation: DeleteBehaviorObservationResult;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteFamilyMember: DeleteFamilyMemberResult;
+  deleteFamilyMemberCharacteristic: DeleteFamilyMemberCharacteristicResult;
   deleteGoal: DeleteGoalResult;
   deleteJournalEntry: DeleteJournalEntryResult;
   deleteNote: DeleteNoteResult;
@@ -485,7 +575,9 @@ export type Mutation = {
   shareNote: NoteShare;
   unshareFamilyMember: Scalars['Boolean']['output'];
   unshareNote: Scalars['Boolean']['output'];
+  updateBehaviorObservation: BehaviorObservation;
   updateFamilyMember: FamilyMember;
+  updateFamilyMemberCharacteristic: FamilyMemberCharacteristic;
   updateGoal: Goal;
   updateJournalEntry: JournalEntry;
   updateNote: Note;
@@ -504,8 +596,18 @@ export type MutationCheckNoteClaimsArgs = {
 };
 
 
+export type MutationCreateBehaviorObservationArgs = {
+  input: CreateBehaviorObservationInput;
+};
+
+
 export type MutationCreateFamilyMemberArgs = {
   input: CreateFamilyMemberInput;
+};
+
+
+export type MutationCreateFamilyMemberCharacteristicArgs = {
+  input: CreateFamilyMemberCharacteristicInput;
 };
 
 
@@ -535,12 +637,22 @@ export type MutationCreateSubGoalArgs = {
 };
 
 
+export type MutationDeleteBehaviorObservationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationDeleteClaimCardArgs = {
   id: Scalars['ID']['input'];
 };
 
 
 export type MutationDeleteFamilyMemberArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteFamilyMemberCharacteristicArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -643,9 +755,21 @@ export type MutationUnshareNoteArgs = {
 };
 
 
+export type MutationUpdateBehaviorObservationArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateBehaviorObservationInput;
+};
+
+
 export type MutationUpdateFamilyMemberArgs = {
   id: Scalars['Int']['input'];
   input: UpdateFamilyMemberInput;
+};
+
+
+export type MutationUpdateFamilyMemberCharacteristicArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateFamilyMemberCharacteristicInput;
 };
 
 
@@ -780,9 +904,13 @@ export type Query = {
   allNotes: Array<Note>;
   allStories: Array<Story>;
   audioFromR2?: Maybe<AudioFromR2Result>;
+  behaviorObservation?: Maybe<BehaviorObservation>;
+  behaviorObservations: Array<BehaviorObservation>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
   familyMember?: Maybe<FamilyMember>;
+  familyMemberCharacteristic?: Maybe<FamilyMemberCharacteristic>;
+  familyMemberCharacteristics: Array<FamilyMemberCharacteristic>;
   familyMembers: Array<FamilyMember>;
   generationJob?: Maybe<GenerationJob>;
   generationJobs: Array<GenerationJob>;
@@ -808,6 +936,17 @@ export type QueryAudioFromR2Args = {
 };
 
 
+export type QueryBehaviorObservationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryBehaviorObservationsArgs = {
+  familyMemberId: Scalars['Int']['input'];
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryClaimCardArgs = {
   id: Scalars['ID']['input'];
 };
@@ -820,6 +959,17 @@ export type QueryClaimCardsForNoteArgs = {
 
 export type QueryFamilyMemberArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryFamilyMemberCharacteristicArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryFamilyMemberCharacteristicsArgs = {
+  category?: InputMaybe<CharacteristicCategory>;
+  familyMemberId: Scalars['Int']['input'];
 };
 
 
@@ -982,6 +1132,21 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type UpdateBehaviorObservationInput = {
+  context?: InputMaybe<Scalars['String']['input']>;
+  frequency?: InputMaybe<Scalars['Int']['input']>;
+  intensity?: InputMaybe<BehaviorIntensity>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  observationType?: InputMaybe<BehaviorObservationType>;
+  observedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateFamilyMemberCharacteristicInput = {
+  category?: InputMaybe<CharacteristicCategory>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateFamilyMemberInput = {
   ageYears?: InputMaybe<Scalars['Int']['input']>;
   bio?: InputMaybe<Scalars['String']['input']>;
@@ -1072,12 +1237,26 @@ export type DeleteClaimCardMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type DeleteClaimCardMutation = { __typename?: 'Mutation', deleteClaimCard: boolean };
 
+export type CreateBehaviorObservationMutationVariables = Exact<{
+  input: CreateBehaviorObservationInput;
+}>;
+
+
+export type CreateBehaviorObservationMutation = { __typename?: 'Mutation', createBehaviorObservation: { __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string } };
+
 export type CreateFamilyMemberMutationVariables = Exact<{
   input: CreateFamilyMemberInput;
 }>;
 
 
 export type CreateFamilyMemberMutation = { __typename?: 'Mutation', createFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, ageYears?: number | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string } };
+
+export type CreateFamilyMemberCharacteristicMutationVariables = Exact<{
+  input: CreateFamilyMemberCharacteristicInput;
+}>;
+
+
+export type CreateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', createFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } };
 
 export type CreateGoalMutationVariables = Exact<{
   input: CreateGoalInput;
@@ -1115,12 +1294,26 @@ export type CreateSubGoalMutationVariables = Exact<{
 
 export type CreateSubGoalMutation = { __typename?: 'Mutation', createSubGoal: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMemberId: number } };
 
+export type DeleteBehaviorObservationMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteBehaviorObservationMutation = { __typename?: 'Mutation', deleteBehaviorObservation: { __typename?: 'DeleteBehaviorObservationResult', success: boolean, message?: string | null } };
+
 export type DeleteFamilyMemberMutationVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
 export type DeleteFamilyMemberMutation = { __typename?: 'Mutation', deleteFamilyMember: { __typename?: 'DeleteFamilyMemberResult', success: boolean, message?: string | null } };
+
+export type DeleteFamilyMemberCharacteristicMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', deleteFamilyMemberCharacteristic: { __typename?: 'DeleteFamilyMemberCharacteristicResult', success: boolean, message?: string | null } };
 
 export type DeleteGoalMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1215,12 +1408,35 @@ export type GetAudioFromR2QueryVariables = Exact<{
 
 export type GetAudioFromR2Query = { __typename?: 'Query', audioFromR2?: { __typename?: 'AudioFromR2Result', success: boolean, message?: string | null, audioUrl?: string | null, key?: string | null, metadata?: { __typename?: 'AudioMetadata', voice?: string | null, model?: string | null, textLength?: string | null, chunks?: string | null, generatedBy?: string | null, instructions?: string | null } | null } | null };
 
+export type GetBehaviorObservationQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetBehaviorObservationQuery = { __typename?: 'Query', behaviorObservation?: { __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null } | null } | null };
+
+export type GetBehaviorObservationsQueryVariables = Exact<{
+  familyMemberId: Scalars['Int']['input'];
+  goalId?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetBehaviorObservationsQuery = { __typename?: 'Query', behaviorObservations: Array<{ __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string } | null }> };
+
 export type GetFamilyMemberQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type GetFamilyMemberQuery = { __typename?: 'Query', familyMember?: { __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string, shares: Array<{ __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string, createdBy: string }>, goals: Array<{ __typename?: 'Goal', id: number, title: string, status: string, description?: string | null, createdAt: string }> } | null };
+export type GetFamilyMemberQuery = { __typename?: 'Query', familyMember?: { __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string, shares: Array<{ __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string, createdBy: string }>, goals: Array<{ __typename?: 'Goal', id: number, title: string, status: string, description?: string | null, createdAt: string }>, behaviorObservations: Array<{ __typename?: 'BehaviorObservation', id: number, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string }> } | null };
+
+export type GetFamilyMemberCharacteristicsQueryVariables = Exact<{
+  familyMemberId: Scalars['Int']['input'];
+  category?: InputMaybe<CharacteristicCategory>;
+}>;
+
+
+export type GetFamilyMemberCharacteristicsQuery = { __typename?: 'Query', familyMemberCharacteristics: Array<{ __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string }> };
 
 export type GetFamilyMembersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1335,6 +1551,14 @@ export type UnshareFamilyMemberMutationVariables = Exact<{
 
 export type UnshareFamilyMemberMutation = { __typename?: 'Mutation', unshareFamilyMember: boolean };
 
+export type UpdateBehaviorObservationMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateBehaviorObservationInput;
+}>;
+
+
+export type UpdateBehaviorObservationMutation = { __typename?: 'Mutation', updateBehaviorObservation: { __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string } };
+
 export type UpdateFamilyMemberMutationVariables = Exact<{
   id: Scalars['Int']['input'];
   input: UpdateFamilyMemberInput;
@@ -1342,6 +1566,14 @@ export type UpdateFamilyMemberMutationVariables = Exact<{
 
 
 export type UpdateFamilyMemberMutation = { __typename?: 'Mutation', updateFamilyMember: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, ageYears?: number | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string } };
+
+export type UpdateFamilyMemberCharacteristicMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateFamilyMemberCharacteristicInput;
+}>;
+
+
+export type UpdateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', updateFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } };
 
 export type UpdateGoalMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1774,6 +2006,50 @@ export function useDeleteClaimCardMutation(baseOptions?: Apollo.MutationHookOpti
 export type DeleteClaimCardMutationHookResult = ReturnType<typeof useDeleteClaimCardMutation>;
 export type DeleteClaimCardMutationResult = Apollo.MutationResult<DeleteClaimCardMutation>;
 export type DeleteClaimCardMutationOptions = Apollo.BaseMutationOptions<DeleteClaimCardMutation, DeleteClaimCardMutationVariables>;
+export const CreateBehaviorObservationDocument = gql`
+    mutation CreateBehaviorObservation($input: CreateBehaviorObservationInput!) {
+  createBehaviorObservation(input: $input) {
+    id
+    familyMemberId
+    goalId
+    createdBy
+    observedAt
+    observationType
+    frequency
+    intensity
+    context
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateBehaviorObservationMutationFn = Apollo.MutationFunction<CreateBehaviorObservationMutation, CreateBehaviorObservationMutationVariables>;
+
+/**
+ * __useCreateBehaviorObservationMutation__
+ *
+ * To run a mutation, you first call `useCreateBehaviorObservationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateBehaviorObservationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createBehaviorObservationMutation, { data, loading, error }] = useCreateBehaviorObservationMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateBehaviorObservationMutation(baseOptions?: Apollo.MutationHookOptions<CreateBehaviorObservationMutation, CreateBehaviorObservationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateBehaviorObservationMutation, CreateBehaviorObservationMutationVariables>(CreateBehaviorObservationDocument, options);
+      }
+export type CreateBehaviorObservationMutationHookResult = ReturnType<typeof useCreateBehaviorObservationMutation>;
+export type CreateBehaviorObservationMutationResult = Apollo.MutationResult<CreateBehaviorObservationMutation>;
+export type CreateBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<CreateBehaviorObservationMutation, CreateBehaviorObservationMutationVariables>;
 export const CreateFamilyMemberDocument = gql`
     mutation CreateFamilyMember($input: CreateFamilyMemberInput!) {
   createFamilyMember(input: $input) {
@@ -1819,6 +2095,46 @@ export function useCreateFamilyMemberMutation(baseOptions?: Apollo.MutationHookO
 export type CreateFamilyMemberMutationHookResult = ReturnType<typeof useCreateFamilyMemberMutation>;
 export type CreateFamilyMemberMutationResult = Apollo.MutationResult<CreateFamilyMemberMutation>;
 export type CreateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<CreateFamilyMemberMutation, CreateFamilyMemberMutationVariables>;
+export const CreateFamilyMemberCharacteristicDocument = gql`
+    mutation CreateFamilyMemberCharacteristic($input: CreateFamilyMemberCharacteristicInput!) {
+  createFamilyMemberCharacteristic(input: $input) {
+    id
+    familyMemberId
+    createdBy
+    category
+    title
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateFamilyMemberCharacteristicMutationFn = Apollo.MutationFunction<CreateFamilyMemberCharacteristicMutation, CreateFamilyMemberCharacteristicMutationVariables>;
+
+/**
+ * __useCreateFamilyMemberCharacteristicMutation__
+ *
+ * To run a mutation, you first call `useCreateFamilyMemberCharacteristicMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateFamilyMemberCharacteristicMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createFamilyMemberCharacteristicMutation, { data, loading, error }] = useCreateFamilyMemberCharacteristicMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateFamilyMemberCharacteristicMutation(baseOptions?: Apollo.MutationHookOptions<CreateFamilyMemberCharacteristicMutation, CreateFamilyMemberCharacteristicMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateFamilyMemberCharacteristicMutation, CreateFamilyMemberCharacteristicMutationVariables>(CreateFamilyMemberCharacteristicDocument, options);
+      }
+export type CreateFamilyMemberCharacteristicMutationHookResult = ReturnType<typeof useCreateFamilyMemberCharacteristicMutation>;
+export type CreateFamilyMemberCharacteristicMutationResult = Apollo.MutationResult<CreateFamilyMemberCharacteristicMutation>;
+export type CreateFamilyMemberCharacteristicMutationOptions = Apollo.BaseMutationOptions<CreateFamilyMemberCharacteristicMutation, CreateFamilyMemberCharacteristicMutationVariables>;
 export const CreateGoalDocument = gql`
     mutation CreateGoal($input: CreateGoalInput!) {
   createGoal(input: $input) {
@@ -2027,6 +2343,40 @@ export function useCreateSubGoalMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateSubGoalMutationHookResult = ReturnType<typeof useCreateSubGoalMutation>;
 export type CreateSubGoalMutationResult = Apollo.MutationResult<CreateSubGoalMutation>;
 export type CreateSubGoalMutationOptions = Apollo.BaseMutationOptions<CreateSubGoalMutation, CreateSubGoalMutationVariables>;
+export const DeleteBehaviorObservationDocument = gql`
+    mutation DeleteBehaviorObservation($id: Int!) {
+  deleteBehaviorObservation(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteBehaviorObservationMutationFn = Apollo.MutationFunction<DeleteBehaviorObservationMutation, DeleteBehaviorObservationMutationVariables>;
+
+/**
+ * __useDeleteBehaviorObservationMutation__
+ *
+ * To run a mutation, you first call `useDeleteBehaviorObservationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteBehaviorObservationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteBehaviorObservationMutation, { data, loading, error }] = useDeleteBehaviorObservationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteBehaviorObservationMutation(baseOptions?: Apollo.MutationHookOptions<DeleteBehaviorObservationMutation, DeleteBehaviorObservationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteBehaviorObservationMutation, DeleteBehaviorObservationMutationVariables>(DeleteBehaviorObservationDocument, options);
+      }
+export type DeleteBehaviorObservationMutationHookResult = ReturnType<typeof useDeleteBehaviorObservationMutation>;
+export type DeleteBehaviorObservationMutationResult = Apollo.MutationResult<DeleteBehaviorObservationMutation>;
+export type DeleteBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<DeleteBehaviorObservationMutation, DeleteBehaviorObservationMutationVariables>;
 export const DeleteFamilyMemberDocument = gql`
     mutation DeleteFamilyMember($id: Int!) {
   deleteFamilyMember(id: $id) {
@@ -2061,6 +2411,40 @@ export function useDeleteFamilyMemberMutation(baseOptions?: Apollo.MutationHookO
 export type DeleteFamilyMemberMutationHookResult = ReturnType<typeof useDeleteFamilyMemberMutation>;
 export type DeleteFamilyMemberMutationResult = Apollo.MutationResult<DeleteFamilyMemberMutation>;
 export type DeleteFamilyMemberMutationOptions = Apollo.BaseMutationOptions<DeleteFamilyMemberMutation, DeleteFamilyMemberMutationVariables>;
+export const DeleteFamilyMemberCharacteristicDocument = gql`
+    mutation DeleteFamilyMemberCharacteristic($id: Int!) {
+  deleteFamilyMemberCharacteristic(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteFamilyMemberCharacteristicMutationFn = Apollo.MutationFunction<DeleteFamilyMemberCharacteristicMutation, DeleteFamilyMemberCharacteristicMutationVariables>;
+
+/**
+ * __useDeleteFamilyMemberCharacteristicMutation__
+ *
+ * To run a mutation, you first call `useDeleteFamilyMemberCharacteristicMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteFamilyMemberCharacteristicMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteFamilyMemberCharacteristicMutation, { data, loading, error }] = useDeleteFamilyMemberCharacteristicMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteFamilyMemberCharacteristicMutation(baseOptions?: Apollo.MutationHookOptions<DeleteFamilyMemberCharacteristicMutation, DeleteFamilyMemberCharacteristicMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteFamilyMemberCharacteristicMutation, DeleteFamilyMemberCharacteristicMutationVariables>(DeleteFamilyMemberCharacteristicDocument, options);
+      }
+export type DeleteFamilyMemberCharacteristicMutationHookResult = ReturnType<typeof useDeleteFamilyMemberCharacteristicMutation>;
+export type DeleteFamilyMemberCharacteristicMutationResult = Apollo.MutationResult<DeleteFamilyMemberCharacteristicMutation>;
+export type DeleteFamilyMemberCharacteristicMutationOptions = Apollo.BaseMutationOptions<DeleteFamilyMemberCharacteristicMutation, DeleteFamilyMemberCharacteristicMutationVariables>;
 export const DeleteGoalDocument = gql`
     mutation DeleteGoal($id: Int!) {
   deleteGoal(id: $id) {
@@ -2601,6 +2985,134 @@ export type GetAudioFromR2QueryHookResult = ReturnType<typeof useGetAudioFromR2Q
 export type GetAudioFromR2LazyQueryHookResult = ReturnType<typeof useGetAudioFromR2LazyQuery>;
 export type GetAudioFromR2SuspenseQueryHookResult = ReturnType<typeof useGetAudioFromR2SuspenseQuery>;
 export type GetAudioFromR2QueryResult = Apollo.QueryResult<GetAudioFromR2Query, GetAudioFromR2QueryVariables>;
+export const GetBehaviorObservationDocument = gql`
+    query GetBehaviorObservation($id: Int!) {
+  behaviorObservation(id: $id) {
+    id
+    familyMemberId
+    goalId
+    createdBy
+    observedAt
+    observationType
+    frequency
+    intensity
+    context
+    notes
+    createdAt
+    updatedAt
+    familyMember {
+      id
+      firstName
+      name
+    }
+    goal {
+      id
+      title
+      description
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetBehaviorObservationQuery__
+ *
+ * To run a query within a React component, call `useGetBehaviorObservationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBehaviorObservationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBehaviorObservationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetBehaviorObservationQuery(baseOptions: Apollo.QueryHookOptions<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables> & ({ variables: GetBehaviorObservationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>(GetBehaviorObservationDocument, options);
+      }
+export function useGetBehaviorObservationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>(GetBehaviorObservationDocument, options);
+        }
+// @ts-ignore
+export function useGetBehaviorObservationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>): Apollo.UseSuspenseQueryResult<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>;
+export function useGetBehaviorObservationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>): Apollo.UseSuspenseQueryResult<GetBehaviorObservationQuery | undefined, GetBehaviorObservationQueryVariables>;
+export function useGetBehaviorObservationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>(GetBehaviorObservationDocument, options);
+        }
+export type GetBehaviorObservationQueryHookResult = ReturnType<typeof useGetBehaviorObservationQuery>;
+export type GetBehaviorObservationLazyQueryHookResult = ReturnType<typeof useGetBehaviorObservationLazyQuery>;
+export type GetBehaviorObservationSuspenseQueryHookResult = ReturnType<typeof useGetBehaviorObservationSuspenseQuery>;
+export type GetBehaviorObservationQueryResult = Apollo.QueryResult<GetBehaviorObservationQuery, GetBehaviorObservationQueryVariables>;
+export const GetBehaviorObservationsDocument = gql`
+    query GetBehaviorObservations($familyMemberId: Int!, $goalId: Int) {
+  behaviorObservations(familyMemberId: $familyMemberId, goalId: $goalId) {
+    id
+    familyMemberId
+    goalId
+    createdBy
+    observedAt
+    observationType
+    frequency
+    intensity
+    context
+    notes
+    createdAt
+    updatedAt
+    familyMember {
+      id
+      firstName
+      name
+    }
+    goal {
+      id
+      title
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetBehaviorObservationsQuery__
+ *
+ * To run a query within a React component, call `useGetBehaviorObservationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBehaviorObservationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBehaviorObservationsQuery({
+ *   variables: {
+ *      familyMemberId: // value for 'familyMemberId'
+ *      goalId: // value for 'goalId'
+ *   },
+ * });
+ */
+export function useGetBehaviorObservationsQuery(baseOptions: Apollo.QueryHookOptions<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables> & ({ variables: GetBehaviorObservationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>(GetBehaviorObservationsDocument, options);
+      }
+export function useGetBehaviorObservationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>(GetBehaviorObservationsDocument, options);
+        }
+// @ts-ignore
+export function useGetBehaviorObservationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>;
+export function useGetBehaviorObservationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetBehaviorObservationsQuery | undefined, GetBehaviorObservationsQueryVariables>;
+export function useGetBehaviorObservationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>(GetBehaviorObservationsDocument, options);
+        }
+export type GetBehaviorObservationsQueryHookResult = ReturnType<typeof useGetBehaviorObservationsQuery>;
+export type GetBehaviorObservationsLazyQueryHookResult = ReturnType<typeof useGetBehaviorObservationsLazyQuery>;
+export type GetBehaviorObservationsSuspenseQueryHookResult = ReturnType<typeof useGetBehaviorObservationsSuspenseQuery>;
+export type GetBehaviorObservationsQueryResult = Apollo.QueryResult<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>;
 export const GetFamilyMemberDocument = gql`
     query GetFamilyMember($id: Int!) {
   familyMember(id: $id) {
@@ -2630,6 +3142,16 @@ export const GetFamilyMemberDocument = gql`
       title
       status
       description
+      createdAt
+    }
+    behaviorObservations {
+      id
+      observedAt
+      observationType
+      frequency
+      intensity
+      context
+      notes
       createdAt
     }
   }
@@ -2671,6 +3193,60 @@ export type GetFamilyMemberQueryHookResult = ReturnType<typeof useGetFamilyMembe
 export type GetFamilyMemberLazyQueryHookResult = ReturnType<typeof useGetFamilyMemberLazyQuery>;
 export type GetFamilyMemberSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMemberSuspenseQuery>;
 export type GetFamilyMemberQueryResult = Apollo.QueryResult<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>;
+export const GetFamilyMemberCharacteristicsDocument = gql`
+    query GetFamilyMemberCharacteristics($familyMemberId: Int!, $category: CharacteristicCategory) {
+  familyMemberCharacteristics(
+    familyMemberId: $familyMemberId
+    category: $category
+  ) {
+    id
+    familyMemberId
+    createdBy
+    category
+    title
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetFamilyMemberCharacteristicsQuery__
+ *
+ * To run a query within a React component, call `useGetFamilyMemberCharacteristicsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFamilyMemberCharacteristicsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFamilyMemberCharacteristicsQuery({
+ *   variables: {
+ *      familyMemberId: // value for 'familyMemberId'
+ *      category: // value for 'category'
+ *   },
+ * });
+ */
+export function useGetFamilyMemberCharacteristicsQuery(baseOptions: Apollo.QueryHookOptions<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables> & ({ variables: GetFamilyMemberCharacteristicsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>(GetFamilyMemberCharacteristicsDocument, options);
+      }
+export function useGetFamilyMemberCharacteristicsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>(GetFamilyMemberCharacteristicsDocument, options);
+        }
+// @ts-ignore
+export function useGetFamilyMemberCharacteristicsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>;
+export function useGetFamilyMemberCharacteristicsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberCharacteristicsQuery | undefined, GetFamilyMemberCharacteristicsQueryVariables>;
+export function useGetFamilyMemberCharacteristicsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>(GetFamilyMemberCharacteristicsDocument, options);
+        }
+export type GetFamilyMemberCharacteristicsQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicsQuery>;
+export type GetFamilyMemberCharacteristicsLazyQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicsLazyQuery>;
+export type GetFamilyMemberCharacteristicsSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicsSuspenseQuery>;
+export type GetFamilyMemberCharacteristicsQueryResult = Apollo.QueryResult<GetFamilyMemberCharacteristicsQuery, GetFamilyMemberCharacteristicsQueryVariables>;
 export const GetFamilyMembersDocument = gql`
     query GetFamilyMembers {
   familyMembers {
@@ -3609,6 +4185,51 @@ export function useUnshareFamilyMemberMutation(baseOptions?: Apollo.MutationHook
 export type UnshareFamilyMemberMutationHookResult = ReturnType<typeof useUnshareFamilyMemberMutation>;
 export type UnshareFamilyMemberMutationResult = Apollo.MutationResult<UnshareFamilyMemberMutation>;
 export type UnshareFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UnshareFamilyMemberMutation, UnshareFamilyMemberMutationVariables>;
+export const UpdateBehaviorObservationDocument = gql`
+    mutation UpdateBehaviorObservation($id: Int!, $input: UpdateBehaviorObservationInput!) {
+  updateBehaviorObservation(id: $id, input: $input) {
+    id
+    familyMemberId
+    goalId
+    createdBy
+    observedAt
+    observationType
+    frequency
+    intensity
+    context
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateBehaviorObservationMutationFn = Apollo.MutationFunction<UpdateBehaviorObservationMutation, UpdateBehaviorObservationMutationVariables>;
+
+/**
+ * __useUpdateBehaviorObservationMutation__
+ *
+ * To run a mutation, you first call `useUpdateBehaviorObservationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateBehaviorObservationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateBehaviorObservationMutation, { data, loading, error }] = useUpdateBehaviorObservationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateBehaviorObservationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBehaviorObservationMutation, UpdateBehaviorObservationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateBehaviorObservationMutation, UpdateBehaviorObservationMutationVariables>(UpdateBehaviorObservationDocument, options);
+      }
+export type UpdateBehaviorObservationMutationHookResult = ReturnType<typeof useUpdateBehaviorObservationMutation>;
+export type UpdateBehaviorObservationMutationResult = Apollo.MutationResult<UpdateBehaviorObservationMutation>;
+export type UpdateBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<UpdateBehaviorObservationMutation, UpdateBehaviorObservationMutationVariables>;
 export const UpdateFamilyMemberDocument = gql`
     mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {
   updateFamilyMember(id: $id, input: $input) {
@@ -3655,6 +4276,47 @@ export function useUpdateFamilyMemberMutation(baseOptions?: Apollo.MutationHookO
 export type UpdateFamilyMemberMutationHookResult = ReturnType<typeof useUpdateFamilyMemberMutation>;
 export type UpdateFamilyMemberMutationResult = Apollo.MutationResult<UpdateFamilyMemberMutation>;
 export type UpdateFamilyMemberMutationOptions = Apollo.BaseMutationOptions<UpdateFamilyMemberMutation, UpdateFamilyMemberMutationVariables>;
+export const UpdateFamilyMemberCharacteristicDocument = gql`
+    mutation UpdateFamilyMemberCharacteristic($id: Int!, $input: UpdateFamilyMemberCharacteristicInput!) {
+  updateFamilyMemberCharacteristic(id: $id, input: $input) {
+    id
+    familyMemberId
+    createdBy
+    category
+    title
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateFamilyMemberCharacteristicMutationFn = Apollo.MutationFunction<UpdateFamilyMemberCharacteristicMutation, UpdateFamilyMemberCharacteristicMutationVariables>;
+
+/**
+ * __useUpdateFamilyMemberCharacteristicMutation__
+ *
+ * To run a mutation, you first call `useUpdateFamilyMemberCharacteristicMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFamilyMemberCharacteristicMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFamilyMemberCharacteristicMutation, { data, loading, error }] = useUpdateFamilyMemberCharacteristicMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateFamilyMemberCharacteristicMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFamilyMemberCharacteristicMutation, UpdateFamilyMemberCharacteristicMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFamilyMemberCharacteristicMutation, UpdateFamilyMemberCharacteristicMutationVariables>(UpdateFamilyMemberCharacteristicDocument, options);
+      }
+export type UpdateFamilyMemberCharacteristicMutationHookResult = ReturnType<typeof useUpdateFamilyMemberCharacteristicMutation>;
+export type UpdateFamilyMemberCharacteristicMutationResult = Apollo.MutationResult<UpdateFamilyMemberCharacteristicMutation>;
+export type UpdateFamilyMemberCharacteristicMutationOptions = Apollo.BaseMutationOptions<UpdateFamilyMemberCharacteristicMutation, UpdateFamilyMemberCharacteristicMutationVariables>;
 export const UpdateGoalDocument = gql`
     mutation UpdateGoal($id: Int!, $input: UpdateGoalInput!) {
   updateGoal(id: $id, input: $input) {

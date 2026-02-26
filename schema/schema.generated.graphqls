@@ -39,6 +39,36 @@ type AudioSegmentInfo {
   url: String!
 }
 
+enum BehaviorIntensity {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+type BehaviorObservation {
+  context: String
+  createdAt: String!
+  createdBy: String!
+  familyMember: FamilyMember
+  familyMemberId: Int!
+  frequency: Int
+  goal: Goal
+  goalId: Int
+  id: Int!
+  intensity: BehaviorIntensity
+  notes: String
+  observationType: BehaviorObservationType!
+  observedAt: String!
+  updatedAt: String!
+}
+
+enum BehaviorObservationType {
+  AVOIDANCE
+  PARTIAL
+  REFUSAL
+  TARGET_OCCURRED
+}
+
 input BuildClaimCardsInput {
   claims: [String!]
   perSourceLimit: Int
@@ -50,6 +80,12 @@ input BuildClaimCardsInput {
 
 type BuildClaimCardsResult {
   cards: [ClaimCard!]!
+}
+
+enum CharacteristicCategory {
+  ISSUE
+  PROBLEM
+  TRAIT
 }
 
 input CheckNoteClaimsInput {
@@ -105,6 +141,24 @@ enum ClaimVerdict {
   UNVERIFIED
 }
 
+input CreateBehaviorObservationInput {
+  context: String
+  familyMemberId: Int!
+  frequency: Int
+  goalId: Int
+  intensity: BehaviorIntensity
+  notes: String
+  observationType: BehaviorObservationType!
+  observedAt: String!
+}
+
+input CreateFamilyMemberCharacteristicInput {
+  category: CharacteristicCategory!
+  description: String
+  familyMemberId: Int!
+  title: String!
+}
+
 input CreateFamilyMemberInput {
   ageYears: Int
   bio: String
@@ -155,6 +209,16 @@ input CreateStoryInput {
 input CreateSubGoalInput {
   description: String
   title: String!
+}
+
+type DeleteBehaviorObservationResult {
+  message: String
+  success: Boolean!
+}
+
+type DeleteFamilyMemberCharacteristicResult {
+  message: String
+  success: Boolean!
 }
 
 type DeleteFamilyMemberResult {
@@ -218,6 +282,7 @@ enum EvidencePolarity {
 
 type FamilyMember {
   ageYears: Int
+  behaviorObservations(goalId: Int): [BehaviorObservation!]!
   bio: String
   createdAt: String!
   dateOfBirth: String
@@ -233,6 +298,18 @@ type FamilyMember {
   shares: [FamilyMemberShare!]!
   updatedAt: String!
   userId: String!
+}
+
+type FamilyMemberCharacteristic {
+  category: CharacteristicCategory!
+  createdAt: String!
+  createdBy: String!
+  description: String
+  familyMember: FamilyMember
+  familyMemberId: Int!
+  id: Int!
+  title: String!
+  updatedAt: String!
 }
 
 type FamilyMemberShare {
@@ -408,14 +485,18 @@ type JournalEntry {
 type Mutation {
   buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
+  createBehaviorObservation(input: CreateBehaviorObservationInput!): BehaviorObservation!
   createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
+  createFamilyMemberCharacteristic(input: CreateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   createGoal(input: CreateGoalInput!): Goal!
   createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
   createNote(input: CreateNoteInput!): Note!
   createStory(input: CreateStoryInput!): Story!
   createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
+  deleteBehaviorObservation(id: Int!): DeleteBehaviorObservationResult!
   deleteClaimCard(id: ID!): Boolean!
   deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
+  deleteFamilyMemberCharacteristic(id: Int!): DeleteFamilyMemberCharacteristicResult!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
   deleteNote(id: Int!): DeleteNoteResult!
@@ -433,7 +514,9 @@ type Mutation {
   shareNote(email: String!, noteId: Int!, role: NoteShareRole): NoteShare!
   unshareFamilyMember(email: String!, familyMemberId: Int!): Boolean!
   unshareNote(email: String!, noteId: Int!): Boolean!
+  updateBehaviorObservation(id: Int!, input: UpdateBehaviorObservationInput!): BehaviorObservation!
   updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
+  updateFamilyMemberCharacteristic(id: Int!, input: UpdateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
@@ -536,10 +619,15 @@ type PaperCandidate {
 
 type Query {
   allNotes: [Note!]!
+  allStories: [Story!]!
   audioFromR2(key: String!): AudioFromR2Result
+  behaviorObservation(id: Int!): BehaviorObservation
+  behaviorObservations(familyMemberId: Int!, goalId: Int): [BehaviorObservation!]!
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
   familyMember(id: Int!): FamilyMember
+  familyMemberCharacteristic(id: Int!): FamilyMemberCharacteristic
+  familyMemberCharacteristics(category: CharacteristicCategory, familyMemberId: Int!): [FamilyMemberCharacteristic!]!
   familyMembers: [FamilyMember!]!
   generationJob(id: String!): GenerationJob
   generationJobs(goalId: Int, status: String): [GenerationJob!]!
@@ -628,6 +716,21 @@ type TherapeuticQuestion {
   researchId: Int
   researchTitle: String
   updatedAt: String!
+}
+
+input UpdateBehaviorObservationInput {
+  context: String
+  frequency: Int
+  intensity: BehaviorIntensity
+  notes: String
+  observationType: BehaviorObservationType
+  observedAt: String
+}
+
+input UpdateFamilyMemberCharacteristicInput {
+  category: CharacteristicCategory
+  description: String
+  title: String
 }
 
 input UpdateFamilyMemberInput {

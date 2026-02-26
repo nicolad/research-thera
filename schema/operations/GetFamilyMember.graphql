@@ -28,5 +28,15 @@ query GetFamilyMember($id: Int!) {
       description
       createdAt
     }
+    behaviorObservations {
+      id
+      observedAt
+      observationType
+      frequency
+      intensity
+      context
+      notes
+      createdAt
+    }
   }
 }

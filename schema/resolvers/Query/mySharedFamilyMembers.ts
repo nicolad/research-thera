@@ -6,5 +6,5 @@ export const mySharedFamilyMembers: NonNullable<QueryResolvers['mySharedFamilyMe
   if (!userEmail) throw new Error("Authentication required");
 
   const members = await d1Tools.getSharedFamilyMembers(userEmail);
-  return members.map((m) => ({ ...m, goals: [], shares: [] }));
+  return members.map((m) => ({ ...m, goals: [], shares: [] })) as any;
 };

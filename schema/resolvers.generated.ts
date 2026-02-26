@@ -3,9 +3,13 @@
     import    { allNotes as Query_allNotes } from './resolvers/Query/allNotes';
 import    { allStories as Query_allStories } from './resolvers/Query/allStories';
 import    { audioFromR2 as Query_audioFromR2 } from './resolvers/Query/audioFromR2';
+import    { behaviorObservation as Query_behaviorObservation } from './resolvers/Query/behaviorObservation';
+import    { behaviorObservations as Query_behaviorObservations } from './resolvers/Query/behaviorObservations';
 import    { claimCard as Query_claimCard } from './resolvers/Query/claimCard';
 import    { claimCardsForNote as Query_claimCardsForNote } from './resolvers/Query/claimCardsForNote';
 import    { familyMember as Query_familyMember } from './resolvers/Query/familyMember';
+import    { familyMemberCharacteristic as Query_familyMemberCharacteristic } from './resolvers/Query/familyMemberCharacteristic';
+import    { familyMemberCharacteristics as Query_familyMemberCharacteristics } from './resolvers/Query/familyMemberCharacteristics';
 import    { familyMembers as Query_familyMembers } from './resolvers/Query/familyMembers';
 import    { generationJob as Query_generationJob } from './resolvers/Query/generationJob';
 import    { generationJobs as Query_generationJobs } from './resolvers/Query/generationJobs';
@@ -25,14 +29,18 @@ import    { therapeuticQuestions as Query_therapeuticQuestions } from './resolve
 import    { userSettings as Query_userSettings } from './resolvers/Query/userSettings';
 import    { buildClaimCards as Mutation_buildClaimCards } from './resolvers/Mutation/buildClaimCards';
 import    { checkNoteClaims as Mutation_checkNoteClaims } from './resolvers/Mutation/checkNoteClaims';
+import    { createBehaviorObservation as Mutation_createBehaviorObservation } from './resolvers/Mutation/createBehaviorObservation';
 import    { createFamilyMember as Mutation_createFamilyMember } from './resolvers/Mutation/createFamilyMember';
+import    { createFamilyMemberCharacteristic as Mutation_createFamilyMemberCharacteristic } from './resolvers/Mutation/createFamilyMemberCharacteristic';
 import    { createGoal as Mutation_createGoal } from './resolvers/Mutation/createGoal';
 import    { createJournalEntry as Mutation_createJournalEntry } from './resolvers/Mutation/createJournalEntry';
 import    { createNote as Mutation_createNote } from './resolvers/Mutation/createNote';
 import    { createStory as Mutation_createStory } from './resolvers/Mutation/createStory';
 import    { createSubGoal as Mutation_createSubGoal } from './resolvers/Mutation/createSubGoal';
+import    { deleteBehaviorObservation as Mutation_deleteBehaviorObservation } from './resolvers/Mutation/deleteBehaviorObservation';
 import    { deleteClaimCard as Mutation_deleteClaimCard } from './resolvers/Mutation/deleteClaimCard';
 import    { deleteFamilyMember as Mutation_deleteFamilyMember } from './resolvers/Mutation/deleteFamilyMember';
+import    { deleteFamilyMemberCharacteristic as Mutation_deleteFamilyMemberCharacteristic } from './resolvers/Mutation/deleteFamilyMemberCharacteristic';
 import    { deleteGoal as Mutation_deleteGoal } from './resolvers/Mutation/deleteGoal';
 import    { deleteJournalEntry as Mutation_deleteJournalEntry } from './resolvers/Mutation/deleteJournalEntry';
 import    { deleteNote as Mutation_deleteNote } from './resolvers/Mutation/deleteNote';
@@ -50,7 +58,9 @@ import    { shareFamilyMember as Mutation_shareFamilyMember } from './resolvers/
 import    { shareNote as Mutation_shareNote } from './resolvers/Mutation/shareNote';
 import    { unshareFamilyMember as Mutation_unshareFamilyMember } from './resolvers/Mutation/unshareFamilyMember';
 import    { unshareNote as Mutation_unshareNote } from './resolvers/Mutation/unshareNote';
+import    { updateBehaviorObservation as Mutation_updateBehaviorObservation } from './resolvers/Mutation/updateBehaviorObservation';
 import    { updateFamilyMember as Mutation_updateFamilyMember } from './resolvers/Mutation/updateFamilyMember';
+import    { updateFamilyMemberCharacteristic as Mutation_updateFamilyMemberCharacteristic } from './resolvers/Mutation/updateFamilyMemberCharacteristic';
 import    { updateGoal as Mutation_updateGoal } from './resolvers/Mutation/updateGoal';
 import    { updateJournalEntry as Mutation_updateJournalEntry } from './resolvers/Mutation/updateJournalEntry';
 import    { updateNote as Mutation_updateNote } from './resolvers/Mutation/updateNote';
@@ -63,11 +73,14 @@ import    { AudioFromR2Result } from './resolvers/AudioFromR2Result';
 import    { AudioManifest } from './resolvers/AudioManifest';
 import    { AudioMetadata } from './resolvers/AudioMetadata';
 import    { AudioSegmentInfo } from './resolvers/AudioSegmentInfo';
+import    { BehaviorObservation } from './resolvers/BehaviorObservation';
 import    { BuildClaimCardsResult } from './resolvers/BuildClaimCardsResult';
 import    { CheckNoteClaimsResult } from './resolvers/CheckNoteClaimsResult';
 import    { ClaimCard } from './resolvers/ClaimCard';
 import    { ClaimProvenance } from './resolvers/ClaimProvenance';
 import    { ClaimScope } from './resolvers/ClaimScope';
+import    { DeleteBehaviorObservationResult } from './resolvers/DeleteBehaviorObservationResult';
+import    { DeleteFamilyMemberCharacteristicResult } from './resolvers/DeleteFamilyMemberCharacteristicResult';
 import    { DeleteFamilyMemberResult } from './resolvers/DeleteFamilyMemberResult';
 import    { DeleteGoalResult } from './resolvers/DeleteGoalResult';
 import    { DeleteJournalEntryResult } from './resolvers/DeleteJournalEntryResult';
@@ -78,6 +91,7 @@ import    { DeleteStoryResult } from './resolvers/DeleteStoryResult';
 import    { EvidenceItem } from './resolvers/EvidenceItem';
 import    { EvidenceLocator } from './resolvers/EvidenceLocator';
 import    { FamilyMember } from './resolvers/FamilyMember';
+import    { FamilyMemberCharacteristic } from './resolvers/FamilyMemberCharacteristic';
 import    { FamilyMemberShare } from './resolvers/FamilyMemberShare';
 import    { GenerateAudioResult } from './resolvers/GenerateAudioResult';
 import    { GenerateLongFormTextResult } from './resolvers/GenerateLongFormTextResult';
@@ -100,19 +114,22 @@ import    { TextSegment } from './resolvers/TextSegment';
 import    { TherapeuticQuestion } from './resolvers/TherapeuticQuestion';
 import    { UserSettings } from './resolvers/UserSettings';
     export const resolvers: Resolvers = {
-      Query: { allNotes: Query_allNotes,allStories: Query_allStories,audioFromR2: Query_audioFromR2,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,familyMember: Query_familyMember,familyMembers: Query_familyMembers,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goalStory: Query_goalStory,goals: Query_goals,journalEntries: Query_journalEntries,journalEntry: Query_journalEntry,mySharedFamilyMembers: Query_mySharedFamilyMembers,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions,userSettings: Query_userSettings },
-      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createFamilyMember: Mutation_createFamilyMember,createGoal: Mutation_createGoal,createJournalEntry: Mutation_createJournalEntry,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteClaimCard: Mutation_deleteClaimCard,deleteFamilyMember: Mutation_deleteFamilyMember,deleteGoal: Mutation_deleteGoal,deleteJournalEntry: Mutation_deleteJournalEntry,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareFamilyMember: Mutation_shareFamilyMember,shareNote: Mutation_shareNote,unshareFamilyMember: Mutation_unshareFamilyMember,unshareNote: Mutation_unshareNote,updateFamilyMember: Mutation_updateFamilyMember,updateGoal: Mutation_updateGoal,updateJournalEntry: Mutation_updateJournalEntry,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory,updateUserSettings: Mutation_updateUserSettings },
+      Query: { allNotes: Query_allNotes,allStories: Query_allStories,audioFromR2: Query_audioFromR2,behaviorObservation: Query_behaviorObservation,behaviorObservations: Query_behaviorObservations,claimCard: Query_claimCard,claimCardsForNote: Query_claimCardsForNote,familyMember: Query_familyMember,familyMemberCharacteristic: Query_familyMemberCharacteristic,familyMemberCharacteristics: Query_familyMemberCharacteristics,familyMembers: Query_familyMembers,generationJob: Query_generationJob,generationJobs: Query_generationJobs,goal: Query_goal,goalStory: Query_goalStory,goals: Query_goals,journalEntries: Query_journalEntries,journalEntry: Query_journalEntry,mySharedFamilyMembers: Query_mySharedFamilyMembers,mySharedNotes: Query_mySharedNotes,note: Query_note,notes: Query_notes,research: Query_research,stories: Query_stories,story: Query_story,therapeuticQuestions: Query_therapeuticQuestions,userSettings: Query_userSettings },
+      Mutation: { buildClaimCards: Mutation_buildClaimCards,checkNoteClaims: Mutation_checkNoteClaims,createBehaviorObservation: Mutation_createBehaviorObservation,createFamilyMember: Mutation_createFamilyMember,createFamilyMemberCharacteristic: Mutation_createFamilyMemberCharacteristic,createGoal: Mutation_createGoal,createJournalEntry: Mutation_createJournalEntry,createNote: Mutation_createNote,createStory: Mutation_createStory,createSubGoal: Mutation_createSubGoal,deleteBehaviorObservation: Mutation_deleteBehaviorObservation,deleteClaimCard: Mutation_deleteClaimCard,deleteFamilyMember: Mutation_deleteFamilyMember,deleteFamilyMemberCharacteristic: Mutation_deleteFamilyMemberCharacteristic,deleteGoal: Mutation_deleteGoal,deleteJournalEntry: Mutation_deleteJournalEntry,deleteNote: Mutation_deleteNote,deleteResearch: Mutation_deleteResearch,deleteStory: Mutation_deleteStory,deleteTherapeuticQuestions: Mutation_deleteTherapeuticQuestions,generateAudio: Mutation_generateAudio,generateLongFormText: Mutation_generateLongFormText,generateOpenAIAudio: Mutation_generateOpenAIAudio,generateResearch: Mutation_generateResearch,generateTherapeuticQuestions: Mutation_generateTherapeuticQuestions,refreshClaimCard: Mutation_refreshClaimCard,setNoteVisibility: Mutation_setNoteVisibility,shareFamilyMember: Mutation_shareFamilyMember,shareNote: Mutation_shareNote,unshareFamilyMember: Mutation_unshareFamilyMember,unshareNote: Mutation_unshareNote,updateBehaviorObservation: Mutation_updateBehaviorObservation,updateFamilyMember: Mutation_updateFamilyMember,updateFamilyMemberCharacteristic: Mutation_updateFamilyMemberCharacteristic,updateGoal: Mutation_updateGoal,updateJournalEntry: Mutation_updateJournalEntry,updateNote: Mutation_updateNote,updateStory: Mutation_updateStory,updateUserSettings: Mutation_updateUserSettings },
       Subscription: { audioJobStatus: Subscription_audioJobStatus,researchJobStatus: Subscription_researchJobStatus },
       AudioAsset: AudioAsset,
 AudioFromR2Result: AudioFromR2Result,
 AudioManifest: AudioManifest,
 AudioMetadata: AudioMetadata,
 AudioSegmentInfo: AudioSegmentInfo,
+BehaviorObservation: BehaviorObservation,
 BuildClaimCardsResult: BuildClaimCardsResult,
 CheckNoteClaimsResult: CheckNoteClaimsResult,
 ClaimCard: ClaimCard,
 ClaimProvenance: ClaimProvenance,
 ClaimScope: ClaimScope,
+DeleteBehaviorObservationResult: DeleteBehaviorObservationResult,
+DeleteFamilyMemberCharacteristicResult: DeleteFamilyMemberCharacteristicResult,
 DeleteFamilyMemberResult: DeleteFamilyMemberResult,
 DeleteGoalResult: DeleteGoalResult,
 DeleteJournalEntryResult: DeleteJournalEntryResult,
@@ -123,6 +140,7 @@ DeleteStoryResult: DeleteStoryResult,
 EvidenceItem: EvidenceItem,
 EvidenceLocator: EvidenceLocator,
 FamilyMember: FamilyMember,
+FamilyMemberCharacteristic: FamilyMemberCharacteristic,
 FamilyMemberShare: FamilyMemberShare,
 GenerateAudioResult: GenerateAudioResult,
 GenerateLongFormTextResult: GenerateLongFormTextResult,

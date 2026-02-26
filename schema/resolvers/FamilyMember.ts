@@ -17,4 +17,27 @@ export const FamilyMember: FamilyMemberResolvers = {
     const shares = await d1Tools.getFamilyMemberShares(parent.id);
     return shares.map((s) => ({ ...s, role: s.role as any }));
   },
+  behaviorObservations: async (parent, args, ctx) => {
+    const userEmail = ctx.userEmail;
+    if (!userEmail) return [];
+    const observations = await d1Tools.getBehaviorObservationsForFamilyMember(
+      parent.id,
+      userEmail,
+      args.goalId ?? undefined,
+    );
+    return observations.map((obs) => ({
+      id: obs.id,
+      familyMemberId: obs.familyMemberId,
+      goalId: obs.goalId,
+      createdBy: obs.userId,
+      observedAt: obs.observedAt,
+      observationType: obs.observationType as any,
+      frequency: obs.frequency,
+      intensity: obs.intensity as any,
+      context: obs.context,
+      notes: obs.notes,
+      createdAt: obs.createdAt,
+      updatedAt: obs.updatedAt,
+    })) as any;
+  },
 };

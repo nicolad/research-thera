@@ -1646,6 +1646,289 @@ export async function deleteJournalEntry(
 }
 
 // ============================================
+// Behavior Observations
+// ============================================
+
+export async function getBehaviorObservationsForFamilyMember(
+  familyMemberId: number,
+  userId: string,
+  goalId?: number,
+) {
+  let sql = `SELECT * FROM behavior_observations WHERE family_member_id = ? AND user_id = ?`;
+  const args: any[] = [familyMemberId, userId];
+
+  if (goalId !== undefined) {
+    sql += ` AND goal_id = ?`;
+    args.push(goalId);
+  }
+
+  sql += ` ORDER BY observed_at DESC, created_at DESC`;
+
+  const result = await d1.execute({ sql, args });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    goalId: (row.goal_id as number) || null,
+    userId: row.user_id as string,
+    observedAt: row.observed_at as string,
+    observationType: row.observation_type as string,
+    frequency: (row.frequency as number) ?? null,
+    intensity: (row.intensity as string) || null,
+    context: (row.context as string) || null,
+    notes: (row.notes as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getBehaviorObservation(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM behavior_observations WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    goalId: (row.goal_id as number) || null,
+    userId: row.user_id as string,
+    observedAt: row.observed_at as string,
+    observationType: row.observation_type as string,
+    frequency: (row.frequency as number) ?? null,
+    intensity: (row.intensity as string) || null,
+    context: (row.context as string) || null,
+    notes: (row.notes as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createBehaviorObservation(params: {
+  familyMemberId: number;
+  goalId?: number | null;
+  userId: string;
+  observedAt: string;
+  observationType: string;
+  frequency?: number | null;
+  intensity?: string | null;
+  context?: string | null;
+  notes?: string | null;
+}): Promise<number> {
+  const safeFrequency =
+    params.frequency !== undefined &&
+    params.frequency !== null &&
+    !isNaN(params.frequency) &&
+    isFinite(params.frequency)
+      ? params.frequency
+      : null;
+
+  const result = await d1.execute({
+    sql: `INSERT INTO behavior_observations (family_member_id, goal_id, user_id, observed_at, observation_type, frequency, intensity, context, notes, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.familyMemberId,
+      params.goalId ?? null,
+      params.userId,
+      params.observedAt,
+      params.observationType,
+      safeFrequency,
+      params.intensity ?? null,
+      params.context ?? null,
+      params.notes ?? null,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateBehaviorObservation(
+  id: number,
+  userId: string,
+  updates: {
+    observedAt?: string;
+    observationType?: string;
+    frequency?: number | null;
+    intensity?: string | null;
+    context?: string | null;
+    notes?: string | null;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.observedAt !== undefined) {
+    fields.push("observed_at = ?");
+    args.push(updates.observedAt);
+  }
+  if (updates.observationType !== undefined) {
+    fields.push("observation_type = ?");
+    args.push(updates.observationType);
+  }
+  if (updates.frequency !== undefined) {
+    const safeFrequency =
+      updates.frequency !== null &&
+      !isNaN(updates.frequency) &&
+      isFinite(updates.frequency)
+        ? updates.frequency
+        : null;
+    fields.push("frequency = ?");
+    args.push(safeFrequency);
+  }
+  if (updates.intensity !== undefined) {
+    fields.push("intensity = ?");
+    args.push(updates.intensity);
+  }
+  if (updates.context !== undefined) {
+    fields.push("context = ?");
+    args.push(updates.context);
+  }
+  if (updates.notes !== undefined) {
+    fields.push("notes = ?");
+    args.push(updates.notes);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE behavior_observations SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteBehaviorObservation(
+  id: number,
+  userId: string,
+): Promise<void> {
+  await d1.execute({
+    sql: `DELETE FROM behavior_observations WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+}
+
+// ============================================
+// Family Member Characteristics
+// ============================================
+
+export async function getCharacteristicsForFamilyMember(
+  familyMemberId: number,
+  userId: string,
+  category?: string,
+) {
+  let sql = `SELECT * FROM family_member_characteristics WHERE family_member_id = ? AND user_id = ?`;
+  const args: any[] = [familyMemberId, userId];
+
+  if (category !== undefined) {
+    sql += ` AND category = ?`;
+    args.push(category);
+  }
+
+  sql += ` ORDER BY created_at ASC`;
+
+  const result = await d1.execute({ sql, args });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    userId: row.user_id as string,
+    category: row.category as string,
+    title: row.title as string,
+    description: (row.description as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getCharacteristic(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM family_member_characteristics WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    userId: row.user_id as string,
+    category: row.category as string,
+    title: row.title as string,
+    description: (row.description as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createCharacteristic(params: {
+  familyMemberId: number;
+  userId: string;
+  category: string;
+  title: string;
+  description?: string | null;
+}): Promise<number> {
+  const result = await d1.execute({
+    sql: `INSERT INTO family_member_characteristics (family_member_id, user_id, category, title, description, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.familyMemberId,
+      params.userId,
+      params.category,
+      params.title,
+      params.description ?? null,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateCharacteristic(
+  id: number,
+  userId: string,
+  updates: {
+    category?: string;
+    title?: string;
+    description?: string | null;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.category !== undefined) {
+    fields.push("category = ?");
+    args.push(updates.category);
+  }
+  if (updates.title !== undefined) {
+    fields.push("title = ?");
+    args.push(updates.title);
+  }
+  if (updates.description !== undefined) {
+    fields.push("description = ?");
+    args.push(updates.description);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE family_member_characteristics SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteCharacteristic(
+  id: number,
+  userId: string,
+): Promise<void> {
+  await d1.execute({
+    sql: `DELETE FROM family_member_characteristics WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+}
+
+// ============================================
 // User Settings
 // ============================================
 
@@ -1740,6 +2023,18 @@ export const d1Tools = {
   createJournalEntry,
   updateJournalEntry,
   deleteJournalEntry,
+  // Behavior Observations
+  getBehaviorObservationsForFamilyMember,
+  getBehaviorObservation,
+  createBehaviorObservation,
+  updateBehaviorObservation,
+  deleteBehaviorObservation,
+  // Family Member Characteristics
+  getCharacteristicsForFamilyMember,
+  getCharacteristic,
+  createCharacteristic,
+  updateCharacteristic,
+  deleteCharacteristic,
   // User Settings
   getUserSettings,
   upsertUserSettings,

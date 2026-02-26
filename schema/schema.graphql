@@ -24,6 +24,14 @@ type Query {
   journalEntries(familyMemberId: Int, goalId: Int, mood: String, fromDate: String, toDate: String): [JournalEntry!]!
   journalEntry(id: Int!): JournalEntry
 
+  # Behavior Observations
+  behaviorObservations(familyMemberId: Int!, goalId: Int): [BehaviorObservation!]!
+  behaviorObservation(id: Int!): BehaviorObservation
+
+  # Family Member Characteristics
+  familyMemberCharacteristics(familyMemberId: Int!, category: CharacteristicCategory): [FamilyMemberCharacteristic!]!
+  familyMemberCharacteristic(id: Int!): FamilyMemberCharacteristic
+
   # Claim Cards
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
@@ -96,6 +104,16 @@ type Mutation {
   createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
+
+  # Behavior Observations
+  createBehaviorObservation(input: CreateBehaviorObservationInput!): BehaviorObservation!
+  updateBehaviorObservation(id: Int!, input: UpdateBehaviorObservationInput!): BehaviorObservation!
+  deleteBehaviorObservation(id: Int!): DeleteBehaviorObservationResult!
+
+  # Family Member Characteristics
+  createFamilyMemberCharacteristic(input: CreateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
+  updateFamilyMemberCharacteristic(id: Int!, input: UpdateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
+  deleteFamilyMemberCharacteristic(id: Int!): DeleteFamilyMemberCharacteristicResult!
 
   # User Settings
   updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
@@ -644,6 +662,7 @@ type FamilyMember {
   updatedAt: String!
   goals: [Goal!]!
   shares: [FamilyMemberShare!]!
+  behaviorObservations(goalId: Int): [BehaviorObservation!]!
 }
 
 input CreateFamilyMemberInput {
@@ -746,6 +765,105 @@ input UpdateJournalEntryInput {
 }
 
 type DeleteJournalEntryResult {
+  success: Boolean!
+  message: String
+}
+
+# ============================================
+# Behavior Observations
+# ============================================
+
+enum BehaviorObservationType {
+  REFUSAL
+  TARGET_OCCURRED
+  AVOIDANCE
+  PARTIAL
+}
+
+enum BehaviorIntensity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+type BehaviorObservation {
+  id: Int!
+  familyMemberId: Int!
+  goalId: Int
+  createdBy: String!
+  observedAt: String!
+  observationType: BehaviorObservationType!
+  frequency: Int
+  intensity: BehaviorIntensity
+  context: String
+  notes: String
+  createdAt: String!
+  updatedAt: String!
+  familyMember: FamilyMember
+  goal: Goal
+}
+
+input CreateBehaviorObservationInput {
+  familyMemberId: Int!
+  goalId: Int
+  observedAt: String!
+  observationType: BehaviorObservationType!
+  frequency: Int
+  intensity: BehaviorIntensity
+  context: String
+  notes: String
+}
+
+input UpdateBehaviorObservationInput {
+  observedAt: String
+  observationType: BehaviorObservationType
+  frequency: Int
+  intensity: BehaviorIntensity
+  context: String
+  notes: String
+}
+
+type DeleteBehaviorObservationResult {
+  success: Boolean!
+  message: String
+}
+
+# ============================================
+# Family Member Characteristics
+# ============================================
+
+enum CharacteristicCategory {
+  TRAIT
+  ISSUE
+  PROBLEM
+}
+
+type FamilyMemberCharacteristic {
+  id: Int!
+  familyMemberId: Int!
+  createdBy: String!
+  category: CharacteristicCategory!
+  title: String!
+  description: String
+  createdAt: String!
+  updatedAt: String!
+  familyMember: FamilyMember
+}
+
+input CreateFamilyMemberCharacteristicInput {
+  familyMemberId: Int!
+  category: CharacteristicCategory!
+  title: String!
+  description: String
+}
+
+input UpdateFamilyMemberCharacteristicInput {
+  category: CharacteristicCategory
+  title: String
+  description: String
+}
+
+type DeleteFamilyMemberCharacteristicResult {
   success: Boolean!
   message: String
 }

@@ -18,5 +18,5 @@ export const familyMember: NonNullable<QueryResolvers['familyMember']> = async (
     ...member,
     goals: [],
     shares: [],
-  };
+  } as any;
 };
