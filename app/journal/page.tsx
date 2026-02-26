@@ -20,6 +20,7 @@ import {
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 import AddJournalEntryButton from "@/app/components/AddJournalEntryButton";
+import { AuthGate } from "@/app/components/AuthGate";
 
 const moodColor = (mood: string) =>
   (
@@ -231,9 +232,14 @@ const DynamicJournalListContent = dynamic(
 
 export default function JournalPage() {
   return (
-    <Flex direction="column" gap="6">
-      <Heading size="8">Journal</Heading>
-      <DynamicJournalListContent />
-    </Flex>
+    <AuthGate
+      pageName="Journal"
+      description="Your journal entries are private. Sign in to write and read your reflections."
+    >
+      <Flex direction="column" gap="4">
+        <Heading size="8">Journal</Heading>
+        <DynamicJournalListContent />
+      </Flex>
+    </AuthGate>
   );
 }

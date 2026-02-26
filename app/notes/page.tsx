@@ -11,16 +11,21 @@ import {
 import { useRouter } from "next/navigation";
 import { useGetAllNotesQuery } from "../__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
+import { AuthGate } from "../components/AuthGate";
 
 export default function NotesPage() {
   const router = useRouter();
   const { user } = useUser();
 
-  const { data, loading, error } = useGetAllNotesQuery();
+  const { data, loading, error } = useGetAllNotesQuery({ skip: !user });
 
   const notes = data?.allNotes || [];
 
   return (
+    <AuthGate
+      pageName="Notes"
+      description="Your therapeutic notes are private. Sign in to access your reflections."
+    >
     <Flex direction="column" gap="4">
       <Flex direction="column" gap="1">
         <Heading size="8">Notes</Heading>
@@ -130,5 +135,6 @@ export default function NotesPage() {
         )}
       </Card>
     </Flex>
+    </AuthGate>
   );
 }

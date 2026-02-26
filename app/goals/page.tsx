@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { useGetGoalsQuery } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
 import AddGoalButton from "@/app/components/AddGoalButton";
+import { AuthGate } from "@/app/components/AuthGate";
 
 function GoalsListContent() {
   const router = useRouter();
@@ -190,9 +191,14 @@ const DynamicGoalsListContent = dynamic(
 
 export default function GoalsPage() {
   return (
-    <Flex direction="column" gap="4">
-      <Heading size="8">Goals</Heading>
-      <DynamicGoalsListContent />
-    </Flex>
+    <AuthGate
+      pageName="Goals"
+      description="Your therapeutic goals are private. Sign in to manage your progress."
+    >
+      <Flex direction="column" gap="4">
+        <Heading size="8">Goals</Heading>
+        <DynamicGoalsListContent />
+      </Flex>
+    </AuthGate>
   );
 }

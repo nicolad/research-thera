@@ -26,6 +26,7 @@ import {
   useDeleteFamilyMemberMutation,
 } from "@/app/__generated__/hooks";
 import { useUser } from "@clerk/nextjs";
+import { AuthGate } from "@/app/components/AuthGate";
 
 const RELATIONSHIP_OPTIONS = [
   "self",
@@ -514,9 +515,14 @@ const DynamicFamilyListContent = dynamic(
 
 export default function FamilyPage() {
   return (
-    <Flex direction="column" gap="6">
-      <Heading size="8">My Family</Heading>
-      <DynamicFamilyListContent />
-    </Flex>
+    <AuthGate
+      pageName="Family"
+      description="Your family members are private. Sign in to manage your family profiles."
+    >
+      <Flex direction="column" gap="4">
+        <Heading size="8">My Family</Heading>
+        <DynamicFamilyListContent />
+      </Flex>
+    </AuthGate>
   );
 }
