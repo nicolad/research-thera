@@ -158,7 +158,7 @@ export const aggregateResearchResultsTask = task({
             agentType: "research",
             success: job.status === "SUCCEEDED",
             paperCount: parsed.count || 0,
-            error: job.error ? String(JSON.parse(job.error).message) : undefined,
+            error: job.error ? String(job.error.message) : undefined,
           });
         }
       } catch (err) {
