@@ -18,7 +18,7 @@ export const generateResearch: NonNullable<MutationResolvers['generateResearch']
   const jobId = crypto.randomUUID();
   await d1Tools.createGenerationJob(jobId, userEmail, "RESEARCH", goalId);
 
-  // Trigger the durable Trigger.dev task — survives Vercel serverless timeouts
+  // Trigger the research task
   await tasks.trigger<typeof generateResearchTask>("generate-research", {
     jobId,
     goalId,
