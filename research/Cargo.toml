@@ -1,12 +1,12 @@
 [package]
-name = "agent"
+name = "research"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 description = "DeepSeek Reasoner + Semantic Scholar therapeutic research agent"
 
 [[bin]]
-name = "agent"
+name = "research"
 path = "src/bin/research_agent.rs"
 
 [workspace]

@@ -125,7 +125,7 @@ export default function AddCharacteristicButton({
                     Strength — neutral characteristic
                   </Select.Item>
                   <Select.Item value={CharacteristicCategory.SupportNeed}>
-                    Support Need — interferes with something
+                    Support Priority — interferes with something
                   </Select.Item>
                   <Select.Item value={CharacteristicCategory.PriorityConcern}>
                     Priority Concern — requires active intervention

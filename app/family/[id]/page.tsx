@@ -457,7 +457,7 @@ function FamilyMemberContent() {
             <AddCharacteristicButton
               familyMemberId={id}
               defaultCategory={CharacteristicCategory.SupportNeed}
-              label="Add Support Need"
+              label="Add Support Priority"
               refetchQueries={["GetFamilyMemberCharacteristics"]}
               size="2"
             />

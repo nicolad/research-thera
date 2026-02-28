@@ -12,7 +12,7 @@ use tracing::info;
 
 #[derive(Parser)]
 #[command(
-    name = "agent",
+    name = "research",
     about = "DeepSeek Reasoner + Semantic Scholar therapeutic research agent",
     long_about = "Researches evidence-based therapeutic interventions for goals and Support Priority.\n\n\
                   Required env vars:\n  DEEPSEEK_API_KEY — DeepSeek API key\n\

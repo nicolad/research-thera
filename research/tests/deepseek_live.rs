@@ -1,7 +1,7 @@
 /// Live integration tests against the real DeepSeek API.
 ///
 /// All tests are `#[ignore]` — run with:
-///   DEEPSEEK_API_KEY=sk-... cargo test -p agent -- --include-ignored live_ds_
+///   DEEPSEEK_API_KEY=sk-... cargo test -p research -- --include-ignored live_ds_
 ///
 /// An optional `SEMANTIC_SCHOLAR_API_KEY` raises the rate-limit cap for tool tests.
 use research_agent::{

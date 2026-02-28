@@ -59,7 +59,7 @@ const CATEGORY_COLORS: Record<string, "teal" | "blue" | "orange"> = {
 
 const CATEGORY_OPTIONS = [
   { value: CharacteristicCategory.Strength, label: "Strength" },
-  { value: CharacteristicCategory.SupportNeed, label: "Support Need" },
+  { value: CharacteristicCategory.SupportNeed, label: "Support Priority" },
   { value: CharacteristicCategory.PriorityConcern, label: "Priority Concern" },
 ];
 
