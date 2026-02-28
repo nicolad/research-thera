@@ -1929,6 +1929,280 @@ export async function deleteCharacteristic(
 }
 
 // ============================================
+// Contacts
+// ============================================
+
+export async function getContactsForUser(userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM contacts WHERE user_id = ? ORDER BY created_at DESC`,
+    args: [userId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    firstName: row.first_name as string,
+    lastName: (row.last_name as string) || null,
+    role: (row.role as string) || null,
+    ageYears: (row.age_years as number) || null,
+    notes: (row.notes as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getContact(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM contacts WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    userId: row.user_id as string,
+    firstName: row.first_name as string,
+    lastName: (row.last_name as string) || null,
+    role: (row.role as string) || null,
+    ageYears: (row.age_years as number) || null,
+    notes: (row.notes as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createContact(params: {
+  userId: string;
+  firstName: string;
+  lastName?: string | null;
+  role?: string | null;
+  ageYears?: number | null;
+  notes?: string | null;
+}): Promise<number> {
+  const safeAge =
+    params.ageYears !== undefined &&
+    params.ageYears !== null &&
+    !isNaN(params.ageYears) &&
+    isFinite(params.ageYears)
+      ? params.ageYears
+      : null;
+
+  const result = await d1.execute({
+    sql: `INSERT INTO contacts (user_id, first_name, last_name, role, age_years, notes, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.userId,
+      params.firstName,
+      params.lastName ?? null,
+      params.role ?? null,
+      safeAge,
+      params.notes ?? null,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateContact(
+  id: number,
+  userId: string,
+  updates: {
+    firstName?: string;
+    lastName?: string | null;
+    role?: string | null;
+    ageYears?: number | null;
+    notes?: string | null;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.firstName !== undefined) {
+    fields.push("first_name = ?");
+    args.push(updates.firstName);
+  }
+  if (updates.lastName !== undefined) {
+    fields.push("last_name = ?");
+    args.push(updates.lastName);
+  }
+  if (updates.role !== undefined) {
+    fields.push("role = ?");
+    args.push(updates.role);
+  }
+  if (updates.ageYears !== undefined) {
+    const safeAge =
+      updates.ageYears !== null &&
+      !isNaN(updates.ageYears) &&
+      isFinite(updates.ageYears)
+        ? updates.ageYears
+        : null;
+    fields.push("age_years = ?");
+    args.push(safeAge);
+  }
+  if (updates.notes !== undefined) {
+    fields.push("notes = ?");
+    args.push(updates.notes);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE contacts SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteContact(
+  id: number,
+  userId: string,
+): Promise<void> {
+  await d1.execute({
+    sql: `DELETE FROM contacts WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+}
+
+// ============================================
+// Relationships
+// ============================================
+
+export async function getRelationshipsForPerson(
+  userId: string,
+  subjectType: string,
+  subjectId: number,
+) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM relationships
+          WHERE user_id = ? AND (
+            (subject_type = ? AND subject_id = ?) OR
+            (related_type = ? AND related_id = ?)
+          )
+          ORDER BY created_at DESC`,
+    args: [userId, subjectType, subjectId, subjectType, subjectId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    subjectType: row.subject_type as string,
+    subjectId: row.subject_id as number,
+    relatedType: row.related_type as string,
+    relatedId: row.related_id as number,
+    relationshipType: row.relationship_type as string,
+    context: (row.context as string) || null,
+    startDate: (row.start_date as string) || null,
+    status: (row.status as string) || "active",
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getRelationship(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM relationships WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    userId: row.user_id as string,
+    subjectType: row.subject_type as string,
+    subjectId: row.subject_id as number,
+    relatedType: row.related_type as string,
+    relatedId: row.related_id as number,
+    relationshipType: row.relationship_type as string,
+    context: (row.context as string) || null,
+    startDate: (row.start_date as string) || null,
+    status: (row.status as string) || "active",
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createRelationship(params: {
+  userId: string;
+  subjectType: string;
+  subjectId: number;
+  relatedType: string;
+  relatedId: number;
+  relationshipType: string;
+  context?: string | null;
+  startDate?: string | null;
+  status?: string | null;
+}): Promise<number> {
+  const result = await d1.execute({
+    sql: `INSERT INTO relationships (user_id, subject_type, subject_id, related_type, related_id, relationship_type, context, start_date, status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.userId,
+      params.subjectType,
+      params.subjectId,
+      params.relatedType,
+      params.relatedId,
+      params.relationshipType,
+      params.context ?? null,
+      params.startDate ?? null,
+      params.status ?? "active",
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateRelationship(
+  id: number,
+  userId: string,
+  updates: {
+    relationshipType?: string;
+    context?: string | null;
+    startDate?: string | null;
+    status?: string | null;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.relationshipType !== undefined) {
+    fields.push("relationship_type = ?");
+    args.push(updates.relationshipType);
+  }
+  if (updates.context !== undefined) {
+    fields.push("context = ?");
+    args.push(updates.context);
+  }
+  if (updates.startDate !== undefined) {
+    fields.push("start_date = ?");
+    args.push(updates.startDate);
+  }
+  if (updates.status !== undefined) {
+    fields.push("status = ?");
+    args.push(updates.status);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE relationships SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteRelationship(
+  id: number,
+  userId: string,
+): Promise<void> {
+  await d1.execute({
+    sql: `DELETE FROM relationships WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+}
+
+// ============================================
 // User Settings
 // ============================================
 
@@ -2035,6 +2309,18 @@ export const d1Tools = {
   createCharacteristic,
   updateCharacteristic,
   deleteCharacteristic,
+  // Contacts
+  getContactsForUser,
+  getContact,
+  createContact,
+  updateContact,
+  deleteContact,
+  // Relationships
+  getRelationshipsForPerson,
+  getRelationship,
+  createRelationship,
+  updateRelationship,
+  deleteRelationship,
   // User Settings
   getUserSettings,
   upsertUserSettings,

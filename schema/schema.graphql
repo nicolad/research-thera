@@ -32,6 +32,14 @@ type Query {
   familyMemberCharacteristics(familyMemberId: Int!, category: CharacteristicCategory): [FamilyMemberCharacteristic!]!
   familyMemberCharacteristic(id: Int!): FamilyMemberCharacteristic
 
+  # Contacts
+  contacts: [Contact!]!
+  contact(id: Int!): Contact
+
+  # Relationships
+  relationships(subjectType: PersonType!, subjectId: Int!): [Relationship!]!
+  relationship(id: Int!): Relationship
+
   # Claim Cards
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
@@ -114,6 +122,16 @@ type Mutation {
   createFamilyMemberCharacteristic(input: CreateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   updateFamilyMemberCharacteristic(id: Int!, input: UpdateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   deleteFamilyMemberCharacteristic(id: Int!): DeleteFamilyMemberCharacteristicResult!
+
+  # Contacts
+  createContact(input: CreateContactInput!): Contact!
+  updateContact(id: Int!, input: UpdateContactInput!): Contact!
+  deleteContact(id: Int!): DeleteContactResult!
+
+  # Relationships
+  createRelationship(input: CreateRelationshipInput!): Relationship!
+  updateRelationship(id: Int!, input: UpdateRelationshipInput!): Relationship!
+  deleteRelationship(id: Int!): DeleteRelationshipResult!
 
   # User Settings
   updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
@@ -864,6 +882,100 @@ input UpdateFamilyMemberCharacteristicInput {
 }
 
 type DeleteFamilyMemberCharacteristicResult {
+  success: Boolean!
+  message: String
+}
+
+# ============================================
+# Contacts & Relationships
+# ============================================
+
+enum PersonType {
+  FAMILY_MEMBER
+  CONTACT
+}
+
+enum RelationshipStatus {
+  ACTIVE
+  ENDED
+}
+
+type Contact {
+  id: Int!
+  createdBy: String!
+  firstName: String!
+  lastName: String
+  role: String
+  ageYears: Int
+  notes: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Relationship {
+  id: Int!
+  createdBy: String!
+  subjectType: PersonType!
+  subjectId: Int!
+  relatedType: PersonType!
+  relatedId: Int!
+  relationshipType: String!
+  context: String
+  startDate: String
+  status: RelationshipStatus!
+  createdAt: String!
+  updatedAt: String!
+  subject: RelationshipPerson
+  related: RelationshipPerson
+}
+
+type RelationshipPerson {
+  id: Int!
+  type: PersonType!
+  firstName: String!
+  lastName: String
+}
+
+input CreateContactInput {
+  firstName: String!
+  lastName: String
+  role: String
+  ageYears: Int
+  notes: String
+}
+
+input UpdateContactInput {
+  firstName: String
+  lastName: String
+  role: String
+  ageYears: Int
+  notes: String
+}
+
+type DeleteContactResult {
+  success: Boolean!
+  message: String
+}
+
+input CreateRelationshipInput {
+  subjectType: PersonType!
+  subjectId: Int!
+  relatedType: PersonType!
+  relatedId: Int!
+  relationshipType: String!
+  context: String
+  startDate: String
+  status: RelationshipStatus
+}
+
+input UpdateRelationshipInput {
+  relationshipType: String
+  context: String
+  startDate: String
+  status: RelationshipStatus
+}
+
+type DeleteRelationshipResult {
   success: Boolean!
   message: String
 }

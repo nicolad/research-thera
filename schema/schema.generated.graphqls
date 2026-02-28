@@ -141,6 +141,18 @@ enum ClaimVerdict {
   UNVERIFIED
 }
 
+type Contact {
+  ageYears: Int
+  createdAt: String!
+  createdBy: String!
+  firstName: String!
+  id: Int!
+  lastName: String
+  notes: String
+  role: String
+  updatedAt: String!
+}
+
 input CreateBehaviorObservationInput {
   context: String
   familyMemberId: Int!
@@ -150,6 +162,14 @@ input CreateBehaviorObservationInput {
   notes: String
   observationType: BehaviorObservationType!
   observedAt: String!
+}
+
+input CreateContactInput {
+  ageYears: Int
+  firstName: String!
+  lastName: String
+  notes: String
+  role: String
 }
 
 input CreateFamilyMemberCharacteristicInput {
@@ -201,6 +221,17 @@ input CreateNoteInput {
   title: String
 }
 
+input CreateRelationshipInput {
+  context: String
+  relatedId: Int!
+  relatedType: PersonType!
+  relationshipType: String!
+  startDate: String
+  status: RelationshipStatus
+  subjectId: Int!
+  subjectType: PersonType!
+}
+
 input CreateStoryInput {
   content: String!
   goalId: Int!
@@ -212,6 +243,11 @@ input CreateSubGoalInput {
 }
 
 type DeleteBehaviorObservationResult {
+  message: String
+  success: Boolean!
+}
+
+type DeleteContactResult {
   message: String
   success: Boolean!
 }
@@ -243,6 +279,11 @@ type DeleteNoteResult {
 
 type DeleteQuestionsResult {
   deletedCount: Int!
+  message: String
+  success: Boolean!
+}
+
+type DeleteRelationshipResult {
   message: String
   success: Boolean!
 }
@@ -486,20 +527,24 @@ type Mutation {
   buildClaimCards(input: BuildClaimCardsInput!): BuildClaimCardsResult!
   checkNoteClaims(input: CheckNoteClaimsInput!): CheckNoteClaimsResult!
   createBehaviorObservation(input: CreateBehaviorObservationInput!): BehaviorObservation!
+  createContact(input: CreateContactInput!): Contact!
   createFamilyMember(input: CreateFamilyMemberInput!): FamilyMember!
   createFamilyMemberCharacteristic(input: CreateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   createGoal(input: CreateGoalInput!): Goal!
   createJournalEntry(input: CreateJournalEntryInput!): JournalEntry!
   createNote(input: CreateNoteInput!): Note!
+  createRelationship(input: CreateRelationshipInput!): Relationship!
   createStory(input: CreateStoryInput!): Story!
   createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
   deleteBehaviorObservation(id: Int!): DeleteBehaviorObservationResult!
   deleteClaimCard(id: ID!): Boolean!
+  deleteContact(id: Int!): DeleteContactResult!
   deleteFamilyMember(id: Int!): DeleteFamilyMemberResult!
   deleteFamilyMemberCharacteristic(id: Int!): DeleteFamilyMemberCharacteristicResult!
   deleteGoal(id: Int!): DeleteGoalResult!
   deleteJournalEntry(id: Int!): DeleteJournalEntryResult!
   deleteNote(id: Int!): DeleteNoteResult!
+  deleteRelationship(id: Int!): DeleteRelationshipResult!
   deleteResearch(goalId: Int!): DeleteResearchResult!
   deleteStory(id: Int!): DeleteStoryResult!
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
@@ -515,11 +560,13 @@ type Mutation {
   unshareFamilyMember(email: String!, familyMemberId: Int!): Boolean!
   unshareNote(email: String!, noteId: Int!): Boolean!
   updateBehaviorObservation(id: Int!, input: UpdateBehaviorObservationInput!): BehaviorObservation!
+  updateContact(id: Int!, input: UpdateContactInput!): Contact!
   updateFamilyMember(id: Int!, input: UpdateFamilyMemberInput!): FamilyMember!
   updateFamilyMemberCharacteristic(id: Int!, input: UpdateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   updateGoal(id: Int!, input: UpdateGoalInput!): Goal!
   updateJournalEntry(id: Int!, input: UpdateJournalEntryInput!): JournalEntry!
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
+  updateRelationship(id: Int!, input: UpdateRelationshipInput!): Relationship!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
   updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
 }
@@ -617,6 +664,11 @@ type PaperCandidate {
   year: Int
 }
 
+enum PersonType {
+  CONTACT
+  FAMILY_MEMBER
+}
+
 type Query {
   allNotes: [Note!]!
   allStories: [Story!]!
@@ -625,6 +677,8 @@ type Query {
   behaviorObservations(familyMemberId: Int!, goalId: Int): [BehaviorObservation!]!
   claimCard(id: ID!): ClaimCard
   claimCardsForNote(noteId: Int!): [ClaimCard!]!
+  contact(id: Int!): Contact
+  contacts: [Contact!]!
   familyMember(id: Int!): FamilyMember
   familyMemberCharacteristic(id: Int!): FamilyMemberCharacteristic
   familyMemberCharacteristics(category: CharacteristicCategory, familyMemberId: Int!): [FamilyMemberCharacteristic!]!
@@ -640,11 +694,42 @@ type Query {
   mySharedNotes: [Note!]!
   note(id: Int, slug: String): Note
   notes(entityId: Int!, entityType: String!): [Note!]!
+  relationship(id: Int!): Relationship
+  relationships(subjectId: Int!, subjectType: PersonType!): [Relationship!]!
   research(goalId: Int!): [Research!]!
   stories(goalId: Int!): [Story!]!
   story(id: Int!): Story
   therapeuticQuestions(goalId: Int!): [TherapeuticQuestion!]!
   userSettings: UserSettings!
+}
+
+type Relationship {
+  context: String
+  createdAt: String!
+  createdBy: String!
+  id: Int!
+  related: RelationshipPerson
+  relatedId: Int!
+  relatedType: PersonType!
+  relationshipType: String!
+  startDate: String
+  status: RelationshipStatus!
+  subject: RelationshipPerson
+  subjectId: Int!
+  subjectType: PersonType!
+  updatedAt: String!
+}
+
+type RelationshipPerson {
+  firstName: String!
+  id: Int!
+  lastName: String
+  type: PersonType!
+}
+
+enum RelationshipStatus {
+  ACTIVE
+  ENDED
 }
 
 type Research {
@@ -727,6 +812,14 @@ input UpdateBehaviorObservationInput {
   observedAt: String
 }
 
+input UpdateContactInput {
+  ageYears: Int
+  firstName: String
+  lastName: String
+  notes: String
+  role: String
+}
+
 input UpdateFamilyMemberCharacteristicInput {
   category: CharacteristicCategory
   description: String
@@ -773,6 +866,13 @@ input UpdateNoteInput {
   noteType: String
   tags: [String!]
   title: String
+}
+
+input UpdateRelationshipInput {
+  context: String
+  relationshipType: String
+  startDate: String
+  status: RelationshipStatus
 }
 
 input UpdateStoryInput {

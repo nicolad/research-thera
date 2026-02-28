@@ -299,6 +299,41 @@ export const familyMemberCharacteristics = sqliteTable(
   },
 );
 
+export const contacts = sqliteTable("contacts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name"),
+  role: text("role"),
+  ageYears: integer("age_years"),
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const relationships = sqliteTable("relationships", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  subjectType: text("subject_type").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  relatedType: text("related_type").notNull(),
+  relatedId: integer("related_id").notNull(),
+  relationshipType: text("relationship_type").notNull(),
+  context: text("context"),
+  startDate: text("start_date"),
+  status: text("status").default("active"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const userSettings = sqliteTable("user_settings", {
   userId: text("user_id").primaryKey(),
   storyLanguage: text("story_language").notNull().default("English"),

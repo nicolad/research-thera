@@ -171,6 +171,19 @@ export enum ClaimVerdict {
   Unverified = 'UNVERIFIED'
 }
 
+export type Contact = {
+  __typename?: 'Contact';
+  ageYears?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  firstName: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  lastName?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
 export type CreateBehaviorObservationInput = {
   context?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
@@ -180,6 +193,14 @@ export type CreateBehaviorObservationInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   observationType: BehaviorObservationType;
   observedAt: Scalars['String']['input'];
+};
+
+export type CreateContactInput = {
+  ageYears?: InputMaybe<Scalars['Int']['input']>;
+  firstName: Scalars['String']['input'];
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateFamilyMemberCharacteristicInput = {
@@ -231,6 +252,17 @@ export type CreateNoteInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateRelationshipInput = {
+  context?: InputMaybe<Scalars['String']['input']>;
+  relatedId: Scalars['Int']['input'];
+  relatedType: PersonType;
+  relationshipType: Scalars['String']['input'];
+  startDate?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<RelationshipStatus>;
+  subjectId: Scalars['Int']['input'];
+  subjectType: PersonType;
+};
+
 export type CreateStoryInput = {
   content: Scalars['String']['input'];
   goalId: Scalars['Int']['input'];
@@ -243,6 +275,12 @@ export type CreateSubGoalInput = {
 
 export type DeleteBehaviorObservationResult = {
   __typename?: 'DeleteBehaviorObservationResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteContactResult = {
+  __typename?: 'DeleteContactResult';
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -280,6 +318,12 @@ export type DeleteNoteResult = {
 export type DeleteQuestionsResult = {
   __typename?: 'DeleteQuestionsResult';
   deletedCount: Scalars['Int']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteRelationshipResult = {
+  __typename?: 'DeleteRelationshipResult';
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -547,20 +591,24 @@ export type Mutation = {
   buildClaimCards: BuildClaimCardsResult;
   checkNoteClaims: CheckNoteClaimsResult;
   createBehaviorObservation: BehaviorObservation;
+  createContact: Contact;
   createFamilyMember: FamilyMember;
   createFamilyMemberCharacteristic: FamilyMemberCharacteristic;
   createGoal: Goal;
   createJournalEntry: JournalEntry;
   createNote: Note;
+  createRelationship: Relationship;
   createStory: Story;
   createSubGoal: Goal;
   deleteBehaviorObservation: DeleteBehaviorObservationResult;
   deleteClaimCard: Scalars['Boolean']['output'];
+  deleteContact: DeleteContactResult;
   deleteFamilyMember: DeleteFamilyMemberResult;
   deleteFamilyMemberCharacteristic: DeleteFamilyMemberCharacteristicResult;
   deleteGoal: DeleteGoalResult;
   deleteJournalEntry: DeleteJournalEntryResult;
   deleteNote: DeleteNoteResult;
+  deleteRelationship: DeleteRelationshipResult;
   deleteResearch: DeleteResearchResult;
   deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
@@ -576,11 +624,13 @@ export type Mutation = {
   unshareFamilyMember: Scalars['Boolean']['output'];
   unshareNote: Scalars['Boolean']['output'];
   updateBehaviorObservation: BehaviorObservation;
+  updateContact: Contact;
   updateFamilyMember: FamilyMember;
   updateFamilyMemberCharacteristic: FamilyMemberCharacteristic;
   updateGoal: Goal;
   updateJournalEntry: JournalEntry;
   updateNote: Note;
+  updateRelationship: Relationship;
   updateStory: Story;
   updateUserSettings: UserSettings;
 };
@@ -598,6 +648,11 @@ export type MutationCheckNoteClaimsArgs = {
 
 export type MutationCreateBehaviorObservationArgs = {
   input: CreateBehaviorObservationInput;
+};
+
+
+export type MutationCreateContactArgs = {
+  input: CreateContactInput;
 };
 
 
@@ -626,6 +681,11 @@ export type MutationCreateNoteArgs = {
 };
 
 
+export type MutationCreateRelationshipArgs = {
+  input: CreateRelationshipInput;
+};
+
+
 export type MutationCreateStoryArgs = {
   input: CreateStoryInput;
 };
@@ -644,6 +704,11 @@ export type MutationDeleteBehaviorObservationArgs = {
 
 export type MutationDeleteClaimCardArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteContactArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -668,6 +733,11 @@ export type MutationDeleteJournalEntryArgs = {
 
 
 export type MutationDeleteNoteArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteRelationshipArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -761,6 +831,12 @@ export type MutationUpdateBehaviorObservationArgs = {
 };
 
 
+export type MutationUpdateContactArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateContactInput;
+};
+
+
 export type MutationUpdateFamilyMemberArgs = {
   id: Scalars['Int']['input'];
   input: UpdateFamilyMemberInput;
@@ -788,6 +864,12 @@ export type MutationUpdateJournalEntryArgs = {
 export type MutationUpdateNoteArgs = {
   id: Scalars['Int']['input'];
   input: UpdateNoteInput;
+};
+
+
+export type MutationUpdateRelationshipArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateRelationshipInput;
 };
 
 
@@ -899,6 +981,11 @@ export type PaperCandidate = {
   year?: Maybe<Scalars['Int']['output']>;
 };
 
+export enum PersonType {
+  Contact = 'CONTACT',
+  FamilyMember = 'FAMILY_MEMBER'
+}
+
 export type Query = {
   __typename?: 'Query';
   allNotes: Array<Note>;
@@ -908,6 +995,8 @@ export type Query = {
   behaviorObservations: Array<BehaviorObservation>;
   claimCard?: Maybe<ClaimCard>;
   claimCardsForNote: Array<ClaimCard>;
+  contact?: Maybe<Contact>;
+  contacts: Array<Contact>;
   familyMember?: Maybe<FamilyMember>;
   familyMemberCharacteristic?: Maybe<FamilyMemberCharacteristic>;
   familyMemberCharacteristics: Array<FamilyMemberCharacteristic>;
@@ -923,6 +1012,8 @@ export type Query = {
   mySharedNotes: Array<Note>;
   note?: Maybe<Note>;
   notes: Array<Note>;
+  relationship?: Maybe<Relationship>;
+  relationships: Array<Relationship>;
   research: Array<Research>;
   stories: Array<Story>;
   story?: Maybe<Story>;
@@ -954,6 +1045,11 @@ export type QueryClaimCardArgs = {
 
 export type QueryClaimCardsForNoteArgs = {
   noteId: Scalars['Int']['input'];
+};
+
+
+export type QueryContactArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -1027,6 +1123,17 @@ export type QueryNotesArgs = {
 };
 
 
+export type QueryRelationshipArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryRelationshipsArgs = {
+  subjectId: Scalars['Int']['input'];
+  subjectType: PersonType;
+};
+
+
 export type QueryResearchArgs = {
   goalId: Scalars['Int']['input'];
 };
@@ -1045,6 +1152,37 @@ export type QueryStoryArgs = {
 export type QueryTherapeuticQuestionsArgs = {
   goalId: Scalars['Int']['input'];
 };
+
+export type Relationship = {
+  __typename?: 'Relationship';
+  context?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  related?: Maybe<RelationshipPerson>;
+  relatedId: Scalars['Int']['output'];
+  relatedType: PersonType;
+  relationshipType: Scalars['String']['output'];
+  startDate?: Maybe<Scalars['String']['output']>;
+  status: RelationshipStatus;
+  subject?: Maybe<RelationshipPerson>;
+  subjectId: Scalars['Int']['output'];
+  subjectType: PersonType;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type RelationshipPerson = {
+  __typename?: 'RelationshipPerson';
+  firstName: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  lastName?: Maybe<Scalars['String']['output']>;
+  type: PersonType;
+};
+
+export enum RelationshipStatus {
+  Active = 'ACTIVE',
+  Ended = 'ENDED'
+}
 
 export type Research = {
   __typename?: 'Research';
@@ -1141,6 +1279,14 @@ export type UpdateBehaviorObservationInput = {
   observedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateContactInput = {
+  ageYears?: InputMaybe<Scalars['Int']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateFamilyMemberCharacteristicInput = {
   category?: InputMaybe<CharacteristicCategory>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -1187,6 +1333,13 @@ export type UpdateNoteInput = {
   noteType?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateRelationshipInput = {
+  context?: InputMaybe<Scalars['String']['input']>;
+  relationshipType?: InputMaybe<Scalars['String']['input']>;
+  startDate?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<RelationshipStatus>;
 };
 
 export type UpdateStoryInput = {
@@ -1244,6 +1397,13 @@ export type CreateBehaviorObservationMutationVariables = Exact<{
 
 export type CreateBehaviorObservationMutation = { __typename?: 'Mutation', createBehaviorObservation: { __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string } };
 
+export type CreateContactMutationVariables = Exact<{
+  input: CreateContactInput;
+}>;
+
+
+export type CreateContactMutation = { __typename?: 'Mutation', createContact: { __typename?: 'Contact', id: number, createdBy: string, firstName: string, lastName?: string | null, role?: string | null, ageYears?: number | null, notes?: string | null, createdAt: string, updatedAt: string } };
+
 export type CreateFamilyMemberMutationVariables = Exact<{
   input: CreateFamilyMemberInput;
 }>;
@@ -1279,6 +1439,13 @@ export type CreateNoteMutationVariables = Exact<{
 
 export type CreateNoteMutation = { __typename?: 'Mutation', createNote: { __typename?: 'Note', id: number, entityId: number, entityType: string, createdBy: string, noteType?: string | null, slug?: string | null, content: string, tags?: Array<string> | null, createdAt: string, updatedAt: string } };
 
+export type CreateRelationshipMutationVariables = Exact<{
+  input: CreateRelationshipInput;
+}>;
+
+
+export type CreateRelationshipMutation = { __typename?: 'Mutation', createRelationship: { __typename?: 'Relationship', id: number, createdBy: string, subjectType: PersonType, subjectId: number, relatedType: PersonType, relatedId: number, relationshipType: string, context?: string | null, startDate?: string | null, status: RelationshipStatus, createdAt: string, updatedAt: string } };
+
 export type CreateStoryMutationVariables = Exact<{
   input: CreateStoryInput;
 }>;
@@ -1300,6 +1467,13 @@ export type DeleteBehaviorObservationMutationVariables = Exact<{
 
 
 export type DeleteBehaviorObservationMutation = { __typename?: 'Mutation', deleteBehaviorObservation: { __typename?: 'DeleteBehaviorObservationResult', success: boolean, message?: string | null } };
+
+export type DeleteContactMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteContactMutation = { __typename?: 'Mutation', deleteContact: { __typename?: 'DeleteContactResult', success: boolean, message?: string | null } };
 
 export type DeleteFamilyMemberMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1335,6 +1509,13 @@ export type DeleteNoteMutationVariables = Exact<{
 
 
 export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote: { __typename?: 'DeleteNoteResult', success: boolean, message?: string | null } };
+
+export type DeleteRelationshipMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteRelationshipMutation = { __typename?: 'Mutation', deleteRelationship: { __typename?: 'DeleteRelationshipResult', success: boolean, message?: string | null } };
 
 export type DeleteResearchMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
@@ -1422,6 +1603,18 @@ export type GetBehaviorObservationsQueryVariables = Exact<{
 
 
 export type GetBehaviorObservationsQuery = { __typename?: 'Query', behaviorObservations: Array<{ __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string, familyMember?: { __typename?: 'FamilyMember', id: number, firstName: string, name?: string | null } | null, goal?: { __typename?: 'Goal', id: number, title: string } | null }> };
+
+export type GetContactQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetContactQuery = { __typename?: 'Query', contact?: { __typename?: 'Contact', id: number, createdBy: string, firstName: string, lastName?: string | null, role?: string | null, ageYears?: number | null, notes?: string | null, createdAt: string, updatedAt: string } | null };
+
+export type GetContactsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetContactsQuery = { __typename?: 'Query', contacts: Array<{ __typename?: 'Contact', id: number, createdBy: string, firstName: string, lastName?: string | null, role?: string | null, ageYears?: number | null, notes?: string | null, createdAt: string, updatedAt: string }> };
 
 export type GetFamilyMemberQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1527,6 +1720,21 @@ export type GetNotesQueryVariables = Exact<{
 
 export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: number, entityId: number, entityType: string, createdBy: string, noteType?: string | null, slug?: string | null, title?: string | null, content: string, tags?: Array<string> | null, createdAt: string, updatedAt: string, goal?: { __typename?: 'Goal', id: number, title: string, description?: string | null, status: string } | null }> };
 
+export type GetRelationshipQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetRelationshipQuery = { __typename?: 'Query', relationship?: { __typename?: 'Relationship', id: number, createdBy: string, subjectType: PersonType, subjectId: number, relatedType: PersonType, relatedId: number, relationshipType: string, context?: string | null, startDate?: string | null, status: RelationshipStatus, createdAt: string, updatedAt: string, subject?: { __typename?: 'RelationshipPerson', id: number, type: PersonType, firstName: string, lastName?: string | null } | null, related?: { __typename?: 'RelationshipPerson', id: number, type: PersonType, firstName: string, lastName?: string | null } | null } | null };
+
+export type GetRelationshipsQueryVariables = Exact<{
+  subjectType: PersonType;
+  subjectId: Scalars['Int']['input'];
+}>;
+
+
+export type GetRelationshipsQuery = { __typename?: 'Query', relationships: Array<{ __typename?: 'Relationship', id: number, createdBy: string, subjectType: PersonType, subjectId: number, relatedType: PersonType, relatedId: number, relationshipType: string, context?: string | null, startDate?: string | null, status: RelationshipStatus, createdAt: string, updatedAt: string, subject?: { __typename?: 'RelationshipPerson', id: number, type: PersonType, firstName: string, lastName?: string | null } | null, related?: { __typename?: 'RelationshipPerson', id: number, type: PersonType, firstName: string, lastName?: string | null } | null }> };
+
 export type GetStoriesQueryVariables = Exact<{
   goalId: Scalars['Int']['input'];
 }>;
@@ -1565,6 +1773,14 @@ export type UpdateBehaviorObservationMutationVariables = Exact<{
 
 
 export type UpdateBehaviorObservationMutation = { __typename?: 'Mutation', updateBehaviorObservation: { __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string } };
+
+export type UpdateContactMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateContactInput;
+}>;
+
+
+export type UpdateContactMutation = { __typename?: 'Mutation', updateContact: { __typename?: 'Contact', id: number, createdBy: string, firstName: string, lastName?: string | null, role?: string | null, ageYears?: number | null, notes?: string | null, createdAt: string, updatedAt: string } };
 
 export type UpdateFamilyMemberMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1605,6 +1821,14 @@ export type UpdateNoteMutationVariables = Exact<{
 
 
 export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __typename?: 'Note', id: number, entityId: number, entityType: string, createdBy: string, noteType?: string | null, content: string, tags?: Array<string> | null, createdAt: string, updatedAt: string } };
+
+export type UpdateRelationshipMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateRelationshipInput;
+}>;
+
+
+export type UpdateRelationshipMutation = { __typename?: 'Mutation', updateRelationship: { __typename?: 'Relationship', id: number, createdBy: string, subjectType: PersonType, subjectId: number, relatedType: PersonType, relatedId: number, relationshipType: string, context?: string | null, startDate?: string | null, status: RelationshipStatus, createdAt: string, updatedAt: string } };
 
 export type UpdateStoryMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2057,6 +2281,47 @@ export function useCreateBehaviorObservationMutation(baseOptions?: Apollo.Mutati
 export type CreateBehaviorObservationMutationHookResult = ReturnType<typeof useCreateBehaviorObservationMutation>;
 export type CreateBehaviorObservationMutationResult = Apollo.MutationResult<CreateBehaviorObservationMutation>;
 export type CreateBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<CreateBehaviorObservationMutation, CreateBehaviorObservationMutationVariables>;
+export const CreateContactDocument = gql`
+    mutation CreateContact($input: CreateContactInput!) {
+  createContact(input: $input) {
+    id
+    createdBy
+    firstName
+    lastName
+    role
+    ageYears
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateContactMutationFn = Apollo.MutationFunction<CreateContactMutation, CreateContactMutationVariables>;
+
+/**
+ * __useCreateContactMutation__
+ *
+ * To run a mutation, you first call `useCreateContactMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateContactMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createContactMutation, { data, loading, error }] = useCreateContactMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateContactMutation(baseOptions?: Apollo.MutationHookOptions<CreateContactMutation, CreateContactMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateContactMutation, CreateContactMutationVariables>(CreateContactDocument, options);
+      }
+export type CreateContactMutationHookResult = ReturnType<typeof useCreateContactMutation>;
+export type CreateContactMutationResult = Apollo.MutationResult<CreateContactMutation>;
+export type CreateContactMutationOptions = Apollo.BaseMutationOptions<CreateContactMutation, CreateContactMutationVariables>;
 export const CreateFamilyMemberDocument = gql`
     mutation CreateFamilyMember($input: CreateFamilyMemberInput!) {
   createFamilyMember(input: $input) {
@@ -2270,6 +2535,50 @@ export function useCreateNoteMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateNoteMutationHookResult = ReturnType<typeof useCreateNoteMutation>;
 export type CreateNoteMutationResult = Apollo.MutationResult<CreateNoteMutation>;
 export type CreateNoteMutationOptions = Apollo.BaseMutationOptions<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateRelationshipDocument = gql`
+    mutation CreateRelationship($input: CreateRelationshipInput!) {
+  createRelationship(input: $input) {
+    id
+    createdBy
+    subjectType
+    subjectId
+    relatedType
+    relatedId
+    relationshipType
+    context
+    startDate
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateRelationshipMutationFn = Apollo.MutationFunction<CreateRelationshipMutation, CreateRelationshipMutationVariables>;
+
+/**
+ * __useCreateRelationshipMutation__
+ *
+ * To run a mutation, you first call `useCreateRelationshipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateRelationshipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createRelationshipMutation, { data, loading, error }] = useCreateRelationshipMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateRelationshipMutation(baseOptions?: Apollo.MutationHookOptions<CreateRelationshipMutation, CreateRelationshipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateRelationshipMutation, CreateRelationshipMutationVariables>(CreateRelationshipDocument, options);
+      }
+export type CreateRelationshipMutationHookResult = ReturnType<typeof useCreateRelationshipMutation>;
+export type CreateRelationshipMutationResult = Apollo.MutationResult<CreateRelationshipMutation>;
+export type CreateRelationshipMutationOptions = Apollo.BaseMutationOptions<CreateRelationshipMutation, CreateRelationshipMutationVariables>;
 export const CreateStoryDocument = gql`
     mutation CreateStory($input: CreateStoryInput!) {
   createStory(input: $input) {
@@ -2384,6 +2693,40 @@ export function useDeleteBehaviorObservationMutation(baseOptions?: Apollo.Mutati
 export type DeleteBehaviorObservationMutationHookResult = ReturnType<typeof useDeleteBehaviorObservationMutation>;
 export type DeleteBehaviorObservationMutationResult = Apollo.MutationResult<DeleteBehaviorObservationMutation>;
 export type DeleteBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<DeleteBehaviorObservationMutation, DeleteBehaviorObservationMutationVariables>;
+export const DeleteContactDocument = gql`
+    mutation DeleteContact($id: Int!) {
+  deleteContact(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteContactMutationFn = Apollo.MutationFunction<DeleteContactMutation, DeleteContactMutationVariables>;
+
+/**
+ * __useDeleteContactMutation__
+ *
+ * To run a mutation, you first call `useDeleteContactMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteContactMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteContactMutation, { data, loading, error }] = useDeleteContactMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteContactMutation(baseOptions?: Apollo.MutationHookOptions<DeleteContactMutation, DeleteContactMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteContactMutation, DeleteContactMutationVariables>(DeleteContactDocument, options);
+      }
+export type DeleteContactMutationHookResult = ReturnType<typeof useDeleteContactMutation>;
+export type DeleteContactMutationResult = Apollo.MutationResult<DeleteContactMutation>;
+export type DeleteContactMutationOptions = Apollo.BaseMutationOptions<DeleteContactMutation, DeleteContactMutationVariables>;
 export const DeleteFamilyMemberDocument = gql`
     mutation DeleteFamilyMember($id: Int!) {
   deleteFamilyMember(id: $id) {
@@ -2554,6 +2897,40 @@ export function useDeleteNoteMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteNoteMutationHookResult = ReturnType<typeof useDeleteNoteMutation>;
 export type DeleteNoteMutationResult = Apollo.MutationResult<DeleteNoteMutation>;
 export type DeleteNoteMutationOptions = Apollo.BaseMutationOptions<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DeleteRelationshipDocument = gql`
+    mutation DeleteRelationship($id: Int!) {
+  deleteRelationship(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteRelationshipMutationFn = Apollo.MutationFunction<DeleteRelationshipMutation, DeleteRelationshipMutationVariables>;
+
+/**
+ * __useDeleteRelationshipMutation__
+ *
+ * To run a mutation, you first call `useDeleteRelationshipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRelationshipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRelationshipMutation, { data, loading, error }] = useDeleteRelationshipMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteRelationshipMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRelationshipMutation, DeleteRelationshipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRelationshipMutation, DeleteRelationshipMutationVariables>(DeleteRelationshipDocument, options);
+      }
+export type DeleteRelationshipMutationHookResult = ReturnType<typeof useDeleteRelationshipMutation>;
+export type DeleteRelationshipMutationResult = Apollo.MutationResult<DeleteRelationshipMutation>;
+export type DeleteRelationshipMutationOptions = Apollo.BaseMutationOptions<DeleteRelationshipMutation, DeleteRelationshipMutationVariables>;
 export const DeleteResearchDocument = gql`
     mutation DeleteResearch($goalId: Int!) {
   deleteResearch(goalId: $goalId) {
@@ -3120,6 +3497,107 @@ export type GetBehaviorObservationsQueryHookResult = ReturnType<typeof useGetBeh
 export type GetBehaviorObservationsLazyQueryHookResult = ReturnType<typeof useGetBehaviorObservationsLazyQuery>;
 export type GetBehaviorObservationsSuspenseQueryHookResult = ReturnType<typeof useGetBehaviorObservationsSuspenseQuery>;
 export type GetBehaviorObservationsQueryResult = Apollo.QueryResult<GetBehaviorObservationsQuery, GetBehaviorObservationsQueryVariables>;
+export const GetContactDocument = gql`
+    query GetContact($id: Int!) {
+  contact(id: $id) {
+    id
+    createdBy
+    firstName
+    lastName
+    role
+    ageYears
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetContactQuery__
+ *
+ * To run a query within a React component, call `useGetContactQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetContactQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetContactQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetContactQuery(baseOptions: Apollo.QueryHookOptions<GetContactQuery, GetContactQueryVariables> & ({ variables: GetContactQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetContactQuery, GetContactQueryVariables>(GetContactDocument, options);
+      }
+export function useGetContactLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetContactQuery, GetContactQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetContactQuery, GetContactQueryVariables>(GetContactDocument, options);
+        }
+// @ts-ignore
+export function useGetContactSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetContactQuery, GetContactQueryVariables>): Apollo.UseSuspenseQueryResult<GetContactQuery, GetContactQueryVariables>;
+export function useGetContactSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetContactQuery, GetContactQueryVariables>): Apollo.UseSuspenseQueryResult<GetContactQuery | undefined, GetContactQueryVariables>;
+export function useGetContactSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetContactQuery, GetContactQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetContactQuery, GetContactQueryVariables>(GetContactDocument, options);
+        }
+export type GetContactQueryHookResult = ReturnType<typeof useGetContactQuery>;
+export type GetContactLazyQueryHookResult = ReturnType<typeof useGetContactLazyQuery>;
+export type GetContactSuspenseQueryHookResult = ReturnType<typeof useGetContactSuspenseQuery>;
+export type GetContactQueryResult = Apollo.QueryResult<GetContactQuery, GetContactQueryVariables>;
+export const GetContactsDocument = gql`
+    query GetContacts {
+  contacts {
+    id
+    createdBy
+    firstName
+    lastName
+    role
+    ageYears
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetContactsQuery__
+ *
+ * To run a query within a React component, call `useGetContactsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetContactsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetContactsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetContactsQuery(baseOptions?: Apollo.QueryHookOptions<GetContactsQuery, GetContactsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetContactsQuery, GetContactsQueryVariables>(GetContactsDocument, options);
+      }
+export function useGetContactsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetContactsQuery, GetContactsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetContactsQuery, GetContactsQueryVariables>(GetContactsDocument, options);
+        }
+// @ts-ignore
+export function useGetContactsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetContactsQuery, GetContactsQueryVariables>): Apollo.UseSuspenseQueryResult<GetContactsQuery, GetContactsQueryVariables>;
+export function useGetContactsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetContactsQuery, GetContactsQueryVariables>): Apollo.UseSuspenseQueryResult<GetContactsQuery | undefined, GetContactsQueryVariables>;
+export function useGetContactsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetContactsQuery, GetContactsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetContactsQuery, GetContactsQueryVariables>(GetContactsDocument, options);
+        }
+export type GetContactsQueryHookResult = ReturnType<typeof useGetContactsQuery>;
+export type GetContactsLazyQueryHookResult = ReturnType<typeof useGetContactsLazyQuery>;
+export type GetContactsSuspenseQueryHookResult = ReturnType<typeof useGetContactsSuspenseQuery>;
+export type GetContactsQueryResult = Apollo.QueryResult<GetContactsQuery, GetContactsQueryVariables>;
 export const GetFamilyMemberDocument = gql`
     query GetFamilyMember($id: Int!) {
   familyMember(id: $id) {
@@ -4068,6 +4546,139 @@ export type GetNotesQueryHookResult = ReturnType<typeof useGetNotesQuery>;
 export type GetNotesLazyQueryHookResult = ReturnType<typeof useGetNotesLazyQuery>;
 export type GetNotesSuspenseQueryHookResult = ReturnType<typeof useGetNotesSuspenseQuery>;
 export type GetNotesQueryResult = Apollo.QueryResult<GetNotesQuery, GetNotesQueryVariables>;
+export const GetRelationshipDocument = gql`
+    query GetRelationship($id: Int!) {
+  relationship(id: $id) {
+    id
+    createdBy
+    subjectType
+    subjectId
+    relatedType
+    relatedId
+    relationshipType
+    context
+    startDate
+    status
+    createdAt
+    updatedAt
+    subject {
+      id
+      type
+      firstName
+      lastName
+    }
+    related {
+      id
+      type
+      firstName
+      lastName
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRelationshipQuery__
+ *
+ * To run a query within a React component, call `useGetRelationshipQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRelationshipQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRelationshipQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetRelationshipQuery(baseOptions: Apollo.QueryHookOptions<GetRelationshipQuery, GetRelationshipQueryVariables> & ({ variables: GetRelationshipQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRelationshipQuery, GetRelationshipQueryVariables>(GetRelationshipDocument, options);
+      }
+export function useGetRelationshipLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRelationshipQuery, GetRelationshipQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRelationshipQuery, GetRelationshipQueryVariables>(GetRelationshipDocument, options);
+        }
+// @ts-ignore
+export function useGetRelationshipSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRelationshipQuery, GetRelationshipQueryVariables>): Apollo.UseSuspenseQueryResult<GetRelationshipQuery, GetRelationshipQueryVariables>;
+export function useGetRelationshipSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRelationshipQuery, GetRelationshipQueryVariables>): Apollo.UseSuspenseQueryResult<GetRelationshipQuery | undefined, GetRelationshipQueryVariables>;
+export function useGetRelationshipSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRelationshipQuery, GetRelationshipQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRelationshipQuery, GetRelationshipQueryVariables>(GetRelationshipDocument, options);
+        }
+export type GetRelationshipQueryHookResult = ReturnType<typeof useGetRelationshipQuery>;
+export type GetRelationshipLazyQueryHookResult = ReturnType<typeof useGetRelationshipLazyQuery>;
+export type GetRelationshipSuspenseQueryHookResult = ReturnType<typeof useGetRelationshipSuspenseQuery>;
+export type GetRelationshipQueryResult = Apollo.QueryResult<GetRelationshipQuery, GetRelationshipQueryVariables>;
+export const GetRelationshipsDocument = gql`
+    query GetRelationships($subjectType: PersonType!, $subjectId: Int!) {
+  relationships(subjectType: $subjectType, subjectId: $subjectId) {
+    id
+    createdBy
+    subjectType
+    subjectId
+    relatedType
+    relatedId
+    relationshipType
+    context
+    startDate
+    status
+    createdAt
+    updatedAt
+    subject {
+      id
+      type
+      firstName
+      lastName
+    }
+    related {
+      id
+      type
+      firstName
+      lastName
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRelationshipsQuery__
+ *
+ * To run a query within a React component, call `useGetRelationshipsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRelationshipsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRelationshipsQuery({
+ *   variables: {
+ *      subjectType: // value for 'subjectType'
+ *      subjectId: // value for 'subjectId'
+ *   },
+ * });
+ */
+export function useGetRelationshipsQuery(baseOptions: Apollo.QueryHookOptions<GetRelationshipsQuery, GetRelationshipsQueryVariables> & ({ variables: GetRelationshipsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRelationshipsQuery, GetRelationshipsQueryVariables>(GetRelationshipsDocument, options);
+      }
+export function useGetRelationshipsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRelationshipsQuery, GetRelationshipsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRelationshipsQuery, GetRelationshipsQueryVariables>(GetRelationshipsDocument, options);
+        }
+// @ts-ignore
+export function useGetRelationshipsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRelationshipsQuery, GetRelationshipsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRelationshipsQuery, GetRelationshipsQueryVariables>;
+export function useGetRelationshipsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRelationshipsQuery, GetRelationshipsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRelationshipsQuery | undefined, GetRelationshipsQueryVariables>;
+export function useGetRelationshipsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRelationshipsQuery, GetRelationshipsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRelationshipsQuery, GetRelationshipsQueryVariables>(GetRelationshipsDocument, options);
+        }
+export type GetRelationshipsQueryHookResult = ReturnType<typeof useGetRelationshipsQuery>;
+export type GetRelationshipsLazyQueryHookResult = ReturnType<typeof useGetRelationshipsLazyQuery>;
+export type GetRelationshipsSuspenseQueryHookResult = ReturnType<typeof useGetRelationshipsSuspenseQuery>;
+export type GetRelationshipsQueryResult = Apollo.QueryResult<GetRelationshipsQuery, GetRelationshipsQueryVariables>;
 export const GetStoriesDocument = gql`
     query GetStories($goalId: Int!) {
   stories(goalId: $goalId) {
@@ -4287,6 +4898,48 @@ export function useUpdateBehaviorObservationMutation(baseOptions?: Apollo.Mutati
 export type UpdateBehaviorObservationMutationHookResult = ReturnType<typeof useUpdateBehaviorObservationMutation>;
 export type UpdateBehaviorObservationMutationResult = Apollo.MutationResult<UpdateBehaviorObservationMutation>;
 export type UpdateBehaviorObservationMutationOptions = Apollo.BaseMutationOptions<UpdateBehaviorObservationMutation, UpdateBehaviorObservationMutationVariables>;
+export const UpdateContactDocument = gql`
+    mutation UpdateContact($id: Int!, $input: UpdateContactInput!) {
+  updateContact(id: $id, input: $input) {
+    id
+    createdBy
+    firstName
+    lastName
+    role
+    ageYears
+    notes
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateContactMutationFn = Apollo.MutationFunction<UpdateContactMutation, UpdateContactMutationVariables>;
+
+/**
+ * __useUpdateContactMutation__
+ *
+ * To run a mutation, you first call `useUpdateContactMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateContactMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateContactMutation, { data, loading, error }] = useUpdateContactMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateContactMutation(baseOptions?: Apollo.MutationHookOptions<UpdateContactMutation, UpdateContactMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateContactMutation, UpdateContactMutationVariables>(UpdateContactDocument, options);
+      }
+export type UpdateContactMutationHookResult = ReturnType<typeof useUpdateContactMutation>;
+export type UpdateContactMutationResult = Apollo.MutationResult<UpdateContactMutation>;
+export type UpdateContactMutationOptions = Apollo.BaseMutationOptions<UpdateContactMutation, UpdateContactMutationVariables>;
 export const UpdateFamilyMemberDocument = gql`
     mutation UpdateFamilyMember($id: Int!, $input: UpdateFamilyMemberInput!) {
   updateFamilyMember(id: $id, input: $input) {
@@ -4511,6 +5164,51 @@ export function useUpdateNoteMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateNoteMutationHookResult = ReturnType<typeof useUpdateNoteMutation>;
 export type UpdateNoteMutationResult = Apollo.MutationResult<UpdateNoteMutation>;
 export type UpdateNoteMutationOptions = Apollo.BaseMutationOptions<UpdateNoteMutation, UpdateNoteMutationVariables>;
+export const UpdateRelationshipDocument = gql`
+    mutation UpdateRelationship($id: Int!, $input: UpdateRelationshipInput!) {
+  updateRelationship(id: $id, input: $input) {
+    id
+    createdBy
+    subjectType
+    subjectId
+    relatedType
+    relatedId
+    relationshipType
+    context
+    startDate
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateRelationshipMutationFn = Apollo.MutationFunction<UpdateRelationshipMutation, UpdateRelationshipMutationVariables>;
+
+/**
+ * __useUpdateRelationshipMutation__
+ *
+ * To run a mutation, you first call `useUpdateRelationshipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRelationshipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRelationshipMutation, { data, loading, error }] = useUpdateRelationshipMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateRelationshipMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRelationshipMutation, UpdateRelationshipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRelationshipMutation, UpdateRelationshipMutationVariables>(UpdateRelationshipDocument, options);
+      }
+export type UpdateRelationshipMutationHookResult = ReturnType<typeof useUpdateRelationshipMutation>;
+export type UpdateRelationshipMutationResult = Apollo.MutationResult<UpdateRelationshipMutation>;
+export type UpdateRelationshipMutationOptions = Apollo.BaseMutationOptions<UpdateRelationshipMutation, UpdateRelationshipMutationVariables>;
 export const UpdateStoryDocument = gql`
     mutation UpdateStory($id: Int!, $input: UpdateStoryInput!) {
   updateStory(id: $id, input: $input) {

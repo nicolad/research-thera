@@ -19,8 +19,10 @@ pnpm mastra:dev       # Mastra agent dev server
 Database migrations (Cloudflare D1 via Wrangler):
 ```bash
 wrangler d1 migrations create research-thera-db <migration-name>
-wrangler d1 migrations apply research-thera-db
+wrangler d1 migrations apply research-thera-db --remote   # ALWAYS use --remote
 ```
+
+**IMPORTANT: Always use `--remote` when running D1 commands (migrations apply, execute, etc.). Never run against local D1 — the app uses the HTTP API client, not Workers bindings, so local D1 state is unused.**
 
 ## Architecture
 
