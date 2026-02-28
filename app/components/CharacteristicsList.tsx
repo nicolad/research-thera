@@ -9,6 +9,7 @@ import {
   AlertDialog,
 } from "@radix-ui/themes";
 import { TrashIcon } from "@radix-ui/react-icons";
+import NextLink from "next/link";
 import { CharacteristicCategory } from "@/app/__generated__/hooks";
 
 export { CharacteristicCategory };
@@ -26,6 +27,7 @@ interface CharacteristicsListProps {
   onDelete: (id: number) => void;
   deleting?: boolean;
   emptyMessage?: string;
+  getHref?: (item: Characteristic) => string;
 }
 
 const CATEGORY_COLORS: Record<
@@ -42,6 +44,7 @@ export default function CharacteristicsList({
   onDelete,
   deleting = false,
   emptyMessage = "None added yet",
+  getHref,
 }: CharacteristicsListProps) {
   if (items.length === 0) {
     return (
@@ -53,68 +56,91 @@ export default function CharacteristicsList({
 
   return (
     <Flex direction="column" gap="2">
-      {items.map((item) => (
-        <Card key={item.id}>
-          <Flex justify="between" align="start" p="3" gap="3">
-            <Flex direction="column" gap="1" style={{ flex: 1 }}>
-              <Flex gap="2" align="center">
-                <Badge
-                  color={CATEGORY_COLORS[item.category]}
-                  variant="soft"
-                  size="1"
-                >
-                  {item.category.charAt(0) +
-                    item.category.slice(1).toLowerCase()}
-                </Badge>
-                <Text size="2" weight="medium">
-                  {item.title}
-                </Text>
-              </Flex>
-              {item.description && (
-                <Text size="1" color="gray">
-                  {item.description}
-                </Text>
-              )}
+      {items.map((item) => {
+        const leftContent = (
+          <Flex direction="column" gap="1" style={{ flex: 1 }}>
+            <Flex gap="2" align="center">
+              <Badge
+                color={CATEGORY_COLORS[item.category]}
+                variant="soft"
+                size="1"
+              >
+                {item.category.charAt(0) +
+                  item.category.slice(1).toLowerCase()}
+              </Badge>
+              <Text size="2" weight="medium">
+                {item.title}
+              </Text>
             </Flex>
-
-            <AlertDialog.Root>
-              <AlertDialog.Trigger>
-                <Button
-                  variant="ghost"
-                  color="red"
-                  size="1"
-                  disabled={deleting}
-                  style={{ flexShrink: 0 }}
-                >
-                  <TrashIcon />
-                </Button>
-              </AlertDialog.Trigger>
-              <AlertDialog.Content>
-                <AlertDialog.Title>Delete</AlertDialog.Title>
-                <AlertDialog.Description>
-                  Remove &quot;{item.title}&quot;? This action cannot be undone.
-                </AlertDialog.Description>
-                <Flex gap="3" justify="end" mt="4">
-                  <AlertDialog.Cancel>
-                    <Button variant="soft" color="gray">
-                      Cancel
-                    </Button>
-                  </AlertDialog.Cancel>
-                  <AlertDialog.Action>
-                    <Button
-                      color="red"
-                      disabled={deleting}
-                      onClick={() => onDelete(item.id)}
-                    >
-                      Delete
-                    </Button>
-                  </AlertDialog.Action>
-                </Flex>
-              </AlertDialog.Content>
-            </AlertDialog.Root>
+            {item.description && (
+              <Text size="1" color="gray">
+                {item.description}
+              </Text>
+            )}
           </Flex>
-        </Card>
-      ))}
+        );
+
+        return (
+          <Card
+            key={item.id}
+            style={getHref ? { cursor: "pointer" } : undefined}
+          >
+            <Flex justify="between" align="start" p="3" gap="3">
+              {getHref ? (
+                <NextLink
+                  href={getHref(item)}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    flex: 1,
+                  }}
+                >
+                  {leftContent}
+                </NextLink>
+              ) : (
+                leftContent
+              )}
+
+              <AlertDialog.Root>
+                <AlertDialog.Trigger>
+                  <Button
+                    variant="ghost"
+                    color="red"
+                    size="1"
+                    disabled={deleting}
+                    style={{ flexShrink: 0 }}
+                  >
+                    <TrashIcon />
+                  </Button>
+                </AlertDialog.Trigger>
+                <AlertDialog.Content>
+                  <AlertDialog.Title>Delete</AlertDialog.Title>
+                  <AlertDialog.Description>
+                    Remove &quot;{item.title}&quot;? This action cannot be
+                    undone.
+                  </AlertDialog.Description>
+                  <Flex gap="3" justify="end" mt="4">
+                    <AlertDialog.Cancel>
+                      <Button variant="soft" color="gray">
+                        Cancel
+                      </Button>
+                    </AlertDialog.Cancel>
+                    <AlertDialog.Action>
+                      <Button
+                        color="red"
+                        disabled={deleting}
+                        onClick={() => onDelete(item.id)}
+                      >
+                        Delete
+                      </Button>
+                    </AlertDialog.Action>
+                  </Flex>
+                </AlertDialog.Content>
+              </AlertDialog.Root>
+            </Flex>
+          </Card>
+        );
+      })}
     </Flex>
   );
 }

@@ -1,9 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 const isProtectedRoute = createRouteMatcher(["/goals(.*)", "/notes(.*)"]);
 
-export default clerkMiddleware(async (auth, req) => {
+const clerkHandler = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     const { userId } = await auth();
     if (!userId) {
@@ -12,6 +13,10 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 });
+
+export function proxy(request: NextRequest) {
+  return clerkHandler(request as any);
+}
 
 export const config = {
   matcher: [

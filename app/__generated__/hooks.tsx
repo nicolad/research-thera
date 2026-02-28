@@ -1430,6 +1430,13 @@ export type GetFamilyMemberQueryVariables = Exact<{
 
 export type GetFamilyMemberQuery = { __typename?: 'Query', familyMember?: { __typename?: 'FamilyMember', id: number, userId: string, firstName: string, name?: string | null, ageYears?: number | null, relationship?: string | null, email?: string | null, phone?: string | null, location?: string | null, occupation?: string | null, dateOfBirth?: string | null, bio?: string | null, createdAt: string, updatedAt: string, shares: Array<{ __typename?: 'FamilyMemberShare', familyMemberId: number, email: string, role: FamilyMemberShareRole, createdAt: string, createdBy: string }>, goals: Array<{ __typename?: 'Goal', id: number, title: string, status: string, description?: string | null, createdAt: string }>, behaviorObservations: Array<{ __typename?: 'BehaviorObservation', id: number, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string }> } | null };
 
+export type GetFamilyMemberCharacteristicQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetFamilyMemberCharacteristicQuery = { __typename?: 'Query', familyMemberCharacteristic?: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } | null };
+
 export type GetFamilyMemberCharacteristicsQueryVariables = Exact<{
   familyMemberId: Scalars['Int']['input'];
   category?: InputMaybe<CharacteristicCategory>;
@@ -3193,6 +3200,56 @@ export type GetFamilyMemberQueryHookResult = ReturnType<typeof useGetFamilyMembe
 export type GetFamilyMemberLazyQueryHookResult = ReturnType<typeof useGetFamilyMemberLazyQuery>;
 export type GetFamilyMemberSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMemberSuspenseQuery>;
 export type GetFamilyMemberQueryResult = Apollo.QueryResult<GetFamilyMemberQuery, GetFamilyMemberQueryVariables>;
+export const GetFamilyMemberCharacteristicDocument = gql`
+    query GetFamilyMemberCharacteristic($id: Int!) {
+  familyMemberCharacteristic(id: $id) {
+    id
+    familyMemberId
+    createdBy
+    category
+    title
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetFamilyMemberCharacteristicQuery__
+ *
+ * To run a query within a React component, call `useGetFamilyMemberCharacteristicQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFamilyMemberCharacteristicQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFamilyMemberCharacteristicQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetFamilyMemberCharacteristicQuery(baseOptions: Apollo.QueryHookOptions<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables> & ({ variables: GetFamilyMemberCharacteristicQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>(GetFamilyMemberCharacteristicDocument, options);
+      }
+export function useGetFamilyMemberCharacteristicLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>(GetFamilyMemberCharacteristicDocument, options);
+        }
+// @ts-ignore
+export function useGetFamilyMemberCharacteristicSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>;
+export function useGetFamilyMemberCharacteristicSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>): Apollo.UseSuspenseQueryResult<GetFamilyMemberCharacteristicQuery | undefined, GetFamilyMemberCharacteristicQueryVariables>;
+export function useGetFamilyMemberCharacteristicSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>(GetFamilyMemberCharacteristicDocument, options);
+        }
+export type GetFamilyMemberCharacteristicQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicQuery>;
+export type GetFamilyMemberCharacteristicLazyQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicLazyQuery>;
+export type GetFamilyMemberCharacteristicSuspenseQueryHookResult = ReturnType<typeof useGetFamilyMemberCharacteristicSuspenseQuery>;
+export type GetFamilyMemberCharacteristicQueryResult = Apollo.QueryResult<GetFamilyMemberCharacteristicQuery, GetFamilyMemberCharacteristicQueryVariables>;
 export const GetFamilyMemberCharacteristicsDocument = gql`
     query GetFamilyMemberCharacteristics($familyMemberId: Int!, $category: CharacteristicCategory) {
   familyMemberCharacteristics(

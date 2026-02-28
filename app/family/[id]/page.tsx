@@ -439,6 +439,7 @@ function FamilyMemberContent() {
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
             emptyMessage="No traits added yet"
+            getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
       </Card>
@@ -467,6 +468,7 @@ function FamilyMemberContent() {
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
             emptyMessage="No issues added yet"
+            getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
       </Card>
@@ -495,6 +497,7 @@ function FamilyMemberContent() {
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
             emptyMessage="No problems added yet"
+            getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
       </Card>

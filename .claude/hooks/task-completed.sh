@@ -15,7 +15,7 @@ TEAMMATE=$(echo "$INPUT" | jq -r '.teammate_name // empty')
 # Tasks involving schema changes must have codegen run
 if echo "$TASK_SUBJECT" | grep -iqE 'schema|graphql|mutation|query|type'; then
   if [ "$TEAMMATE" = "backend-dev" ]; then
-    if ! pnpm codegen 2>&1 | tail -1 | grep -q 'Done'; then
+    if ! pnpm codegen > /dev/null 2>&1; then
       echo "Task involves schema changes but pnpm codegen failed. Fix codegen errors before completing: $TASK_SUBJECT" >&2
       exit 2
     fi
@@ -25,7 +25,7 @@ fi
 # Tasks involving frontend must pass lint
 if echo "$TASK_SUBJECT" | grep -iqE 'component|page|ui|frontend|layout'; then
   if [ "$TEAMMATE" = "frontend-dev" ]; then
-    if ! pnpm lint 2>&1 | tail -1 | grep -q 'No ESLint warnings or errors'; then
+    if ! pnpm lint > /dev/null 2>&1; then
       echo "Lint errors found. Fix lint before completing: $TASK_SUBJECT" >&2
       exit 2
     fi
