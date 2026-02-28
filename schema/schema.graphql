@@ -66,6 +66,7 @@ type Mutation {
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
   generateLongFormText(
     goalId: Int!
+    characteristicId: Int
     language: String
     minutes: Int
   ): GenerateLongFormTextResult!
@@ -122,6 +123,11 @@ type Mutation {
   createFamilyMemberCharacteristic(input: CreateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   updateFamilyMemberCharacteristic(id: Int!, input: UpdateFamilyMemberCharacteristicInput!): FamilyMemberCharacteristic!
   deleteFamilyMemberCharacteristic(id: Int!): DeleteFamilyMemberCharacteristicResult!
+
+  # Unique Outcomes
+  createUniqueOutcome(input: CreateUniqueOutcomeInput!): UniqueOutcome!
+  updateUniqueOutcome(id: Int!, input: UpdateUniqueOutcomeInput!): UniqueOutcome!
+  deleteUniqueOutcome(id: Int!): DeleteUniqueOutcomeResult!
 
   # Contacts
   createContact(input: CreateContactInput!): Contact!
@@ -808,6 +814,7 @@ type BehaviorObservation {
   id: Int!
   familyMemberId: Int!
   goalId: Int
+  characteristicId: Int
   createdBy: String!
   observedAt: String!
   observationType: BehaviorObservationType!
@@ -824,6 +831,7 @@ type BehaviorObservation {
 input CreateBehaviorObservationInput {
   familyMemberId: Int!
   goalId: Int
+  characteristicId: Int
   observedAt: String!
   observationType: BehaviorObservationType!
   frequency: Int
@@ -851,9 +859,45 @@ type DeleteBehaviorObservationResult {
 # ============================================
 
 enum CharacteristicCategory {
-  TRAIT
-  ISSUE
-  PROBLEM
+  STRENGTH
+  SUPPORT_NEED
+  PRIORITY_CONCERN
+}
+
+enum SeverityLevel {
+  MILD
+  MODERATE
+  SEVERE
+  PROFOUND
+}
+
+enum ImpairmentDomain {
+  ACADEMIC
+  PEER
+  FAMILY
+  SELF_CARE
+  SAFETY
+}
+
+enum FormulationStatus {
+  DRAFT
+  ASSESSED
+  FORMULATED
+}
+
+enum RiskTier {
+  NONE
+  WATCH
+  CONCERN
+  SAFEGUARDING_ALERT
+}
+
+enum DevelopmentalTier {
+  EARLY_CHILDHOOD
+  MIDDLE_CHILDHOOD
+  EARLY_ADOLESCENCE
+  LATE_ADOLESCENCE
+  ADULT
 }
 
 type FamilyMemberCharacteristic {
@@ -863,9 +907,46 @@ type FamilyMemberCharacteristic {
   category: CharacteristicCategory!
   title: String!
   description: String
+  severity: SeverityLevel
+  frequencyPerWeek: Int
+  durationWeeks: Int
+  ageOfOnset: Int
+  impairmentDomains: [ImpairmentDomain!]!
+  formulationStatus: FormulationStatus!
+  externalizedName: String
+  strengths: String
+  riskTier: RiskTier!
+  uniqueOutcomes: [UniqueOutcome!]!
+  behaviorObservations: [BehaviorObservation!]!
   createdAt: String!
   updatedAt: String!
   familyMember: FamilyMember
+}
+
+type UniqueOutcome {
+  id: Int!
+  characteristicId: Int!
+  createdBy: String!
+  observedAt: String!
+  description: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateUniqueOutcomeInput {
+  characteristicId: Int!
+  observedAt: String!
+  description: String!
+}
+
+input UpdateUniqueOutcomeInput {
+  observedAt: String
+  description: String
+}
+
+type DeleteUniqueOutcomeResult {
+  success: Boolean!
+  message: String
 }
 
 input CreateFamilyMemberCharacteristicInput {
@@ -873,12 +954,30 @@ input CreateFamilyMemberCharacteristicInput {
   category: CharacteristicCategory!
   title: String!
   description: String
+  severity: SeverityLevel
+  frequencyPerWeek: Int
+  durationWeeks: Int
+  ageOfOnset: Int
+  impairmentDomains: [ImpairmentDomain!]
+  formulationStatus: FormulationStatus
+  externalizedName: String
+  strengths: String
+  riskTier: RiskTier
 }
 
 input UpdateFamilyMemberCharacteristicInput {
   category: CharacteristicCategory
   title: String
   description: String
+  severity: SeverityLevel
+  frequencyPerWeek: Int
+  durationWeeks: Int
+  ageOfOnset: Int
+  impairmentDomains: [ImpairmentDomain!]
+  formulationStatus: FormulationStatus
+  externalizedName: String
+  strengths: String
+  riskTier: RiskTier
 }
 
 type DeleteFamilyMemberCharacteristicResult {

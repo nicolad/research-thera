@@ -5,7 +5,7 @@
  * Integrations:
  * - Crossref API (no auth required)
  * - PubMed API (E-utilities)
- * - Semantic Scholar API (no auth required)
+ * - Semantic Scholar API (optional API key via SEMANTIC_SCHOLAR_API_KEY env var)
  * - OpenAlex API (requires free API key via OPENALEX_API_KEY env var)
  * - arXiv API (no auth required, Atom XML)
  * - Europe PMC API (no auth required)
@@ -43,12 +43,23 @@ export interface PaperCandidate {
   abstract?: string;
   journal?: string;
   publicationType?: string; // e.g., "journal-article", "book-chapter", "proceedings-article"
+  // Semantic Scholar enrichment fields
+  tldr?: string;               // AI-generated TLDR summary
+  citationCount?: number;
+  influentialCitationCount?: number;
+  fieldsOfStudy?: string[];
+  isOpenAccess?: boolean;
+  openAccessPdfUrl?: string;
+  s2PaperId?: string;          // S2 internal paper ID for follow-up API calls
 }
 
 export interface PaperDetails extends PaperCandidate {
   abstract: string;
   authors: string[];
   citationCount?: number;
+  influentialCitationCount?: number;
+  tldr?: string;
+  fieldsOfStudy?: string[];
   oaUrl?: string; // Open Access full-text URL
   oaStatus?: string; // e.g., "gold", "green", "hybrid", "bronze", "closed"
 }
@@ -212,6 +223,17 @@ export function scoreCandidate(
   if (c.source === "datacite") score -= 1; // often datasets, not papers
   if (c.source === "pubmed") score -= 1; // for labor econ, usually noise
 
+  // Citation count as quality signal (log-scale, capped at +8)
+  if (c.citationCount !== undefined && c.citationCount > 0) {
+    score += Math.min(Math.log10(c.citationCount) * 2, 8);
+  }
+  // Influential citations are a stronger signal of field impact
+  if (c.influentialCitationCount !== undefined && c.influentialCitationCount > 0) {
+    score += Math.min(c.influentialCitationCount * 0.5, 4);
+  }
+  // TLDR presence means S2 has fully indexed and analyzed the paper
+  if (c.tldr) score += 2;
+
   return score;
 }
 
@@ -365,8 +387,54 @@ export async function searchPubMed(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Semantic Scholar helpers
+// ---------------------------------------------------------------------------
+
+/** Fields requested on every S2 paper call */
+const S2_FIELDS =
+  "paperId,title,abstract,year,authors,externalIds,journal,url,tldr," +
+  "citationCount,influentialCitationCount,fieldsOfStudy,isOpenAccess," +
+  "openAccessPdf,publicationTypes";
+
+/** Inject API key header when SEMANTIC_SCHOLAR_API_KEY is set */
+function semanticScholarHeaders(): Record<string, string> {
+  const key = process.env.SEMANTIC_SCHOLAR_API_KEY;
+  return key ? { "x-api-key": key } : {};
+}
+
+/** Map a raw S2 paper object to PaperCandidate */
+function mapS2Paper(paper: any): PaperCandidate {
+  return {
+    title: paper.title || "Untitled",
+    doi: paper.externalIds?.DOI,
+    url:
+      paper.url ||
+      (paper.externalIds?.DOI
+        ? `https://doi.org/${paper.externalIds.DOI}`
+        : paper.paperId
+          ? `https://www.semanticscholar.org/paper/${paper.paperId}`
+          : undefined),
+    year: paper.year,
+    source: "semantic_scholar",
+    authors: paper.authors?.map((a: any) => a.name) || [],
+    abstract: paper.abstract,
+    journal: paper.journal?.name,
+    publicationType: paper.publicationTypes?.[0],
+    tldr: paper.tldr?.text,
+    citationCount: paper.citationCount,
+    influentialCitationCount: paper.influentialCitationCount,
+    fieldsOfStudy: paper.fieldsOfStudy,
+    isOpenAccess: paper.isOpenAccess,
+    openAccessPdfUrl: paper.openAccessPdf?.url,
+    s2PaperId: paper.paperId,
+  };
+}
+
 /**
- * Search Semantic Scholar for papers
+ * Search Semantic Scholar for papers (relevance-ranked, up to 1,000 results).
+ * Fetches TLDR summaries, citation counts, open-access PDF links, and more.
+ * Set SEMANTIC_SCHOLAR_API_KEY env var for higher rate limits.
  */
 export async function searchSemanticScholar(
   query: string,
@@ -378,37 +446,165 @@ export async function searchSemanticScholar(
     );
     url.searchParams.set("query", query);
     url.searchParams.set("limit", limit.toString());
-    url.searchParams.set(
-      "fields",
-      "title,abstract,year,authors,externalIds,journal,url",
-    );
+    url.searchParams.set("fields", S2_FIELDS);
 
-    const response = await fetchWithRetry(url.toString());
+    const response = await fetchWithRetry(url.toString(), {
+      headers: semanticScholarHeaders(),
+    });
 
     if (!response.ok) {
-      console.error(`Semantic Scholar API error: ${response.status}`);
+      console.error(`Semantic Scholar search error: ${response.status}`);
       return [];
     }
 
     const data = await response.json();
-    const papers = data.data || [];
-
-    return papers.map((paper: any) => ({
-      title: paper.title || "Untitled",
-      doi: paper.externalIds?.DOI,
-      url:
-        paper.url ||
-        (paper.externalIds?.DOI
-          ? `https://doi.org/${paper.externalIds.DOI}`
-          : undefined),
-      year: paper.year,
-      source: "semantic_scholar",
-      authors: paper.authors?.map((a: any) => a.name) || [],
-      abstract: paper.abstract,
-      journal: paper.journal?.name,
-    }));
+    return (data.data || []).map(mapS2Paper);
   } catch (error) {
     console.error("Error searching Semantic Scholar:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetch a single Semantic Scholar paper by any supported ID format:
+ *   S2 hash, DOI:xxx, ARXIV:xxx, PMID:xxx, PMCID:xxx, ACL:xxx, MAG:xxx
+ */
+export async function getSemanticScholarPaper(
+  paperId: string,
+): Promise<PaperCandidate | null> {
+  try {
+    const url = new URL(
+      `https://api.semanticscholar.org/graph/v1/paper/${encodeURIComponent(paperId)}`,
+    );
+    url.searchParams.set("fields", S2_FIELDS);
+
+    const response = await fetchWithRetry(url.toString(), {
+      headers: semanticScholarHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status !== 404) {
+        console.error(`Semantic Scholar paper lookup error: ${response.status}`);
+      }
+      return null;
+    }
+
+    return mapS2Paper(await response.json());
+  } catch (error) {
+    console.error("Error fetching Semantic Scholar paper:", error);
+    return null;
+  }
+}
+
+/**
+ * Batch-fetch up to 500 papers by ID in a single request.
+ * IDs can mix formats: S2 hash, DOI:xxx, PMID:xxx, ARXIV:xxx, etc.
+ */
+export async function getSemanticScholarPapersBatch(
+  paperIds: string[],
+): Promise<PaperCandidate[]> {
+  if (paperIds.length === 0) return [];
+
+  const results: PaperCandidate[] = [];
+
+  // API hard limit: 500 IDs per request
+  for (let i = 0; i < paperIds.length; i += 500) {
+    const chunk = paperIds.slice(i, i + 500);
+    try {
+      const url = new URL(
+        "https://api.semanticscholar.org/graph/v1/paper/batch",
+      );
+      url.searchParams.set("fields", S2_FIELDS);
+
+      const response = await fetchWithRetry(url.toString(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...semanticScholarHeaders(),
+        },
+        body: JSON.stringify({ ids: chunk }),
+      });
+
+      if (!response.ok) {
+        console.error(`Semantic Scholar batch error: ${response.status}`);
+        continue;
+      }
+
+      const papers: any[] = await response.json();
+      results.push(...papers.filter(Boolean).map(mapS2Paper));
+    } catch (error) {
+      console.error("Error in Semantic Scholar batch lookup:", error);
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Fetch papers that Semantic Scholar recommends as similar to the given paper.
+ * `paperId` must be a Semantic Scholar paper ID (s2PaperId field).
+ */
+export async function getSemanticScholarRecommendations(
+  paperId: string,
+  limit: number = 20,
+): Promise<PaperCandidate[]> {
+  try {
+    const url = new URL(
+      `https://api.semanticscholar.org/recommendations/v1/papers/forpaper/${encodeURIComponent(paperId)}`,
+    );
+    url.searchParams.set("limit", limit.toString());
+    url.searchParams.set("fields", S2_FIELDS);
+
+    const response = await fetchWithRetry(url.toString(), {
+      headers: semanticScholarHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status !== 404) {
+        console.error(`Semantic Scholar recommendations error: ${response.status}`);
+      }
+      return [];
+    }
+
+    const data = await response.json();
+    return (data.recommendedPapers || []).map(mapS2Paper);
+  } catch (error) {
+    console.error("Error fetching Semantic Scholar recommendations:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetch papers that cite the given paper (forward citation graph).
+ * `paperId` must be a Semantic Scholar paper ID (s2PaperId field).
+ */
+export async function getSemanticScholarCitations(
+  paperId: string,
+  limit: number = 25,
+): Promise<PaperCandidate[]> {
+  try {
+    const url = new URL(
+      `https://api.semanticscholar.org/graph/v1/paper/${encodeURIComponent(paperId)}/citations`,
+    );
+    url.searchParams.set("limit", limit.toString());
+    url.searchParams.set("fields", S2_FIELDS);
+
+    const response = await fetchWithRetry(url.toString(), {
+      headers: semanticScholarHeaders(),
+    });
+
+    if (!response.ok) {
+      console.error(`Semantic Scholar citations error: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return (data.data || [])
+      .map((c: any) => c.citingPaper)
+      .filter(Boolean)
+      .map(mapS2Paper);
+  } catch (error) {
+    console.error("Error fetching Semantic Scholar citations:", error);
     return [];
   }
 }
@@ -834,24 +1030,23 @@ export async function fetchPaperDetails(
       }
     }
 
-    // If from Semantic Scholar, try their API
-    if (candidate.source === "semantic_scholar" && candidate.doi) {
-      const url = new URL(
-        `https://api.semanticscholar.org/graph/v1/paper/DOI:${candidate.doi}`,
-      );
-      url.searchParams.set("fields", "title,abstract,year,authors,journal");
-
-      const response = await fetch(url.toString());
-      if (response.ok) {
-        const data = await response.json();
+    // If from Semantic Scholar, re-fetch with full field set
+    if (
+      candidate.source === "semantic_scholar" &&
+      (candidate.doi || candidate.s2PaperId)
+    ) {
+      const s2Id = candidate.doi
+        ? `DOI:${candidate.doi}`
+        : candidate.s2PaperId!;
+      const enriched = await getSemanticScholarPaper(s2Id);
+      if (enriched) {
         return {
           ...candidate,
-          abstract:
-            data.abstract || candidate.abstract || "Abstract not available",
-          authors:
-            data.authors?.map((a: any) => a.name) || candidate.authors || [],
-          year: data.year || candidate.year,
-          journal: data.journal?.name || candidate.journal,
+          ...enriched,
+          // Preserve any already-set OA info from Unpaywall
+          oaUrl: (candidate as any).oaUrl ?? enriched.openAccessPdfUrl,
+          abstract: enriched.abstract || candidate.abstract || "Abstract not available",
+          authors: enriched.authors?.length ? enriched.authors : (candidate.authors || []),
         };
       }
     }
@@ -1114,6 +1309,12 @@ export const sourceTools = {
   searchArxiv,
   searchEuropePmc,
   searchDataCite,
+
+  // Semantic Scholar extended API
+  getSemanticScholarPaper,
+  getSemanticScholarPapersBatch,
+  getSemanticScholarRecommendations,
+  getSemanticScholarCitations,
 
   // Enrichment functions
   fetchPaperDetails,

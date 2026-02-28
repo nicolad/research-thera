@@ -46,6 +46,7 @@ enum BehaviorIntensity {
 }
 
 type BehaviorObservation {
+  characteristicId: Int
   context: String
   createdAt: String!
   createdBy: String!
@@ -83,9 +84,9 @@ type BuildClaimCardsResult {
 }
 
 enum CharacteristicCategory {
-  ISSUE
-  PROBLEM
-  TRAIT
+  PRIORITY_CONCERN
+  STRENGTH
+  SUPPORT_NEED
 }
 
 input CheckNoteClaimsInput {
@@ -154,6 +155,7 @@ type Contact {
 }
 
 input CreateBehaviorObservationInput {
+  characteristicId: Int
   context: String
   familyMemberId: Int!
   frequency: Int
@@ -173,9 +175,18 @@ input CreateContactInput {
 }
 
 input CreateFamilyMemberCharacteristicInput {
+  ageOfOnset: Int
   category: CharacteristicCategory!
   description: String
+  durationWeeks: Int
+  externalizedName: String
   familyMemberId: Int!
+  formulationStatus: FormulationStatus
+  frequencyPerWeek: Int
+  impairmentDomains: [ImpairmentDomain!]
+  riskTier: RiskTier
+  severity: SeverityLevel
+  strengths: String
   title: String!
 }
 
@@ -242,6 +253,12 @@ input CreateSubGoalInput {
   title: String!
 }
 
+input CreateUniqueOutcomeInput {
+  characteristicId: Int!
+  description: String!
+  observedAt: String!
+}
+
 type DeleteBehaviorObservationResult {
   message: String
   success: Boolean!
@@ -299,6 +316,19 @@ type DeleteStoryResult {
   success: Boolean!
 }
 
+type DeleteUniqueOutcomeResult {
+  message: String
+  success: Boolean!
+}
+
+enum DevelopmentalTier {
+  ADULT
+  EARLY_ADOLESCENCE
+  EARLY_CHILDHOOD
+  LATE_ADOLESCENCE
+  MIDDLE_CHILDHOOD
+}
+
 type EvidenceItem {
   excerpt: String
   locator: EvidenceLocator
@@ -342,14 +372,25 @@ type FamilyMember {
 }
 
 type FamilyMemberCharacteristic {
+  ageOfOnset: Int
+  behaviorObservations: [BehaviorObservation!]!
   category: CharacteristicCategory!
   createdAt: String!
   createdBy: String!
   description: String
+  durationWeeks: Int
+  externalizedName: String
   familyMember: FamilyMember
   familyMemberId: Int!
+  formulationStatus: FormulationStatus!
+  frequencyPerWeek: Int
   id: Int!
+  impairmentDomains: [ImpairmentDomain!]!
+  riskTier: RiskTier!
+  severity: SeverityLevel
+  strengths: String
   title: String!
+  uniqueOutcomes: [UniqueOutcome!]!
   updatedAt: String!
 }
 
@@ -364,6 +405,12 @@ type FamilyMemberShare {
 enum FamilyMemberShareRole {
   EDITOR
   VIEWER
+}
+
+enum FormulationStatus {
+  ASSESSED
+  DRAFT
+  FORMULATED
 }
 
 type GenerateAudioResult {
@@ -476,6 +523,14 @@ type GoalStory {
   updatedAt: String!
 }
 
+enum ImpairmentDomain {
+  ACADEMIC
+  FAMILY
+  PEER
+  SAFETY
+  SELF_CARE
+}
+
 type JobError {
   code: String
   details: String
@@ -536,6 +591,7 @@ type Mutation {
   createRelationship(input: CreateRelationshipInput!): Relationship!
   createStory(input: CreateStoryInput!): Story!
   createSubGoal(goalId: Int!, input: CreateSubGoalInput!): Goal!
+  createUniqueOutcome(input: CreateUniqueOutcomeInput!): UniqueOutcome!
   deleteBehaviorObservation(id: Int!): DeleteBehaviorObservationResult!
   deleteClaimCard(id: ID!): Boolean!
   deleteContact(id: Int!): DeleteContactResult!
@@ -548,8 +604,9 @@ type Mutation {
   deleteResearch(goalId: Int!): DeleteResearchResult!
   deleteStory(id: Int!): DeleteStoryResult!
   deleteTherapeuticQuestions(goalId: Int!): DeleteQuestionsResult!
+  deleteUniqueOutcome(id: Int!): DeleteUniqueOutcomeResult!
   generateAudio(goalId: Int!, language: String, storyId: Int, text: String, voice: String): GenerateAudioResult!
-  generateLongFormText(goalId: Int!, language: String, minutes: Int): GenerateLongFormTextResult!
+  generateLongFormText(characteristicId: Int, goalId: Int!, language: String, minutes: Int): GenerateLongFormTextResult!
   generateOpenAIAudio(input: GenerateOpenAIAudioInput!): GenerateOpenAIAudioResult!
   generateResearch(goalId: Int!): GenerateResearchResult!
   generateTherapeuticQuestions(goalId: Int!): GenerateQuestionsResult!
@@ -568,6 +625,7 @@ type Mutation {
   updateNote(id: Int!, input: UpdateNoteInput!): Note!
   updateRelationship(id: Int!, input: UpdateRelationshipInput!): Relationship!
   updateStory(id: Int!, input: UpdateStoryInput!): Story!
+  updateUniqueOutcome(id: Int!, input: UpdateUniqueOutcomeInput!): UniqueOutcome!
   updateUserSettings(storyLanguage: String!, storyMinutes: Int): UserSettings!
 }
 
@@ -764,6 +822,20 @@ enum ResearchSource {
   SEMANTIC_SCHOLAR
 }
 
+enum RiskTier {
+  CONCERN
+  NONE
+  SAFEGUARDING_ALERT
+  WATCH
+}
+
+enum SeverityLevel {
+  MILD
+  MODERATE
+  PROFOUND
+  SEVERE
+}
+
 type Story {
   audioGeneratedAt: String
   audioKey: String
@@ -803,6 +875,16 @@ type TherapeuticQuestion {
   updatedAt: String!
 }
 
+type UniqueOutcome {
+  characteristicId: Int!
+  createdAt: String!
+  createdBy: String!
+  description: String!
+  id: Int!
+  observedAt: String!
+  updatedAt: String!
+}
+
 input UpdateBehaviorObservationInput {
   context: String
   frequency: Int
@@ -821,8 +903,17 @@ input UpdateContactInput {
 }
 
 input UpdateFamilyMemberCharacteristicInput {
+  ageOfOnset: Int
   category: CharacteristicCategory
   description: String
+  durationWeeks: Int
+  externalizedName: String
+  formulationStatus: FormulationStatus
+  frequencyPerWeek: Int
+  impairmentDomains: [ImpairmentDomain!]
+  riskTier: RiskTier
+  severity: SeverityLevel
+  strengths: String
   title: String
 }
 
@@ -877,6 +968,11 @@ input UpdateRelationshipInput {
 
 input UpdateStoryInput {
   content: String
+}
+
+input UpdateUniqueOutcomeInput {
+  description: String
+  observedAt: String
 }
 
 type UserSettings {

@@ -6,6 +6,15 @@ mutation CreateFamilyMemberCharacteristic($input: CreateFamilyMemberCharacterist
     category
     title
     description
+    severity
+    frequencyPerWeek
+    durationWeeks
+    ageOfOnset
+    impairmentDomains
+    formulationStatus
+    externalizedName
+    strengths
+    riskTier
     createdAt
     updatedAt
   }

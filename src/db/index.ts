@@ -1707,6 +1707,7 @@ export async function getBehaviorObservation(id: number, userId: string) {
 export async function createBehaviorObservation(params: {
   familyMemberId: number;
   goalId?: number | null;
+  characteristicId?: number | null;
   userId: string;
   observedAt: string;
   observationType: string;
@@ -1724,12 +1725,13 @@ export async function createBehaviorObservation(params: {
       : null;
 
   const result = await d1.execute({
-    sql: `INSERT INTO behavior_observations (family_member_id, goal_id, user_id, observed_at, observation_type, frequency, intensity, context, notes, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    sql: `INSERT INTO behavior_observations (family_member_id, goal_id, characteristic_id, user_id, observed_at, observation_type, frequency, intensity, context, notes, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           RETURNING id`,
     args: [
       params.familyMemberId,
       params.goalId ?? null,
+      params.characteristicId ?? null,
       params.userId,
       params.observedAt,
       params.observationType,
@@ -1829,16 +1831,31 @@ export async function getCharacteristicsForFamilyMember(
   sql += ` ORDER BY created_at ASC`;
 
   const result = await d1.execute({ sql, args });
-  return result.rows.map((row) => ({
+  return result.rows.map(mapCharacteristicRow);
+}
+
+function mapCharacteristicRow(row: Record<string, unknown>) {
+  return {
     id: row.id as number,
     familyMemberId: row.family_member_id as number,
     userId: row.user_id as string,
     category: row.category as string,
     title: row.title as string,
     description: (row.description as string) || null,
+    severity: (row.severity as string) || null,
+    frequencyPerWeek: (row.frequency_per_week as number) ?? null,
+    durationWeeks: (row.duration_weeks as number) ?? null,
+    ageOfOnset: (row.age_of_onset as number) ?? null,
+    impairmentDomains: row.impairment_domains
+      ? JSON.parse(row.impairment_domains as string)
+      : [],
+    formulationStatus: (row.formulation_status as string) || "DRAFT",
+    externalizedName: (row.externalized_name as string) || null,
+    strengths: (row.strengths as string) || null,
+    riskTier: (row.risk_tier as string) || "NONE",
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
-  }));
+  };
 }
 
 export async function getCharacteristic(id: number, userId: string) {
@@ -1847,17 +1864,7 @@ export async function getCharacteristic(id: number, userId: string) {
     args: [id, userId],
   });
   if (result.rows.length === 0) return null;
-  const row = result.rows[0];
-  return {
-    id: row.id as number,
-    familyMemberId: row.family_member_id as number,
-    userId: row.user_id as string,
-    category: row.category as string,
-    title: row.title as string,
-    description: (row.description as string) || null,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-  };
+  return mapCharacteristicRow(result.rows[0]);
 }
 
 export async function createCharacteristic(params: {
@@ -1866,10 +1873,23 @@ export async function createCharacteristic(params: {
   category: string;
   title: string;
   description?: string | null;
+  severity?: string | null;
+  frequencyPerWeek?: number | null;
+  durationWeeks?: number | null;
+  ageOfOnset?: number | null;
+  impairmentDomains?: string[] | null;
+  formulationStatus?: string | null;
+  externalizedName?: string | null;
+  strengths?: string | null;
+  riskTier?: string | null;
 }): Promise<number> {
+  const safeFreq = sanitizeInt(params.frequencyPerWeek);
+  const safeDuration = sanitizeInt(params.durationWeeks);
+  const safeAge = sanitizeInt(params.ageOfOnset);
+
   const result = await d1.execute({
-    sql: `INSERT INTO family_member_characteristics (family_member_id, user_id, category, title, description, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    sql: `INSERT INTO family_member_characteristics (family_member_id, user_id, category, title, description, severity, frequency_per_week, duration_weeks, age_of_onset, impairment_domains, formulation_status, externalized_name, strengths, risk_tier, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           RETURNING id`,
     args: [
       params.familyMemberId,
@@ -1877,9 +1897,24 @@ export async function createCharacteristic(params: {
       params.category,
       params.title,
       params.description ?? null,
+      params.severity ?? null,
+      safeFreq,
+      safeDuration,
+      safeAge,
+      params.impairmentDomains ? JSON.stringify(params.impairmentDomains) : null,
+      params.formulationStatus ?? "DRAFT",
+      params.externalizedName ?? null,
+      params.strengths ?? null,
+      params.riskTier ?? "NONE",
     ],
   });
   return result.rows[0].id as number;
+}
+
+function sanitizeInt(val: number | null | undefined): number | null {
+  if (val === undefined || val === null || isNaN(val) || !isFinite(val))
+    return null;
+  return val;
 }
 
 export async function updateCharacteristic(
@@ -1889,6 +1924,15 @@ export async function updateCharacteristic(
     category?: string;
     title?: string;
     description?: string | null;
+    severity?: string | null;
+    frequencyPerWeek?: number | null;
+    durationWeeks?: number | null;
+    ageOfOnset?: number | null;
+    impairmentDomains?: string[] | null;
+    formulationStatus?: string | null;
+    externalizedName?: string | null;
+    strengths?: string | null;
+    riskTier?: string | null;
   },
 ) {
   const fields: string[] = [];
@@ -1905,6 +1949,46 @@ export async function updateCharacteristic(
   if (updates.description !== undefined) {
     fields.push("description = ?");
     args.push(updates.description);
+  }
+  if (updates.severity !== undefined) {
+    fields.push("severity = ?");
+    args.push(updates.severity);
+  }
+  if (updates.frequencyPerWeek !== undefined) {
+    fields.push("frequency_per_week = ?");
+    args.push(sanitizeInt(updates.frequencyPerWeek));
+  }
+  if (updates.durationWeeks !== undefined) {
+    fields.push("duration_weeks = ?");
+    args.push(sanitizeInt(updates.durationWeeks));
+  }
+  if (updates.ageOfOnset !== undefined) {
+    fields.push("age_of_onset = ?");
+    args.push(sanitizeInt(updates.ageOfOnset));
+  }
+  if (updates.impairmentDomains !== undefined) {
+    fields.push("impairment_domains = ?");
+    args.push(
+      updates.impairmentDomains
+        ? JSON.stringify(updates.impairmentDomains)
+        : null,
+    );
+  }
+  if (updates.formulationStatus !== undefined) {
+    fields.push("formulation_status = ?");
+    args.push(updates.formulationStatus);
+  }
+  if (updates.externalizedName !== undefined) {
+    fields.push("externalized_name = ?");
+    args.push(updates.externalizedName);
+  }
+  if (updates.strengths !== undefined) {
+    fields.push("strengths = ?");
+    args.push(updates.strengths);
+  }
+  if (updates.riskTier !== undefined) {
+    fields.push("risk_tier = ?");
+    args.push(updates.riskTier);
   }
 
   if (fields.length === 0) return;
@@ -1926,6 +2010,171 @@ export async function deleteCharacteristic(
     sql: `DELETE FROM family_member_characteristics WHERE id = ? AND user_id = ?`,
     args: [id, userId],
   });
+}
+
+// ============================================
+// Characteristic Behavior Observations
+// ============================================
+
+export async function getCharacteristicBehaviorObservations(
+  characteristicId: number,
+  userId: string,
+) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM behavior_observations WHERE characteristic_id = ? AND user_id = ? ORDER BY observed_at DESC`,
+    args: [characteristicId, userId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    familyMemberId: row.family_member_id as number,
+    goalId: (row.goal_id as number) || null,
+    characteristicId: (row.characteristic_id as number) || null,
+    userId: row.user_id as string,
+    observedAt: row.observed_at as string,
+    observationType: row.observation_type as string,
+    frequency: (row.frequency as number) ?? null,
+    intensity: (row.intensity as string) || null,
+    context: (row.context as string) || null,
+    notes: (row.notes as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+// ============================================
+// Unique Outcomes
+// ============================================
+
+export async function getUniqueOutcomesForCharacteristic(
+  characteristicId: number,
+  userId: string,
+) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM unique_outcomes WHERE characteristic_id = ? AND user_id = ? ORDER BY observed_at DESC`,
+    args: [characteristicId, userId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    characteristicId: row.characteristic_id as number,
+    userId: row.user_id as string,
+    observedAt: row.observed_at as string,
+    description: row.description as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
+}
+
+export async function getUniqueOutcome(id: number, userId: string) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM unique_outcomes WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+  if (result.rows.length === 0) return null;
+  const row = result.rows[0];
+  return {
+    id: row.id as number,
+    characteristicId: row.characteristic_id as number,
+    userId: row.user_id as string,
+    observedAt: row.observed_at as string,
+    description: row.description as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+export async function createUniqueOutcome(params: {
+  characteristicId: number;
+  userId: string;
+  observedAt: string;
+  description: string;
+}): Promise<number> {
+  const result = await d1.execute({
+    sql: `INSERT INTO unique_outcomes (characteristic_id, user_id, observed_at, description, created_at, updated_at)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING id`,
+    args: [
+      params.characteristicId,
+      params.userId,
+      params.observedAt,
+      params.description,
+    ],
+  });
+  return result.rows[0].id as number;
+}
+
+export async function updateUniqueOutcome(
+  id: number,
+  userId: string,
+  updates: {
+    observedAt?: string;
+    description?: string;
+  },
+) {
+  const fields: string[] = [];
+  const args: any[] = [];
+
+  if (updates.observedAt !== undefined) {
+    fields.push("observed_at = ?");
+    args.push(updates.observedAt);
+  }
+  if (updates.description !== undefined) {
+    fields.push("description = ?");
+    args.push(updates.description);
+  }
+
+  if (fields.length === 0) return;
+
+  fields.push("updated_at = datetime('now')");
+  args.push(id, userId);
+
+  await d1.execute({
+    sql: `UPDATE unique_outcomes SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+    args,
+  });
+}
+
+export async function deleteUniqueOutcome(
+  id: number,
+  userId: string,
+): Promise<void> {
+  await d1.execute({
+    sql: `DELETE FROM unique_outcomes WHERE id = ? AND user_id = ?`,
+    args: [id, userId],
+  });
+}
+
+// ============================================
+// Bidirectional Relationships
+// ============================================
+
+export async function getRelationshipsBidirectional(
+  subjectType: string,
+  subjectId: number,
+  userId: string,
+) {
+  const result = await d1.execute({
+    sql: `SELECT * FROM relationships
+          WHERE user_id = ? AND (
+            (subject_type = ? AND subject_id = ?) OR
+            (related_type = ? AND related_id = ?)
+          )
+          ORDER BY created_at DESC`,
+    args: [userId, subjectType, subjectId, subjectType, subjectId],
+  });
+  return result.rows.map((row) => ({
+    id: row.id as number,
+    userId: row.user_id as string,
+    subjectType: row.subject_type as string,
+    subjectId: row.subject_id as number,
+    relatedType: row.related_type as string,
+    relatedId: row.related_id as number,
+    relationshipType: row.relationship_type as string,
+    context: (row.context as string) || null,
+    startDate: (row.start_date as string) || null,
+    status: (row.status as string) || "active",
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }));
 }
 
 // ============================================
@@ -2309,6 +2558,15 @@ export const d1Tools = {
   createCharacteristic,
   updateCharacteristic,
   deleteCharacteristic,
+  getCharacteristicBehaviorObservations,
+  // Unique Outcomes
+  getUniqueOutcomesForCharacteristic,
+  getUniqueOutcome,
+  createUniqueOutcome,
+  updateUniqueOutcome,
+  deleteUniqueOutcome,
+  // Bidirectional Relationships
+  getRelationshipsBidirectional,
   // Contacts
   getContactsForUser,
   getContact,

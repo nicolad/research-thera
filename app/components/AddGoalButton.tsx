@@ -22,10 +22,14 @@ import { useUser } from "@clerk/nextjs";
 
 export default function AddGoalButton({
   presetFamilyMemberId,
+  presetTitle,
+  presetDescription,
   refetchQueries: extraRefetchQueries,
   size = "3",
 }: {
   presetFamilyMemberId?: number;
+  presetTitle?: string;
+  presetDescription?: string;
   refetchQueries?: string[];
   size?: "1" | "2" | "3";
 } = {}) {
@@ -47,8 +51,8 @@ export default function AddGoalButton({
   const [createGoal, { loading }] = useCreateGoalMutation({
     onCompleted: (data) => {
       setOpen(false);
-      setTitle("");
-      setDescription("");
+      setTitle(presetTitle ?? "");
+      setDescription(presetDescription ?? "");
       if (!presetFamilyMemberId) setFamilyMemberId("");
       setError(null);
       const newGoal = data.createGoal;
@@ -99,8 +103,17 @@ export default function AddGoalButton({
     return null;
   }
 
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      setTitle(presetTitle ?? "");
+      setDescription(presetDescription ?? "");
+      setError(null);
+    }
+    setOpen(next);
+  }
+
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger>
         <Button size={size}>
           <PlusIcon width="16" height="16" />

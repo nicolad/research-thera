@@ -532,21 +532,49 @@ const searchStep = createStep({
 
     console.log("Fetching Semantic Scholar results...");
     const semanticBatches: any[][] = [];
+    // With API key: introductory limit is 1 RPS → 1100ms safe gap.
+    // Without API key: shared pool of 1000 RPS → 200ms is conservative enough.
+    const s2Delay = process.env.SEMANTIC_SCHOLAR_API_KEY ? 1100 : 200;
     for (const q of semanticQueries) {
       semanticBatches.push(
         await sourceTools.searchSemanticScholar(q, PER_QUERY),
       );
-      await delay(1000); // Semantic Scholar: 100 req/5 min
+      await delay(s2Delay);
+    }
+
+    // Expand candidate pool using S2 paper recommendations.
+    // Pick the most-cited paper from the initial S2 results and fetch papers
+    // that S2 considers similar — these are often highly relevant but missed
+    // by keyword search alone.
+    const s2Results = semanticBatches.flat();
+    const topS2Paper = s2Results
+      .filter((p: any) => p.s2PaperId && (p.influentialCitationCount || 0) > 0)
+      .sort(
+        (a: any, b: any) =>
+          (b.influentialCitationCount || 0) - (a.influentialCitationCount || 0),
+      )[0];
+
+    let recommendationResults: any[] = [];
+    if (topS2Paper?.s2PaperId) {
+      console.log(
+        `🔗 Fetching S2 recommendations for: "${topS2Paper.title}"`,
+      );
+      recommendationResults = await sourceTools.getSemanticScholarRecommendations(
+        topS2Paper.s2PaperId,
+        20,
+      );
+      await delay(s2Delay);
     }
 
     const combined = [
       ...crossrefBatches.flat(),
       ...pubmedBatches.flat(),
-      ...semanticBatches.flat(),
+      ...s2Results,
+      ...recommendationResults,
     ];
 
     console.log(
-      `📚 Raw results: Crossref(${crossrefBatches.flat().length}), PubMed(${pubmedBatches.flat().length}), Semantic(${semanticBatches.flat().length})`,
+      `📚 Raw results: Crossref(${crossrefBatches.flat().length}), PubMed(${pubmedBatches.flat().length}), Semantic(${s2Results.length}), S2 Recs(${recommendationResults.length})`,
     );
 
     // Title blacklist: avoid obvious out-of-domain papers.

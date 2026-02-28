@@ -6,6 +6,15 @@ mutation UpdateFamilyMemberCharacteristic($id: Int!, $input: UpdateFamilyMemberC
     category
     title
     description
+    severity
+    frequencyPerWeek
+    durationWeeks
+    ageOfOnset
+    impairmentDomains
+    formulationStatus
+    externalizedName
+    strengths
+    riskTier
     createdAt
     updatedAt
   }

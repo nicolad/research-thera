@@ -162,14 +162,14 @@ function FamilyMemberContent() {
     skip: isNaN(id),
   });
   const characteristics = charData?.familyMemberCharacteristics ?? [];
-  const traits = characteristics.filter(
-    (c) => c.category === CharacteristicCategory.Trait,
+  const strengths = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.Strength,
   );
-  const issues = characteristics.filter(
-    (c) => c.category === CharacteristicCategory.Issue,
+  const supportNeeds = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.SupportNeed,
   );
-  const problems = characteristics.filter(
-    (c) => c.category === CharacteristicCategory.Problem,
+  const priorityConcerns = characteristics.filter(
+    (c) => c.category === CharacteristicCategory.PriorityConcern,
   );
 
   const [deleteCharacteristic, { loading: deletingChar }] =
@@ -415,88 +415,88 @@ function FamilyMemberContent() {
         </Flex>
       </Card>
 
-      {/* Traits */}
+      {/* Strengths */}
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Flex justify="between" align="center">
             <Flex direction="column" gap="1">
-              <Heading size="4">Traits ({traits.length})</Heading>
+              <Heading size="4">Strengths ({strengths.length})</Heading>
               <Text size="1" color="gray">
                 Part of how they function — neutral
               </Text>
             </Flex>
             <AddCharacteristicButton
               familyMemberId={id}
-              defaultCategory={CharacteristicCategory.Trait}
-              label="Add Trait"
+              defaultCategory={CharacteristicCategory.Strength}
+              label="Add Strength"
               refetchQueries={["GetFamilyMemberCharacteristics"]}
               size="2"
             />
           </Flex>
           <Separator size="4" />
           <CharacteristicsList
-            items={traits}
+            items={strengths}
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
-            emptyMessage="No traits added yet"
+            emptyMessage="No strengths added yet"
             getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
       </Card>
 
-      {/* Issues */}
+      {/* Support Needs */}
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Flex justify="between" align="center">
             <Flex direction="column" gap="1">
-              <Heading size="4">Issues ({issues.length})</Heading>
+              <Heading size="4">Support Needs ({supportNeeds.length})</Heading>
               <Text size="1" color="gray">
                 Interferes with something
               </Text>
             </Flex>
             <AddCharacteristicButton
               familyMemberId={id}
-              defaultCategory={CharacteristicCategory.Issue}
-              label="Add Issue"
+              defaultCategory={CharacteristicCategory.SupportNeed}
+              label="Add Support Need"
               refetchQueries={["GetFamilyMemberCharacteristics"]}
               size="2"
             />
           </Flex>
           <Separator size="4" />
           <CharacteristicsList
-            items={issues}
+            items={supportNeeds}
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
-            emptyMessage="No issues added yet"
+            emptyMessage="No support needs added yet"
             getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
       </Card>
 
-      {/* Problems */}
+      {/* Priority Concerns */}
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Flex justify="between" align="center">
             <Flex direction="column" gap="1">
-              <Heading size="4">Problems ({problems.length})</Heading>
+              <Heading size="4">Priority Concerns ({priorityConcerns.length})</Heading>
               <Text size="1" color="gray">
                 Requires active intervention
               </Text>
             </Flex>
             <AddCharacteristicButton
               familyMemberId={id}
-              defaultCategory={CharacteristicCategory.Problem}
-              label="Add Problem"
+              defaultCategory={CharacteristicCategory.PriorityConcern}
+              label="Add Priority Concern"
               refetchQueries={["GetFamilyMemberCharacteristics"]}
               size="2"
             />
           </Flex>
           <Separator size="4" />
           <CharacteristicsList
-            items={problems}
+            items={priorityConcerns}
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
-            emptyMessage="No problems added yet"
+            emptyMessage="No priority concerns added yet"
             getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>

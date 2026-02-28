@@ -121,14 +121,14 @@ export default function AddCharacteristicButton({
               >
                 <Select.Trigger style={{ width: "100%" }} />
                 <Select.Content>
-                  <Select.Item value={CharacteristicCategory.Trait}>
-                    Trait — neutral characteristic
+                  <Select.Item value={CharacteristicCategory.Strength}>
+                    Strength — neutral characteristic
                   </Select.Item>
-                  <Select.Item value={CharacteristicCategory.Issue}>
-                    Issue — interferes with something
+                  <Select.Item value={CharacteristicCategory.SupportNeed}>
+                    Support Need — interferes with something
                   </Select.Item>
-                  <Select.Item value={CharacteristicCategory.Problem}>
-                    Problem — requires active intervention
+                  <Select.Item value={CharacteristicCategory.PriorityConcern}>
+                    Priority Concern — requires active intervention
                   </Select.Item>
                 </Select.Content>
               </Select.Root>

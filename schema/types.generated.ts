@@ -72,6 +72,7 @@ export type BehaviorIntensity =
 
 export type BehaviorObservation = {
   __typename?: 'BehaviorObservation';
+  characteristicId?: Maybe<Scalars['Int']['output']>;
   context?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
@@ -109,9 +110,9 @@ export type BuildClaimCardsResult = {
 };
 
 export type CharacteristicCategory =
-  | 'ISSUE'
-  | 'PROBLEM'
-  | 'TRAIT';
+  | 'PRIORITY_CONCERN'
+  | 'STRENGTH'
+  | 'SUPPORT_NEED';
 
 export type CheckNoteClaimsInput = {
   evidenceTopK?: InputMaybe<Scalars['Int']['input']>;
@@ -183,6 +184,7 @@ export type Contact = {
 };
 
 export type CreateBehaviorObservationInput = {
+  characteristicId?: InputMaybe<Scalars['Int']['input']>;
   context?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
   frequency?: InputMaybe<Scalars['Int']['input']>;
@@ -202,9 +204,18 @@ export type CreateContactInput = {
 };
 
 export type CreateFamilyMemberCharacteristicInput = {
+  ageOfOnset?: InputMaybe<Scalars['Int']['input']>;
   category: CharacteristicCategory;
   description?: InputMaybe<Scalars['String']['input']>;
+  durationWeeks?: InputMaybe<Scalars['Int']['input']>;
+  externalizedName?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
+  formulationStatus?: InputMaybe<FormulationStatus>;
+  frequencyPerWeek?: InputMaybe<Scalars['Int']['input']>;
+  impairmentDomains?: InputMaybe<Array<ImpairmentDomain>>;
+  riskTier?: InputMaybe<RiskTier>;
+  severity?: InputMaybe<SeverityLevel>;
+  strengths?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -269,6 +280,12 @@ export type CreateStoryInput = {
 export type CreateSubGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type CreateUniqueOutcomeInput = {
+  characteristicId: Scalars['Int']['input'];
+  description: Scalars['String']['input'];
+  observedAt: Scalars['String']['input'];
 };
 
 export type DeleteBehaviorObservationResult = {
@@ -339,6 +356,19 @@ export type DeleteStoryResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type DeleteUniqueOutcomeResult = {
+  __typename?: 'DeleteUniqueOutcomeResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DevelopmentalTier =
+  | 'ADULT'
+  | 'EARLY_ADOLESCENCE'
+  | 'EARLY_CHILDHOOD'
+  | 'LATE_ADOLESCENCE'
+  | 'MIDDLE_CHILDHOOD';
+
 export type EvidenceItem = {
   __typename?: 'EvidenceItem';
   excerpt?: Maybe<Scalars['String']['output']>;
@@ -390,14 +420,25 @@ export type FamilyMemberbehaviorObservationsArgs = {
 
 export type FamilyMemberCharacteristic = {
   __typename?: 'FamilyMemberCharacteristic';
+  ageOfOnset?: Maybe<Scalars['Int']['output']>;
+  behaviorObservations: Array<BehaviorObservation>;
   category: CharacteristicCategory;
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  durationWeeks?: Maybe<Scalars['Int']['output']>;
+  externalizedName?: Maybe<Scalars['String']['output']>;
   familyMember?: Maybe<FamilyMember>;
   familyMemberId: Scalars['Int']['output'];
+  formulationStatus: FormulationStatus;
+  frequencyPerWeek?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  impairmentDomains: Array<ImpairmentDomain>;
+  riskTier: RiskTier;
+  severity?: Maybe<SeverityLevel>;
+  strengths?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+  uniqueOutcomes: Array<UniqueOutcome>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -413,6 +454,11 @@ export type FamilyMemberShare = {
 export type FamilyMemberShareRole =
   | 'EDITOR'
   | 'VIEWER';
+
+export type FormulationStatus =
+  | 'ASSESSED'
+  | 'DRAFT'
+  | 'FORMULATED';
 
 export type GenerateAudioResult = {
   __typename?: 'GenerateAudioResult';
@@ -532,6 +578,13 @@ export type GoalStory = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type ImpairmentDomain =
+  | 'ACADEMIC'
+  | 'FAMILY'
+  | 'PEER'
+  | 'SAFETY'
+  | 'SELF_CARE';
+
 export type JobError = {
   __typename?: 'JobError';
   code?: Maybe<Scalars['String']['output']>;
@@ -594,6 +647,7 @@ export type Mutation = {
   createRelationship: Relationship;
   createStory: Story;
   createSubGoal: Goal;
+  createUniqueOutcome: UniqueOutcome;
   deleteBehaviorObservation: DeleteBehaviorObservationResult;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteContact: DeleteContactResult;
@@ -606,6 +660,7 @@ export type Mutation = {
   deleteResearch: DeleteResearchResult;
   deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
+  deleteUniqueOutcome: DeleteUniqueOutcomeResult;
   generateAudio: GenerateAudioResult;
   generateLongFormText: GenerateLongFormTextResult;
   generateOpenAIAudio: GenerateOpenAIAudioResult;
@@ -626,6 +681,7 @@ export type Mutation = {
   updateNote: Note;
   updateRelationship: Relationship;
   updateStory: Story;
+  updateUniqueOutcome: UniqueOutcome;
   updateUserSettings: UserSettings;
 };
 
@@ -691,6 +747,11 @@ export type MutationcreateSubGoalArgs = {
 };
 
 
+export type MutationcreateUniqueOutcomeArgs = {
+  input: CreateUniqueOutcomeInput;
+};
+
+
 export type MutationdeleteBehaviorObservationArgs = {
   id: Scalars['Int']['input'];
 };
@@ -751,6 +812,11 @@ export type MutationdeleteTherapeuticQuestionsArgs = {
 };
 
 
+export type MutationdeleteUniqueOutcomeArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationgenerateAudioArgs = {
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
@@ -761,6 +827,7 @@ export type MutationgenerateAudioArgs = {
 
 
 export type MutationgenerateLongFormTextArgs = {
+  characteristicId?: InputMaybe<Scalars['Int']['input']>;
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
   minutes?: InputMaybe<Scalars['Int']['input']>;
@@ -870,6 +937,12 @@ export type MutationupdateRelationshipArgs = {
 export type MutationupdateStoryArgs = {
   id: Scalars['Int']['input'];
   input: UpdateStoryInput;
+};
+
+
+export type MutationupdateUniqueOutcomeArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateUniqueOutcomeInput;
 };
 
 
@@ -1202,6 +1275,18 @@ export type ResearchSource =
   | 'PUBMED'
   | 'SEMANTIC_SCHOLAR';
 
+export type RiskTier =
+  | 'CONCERN'
+  | 'NONE'
+  | 'SAFEGUARDING_ALERT'
+  | 'WATCH';
+
+export type SeverityLevel =
+  | 'MILD'
+  | 'MODERATE'
+  | 'PROFOUND'
+  | 'SEVERE';
+
 export type Story = {
   __typename?: 'Story';
   audioGeneratedAt?: Maybe<Scalars['String']['output']>;
@@ -1255,6 +1340,17 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type UniqueOutcome = {
+  __typename?: 'UniqueOutcome';
+  characteristicId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  observedAt: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
 export type UpdateBehaviorObservationInput = {
   context?: InputMaybe<Scalars['String']['input']>;
   frequency?: InputMaybe<Scalars['Int']['input']>;
@@ -1273,8 +1369,17 @@ export type UpdateContactInput = {
 };
 
 export type UpdateFamilyMemberCharacteristicInput = {
+  ageOfOnset?: InputMaybe<Scalars['Int']['input']>;
   category?: InputMaybe<CharacteristicCategory>;
   description?: InputMaybe<Scalars['String']['input']>;
+  durationWeeks?: InputMaybe<Scalars['Int']['input']>;
+  externalizedName?: InputMaybe<Scalars['String']['input']>;
+  formulationStatus?: InputMaybe<FormulationStatus>;
+  frequencyPerWeek?: InputMaybe<Scalars['Int']['input']>;
+  impairmentDomains?: InputMaybe<Array<ImpairmentDomain>>;
+  riskTier?: InputMaybe<RiskTier>;
+  severity?: InputMaybe<SeverityLevel>;
+  strengths?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1329,6 +1434,11 @@ export type UpdateRelationshipInput = {
 
 export type UpdateStoryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUniqueOutcomeInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  observedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UserSettings = {
@@ -1425,7 +1535,7 @@ export type ResolversTypes = {
   BehaviorObservationType: ResolverTypeWrapper<'REFUSAL' | 'TARGET_OCCURRED' | 'AVOIDANCE' | 'PARTIAL'>;
   BuildClaimCardsInput: BuildClaimCardsInput;
   BuildClaimCardsResult: ResolverTypeWrapper<Omit<BuildClaimCardsResult, 'cards'> & { cards: Array<ResolversTypes['ClaimCard']> }>;
-  CharacteristicCategory: ResolverTypeWrapper<'TRAIT' | 'ISSUE' | 'PROBLEM'>;
+  CharacteristicCategory: ResolverTypeWrapper<'STRENGTH' | 'SUPPORT_NEED' | 'PRIORITY_CONCERN'>;
   CheckNoteClaimsInput: CheckNoteClaimsInput;
   CheckNoteClaimsResult: ResolverTypeWrapper<Omit<CheckNoteClaimsResult, 'cards'> & { cards: Array<ResolversTypes['ClaimCard']> }>;
   ClaimCard: ResolverTypeWrapper<Omit<ClaimCard, 'evidence' | 'verdict'> & { evidence: Array<ResolversTypes['EvidenceItem']>, verdict: ResolversTypes['ClaimVerdict'] }>;
@@ -1444,6 +1554,7 @@ export type ResolversTypes = {
   CreateRelationshipInput: CreateRelationshipInput;
   CreateStoryInput: CreateStoryInput;
   CreateSubGoalInput: CreateSubGoalInput;
+  CreateUniqueOutcomeInput: CreateUniqueOutcomeInput;
   DeleteBehaviorObservationResult: ResolverTypeWrapper<DeleteBehaviorObservationResult>;
   DeleteContactResult: ResolverTypeWrapper<DeleteContactResult>;
   DeleteFamilyMemberCharacteristicResult: ResolverTypeWrapper<DeleteFamilyMemberCharacteristicResult>;
@@ -1455,13 +1566,16 @@ export type ResolversTypes = {
   DeleteRelationshipResult: ResolverTypeWrapper<DeleteRelationshipResult>;
   DeleteResearchResult: ResolverTypeWrapper<DeleteResearchResult>;
   DeleteStoryResult: ResolverTypeWrapper<DeleteStoryResult>;
+  DeleteUniqueOutcomeResult: ResolverTypeWrapper<DeleteUniqueOutcomeResult>;
+  DevelopmentalTier: ResolverTypeWrapper<'EARLY_CHILDHOOD' | 'MIDDLE_CHILDHOOD' | 'EARLY_ADOLESCENCE' | 'LATE_ADOLESCENCE' | 'ADULT'>;
   EvidenceItem: ResolverTypeWrapper<Omit<EvidenceItem, 'polarity'> & { polarity: ResolversTypes['EvidencePolarity'] }>;
   EvidenceLocator: ResolverTypeWrapper<EvidenceLocator>;
   EvidencePolarity: ResolverTypeWrapper<'CONTRADICTS' | 'IRRELEVANT' | 'MIXED' | 'SUPPORTS'>;
   FamilyMember: ResolverTypeWrapper<Omit<FamilyMember, 'behaviorObservations' | 'goals' | 'shares'> & { behaviorObservations: Array<ResolversTypes['BehaviorObservation']>, goals: Array<ResolversTypes['Goal']>, shares: Array<ResolversTypes['FamilyMemberShare']> }>;
-  FamilyMemberCharacteristic: ResolverTypeWrapper<Omit<FamilyMemberCharacteristic, 'category' | 'familyMember'> & { category: ResolversTypes['CharacteristicCategory'], familyMember?: Maybe<ResolversTypes['FamilyMember']> }>;
+  FamilyMemberCharacteristic: ResolverTypeWrapper<Omit<FamilyMemberCharacteristic, 'behaviorObservations' | 'category' | 'familyMember' | 'formulationStatus' | 'impairmentDomains' | 'riskTier' | 'severity'> & { behaviorObservations: Array<ResolversTypes['BehaviorObservation']>, category: ResolversTypes['CharacteristicCategory'], familyMember?: Maybe<ResolversTypes['FamilyMember']>, formulationStatus: ResolversTypes['FormulationStatus'], impairmentDomains: Array<ResolversTypes['ImpairmentDomain']>, riskTier: ResolversTypes['RiskTier'], severity?: Maybe<ResolversTypes['SeverityLevel']> }>;
   FamilyMemberShare: ResolverTypeWrapper<Omit<FamilyMemberShare, 'role'> & { role: ResolversTypes['FamilyMemberShareRole'] }>;
   FamilyMemberShareRole: ResolverTypeWrapper<'VIEWER' | 'EDITOR'>;
+  FormulationStatus: ResolverTypeWrapper<'DRAFT' | 'ASSESSED' | 'FORMULATED'>;
   GenerateAudioResult: ResolverTypeWrapper<GenerateAudioResult>;
   GenerateLongFormTextResult: ResolverTypeWrapper<GenerateLongFormTextResult>;
   GenerateOpenAIAudioInput: GenerateOpenAIAudioInput;
@@ -1471,6 +1585,7 @@ export type ResolversTypes = {
   GenerationJob: ResolverTypeWrapper<Omit<GenerationJob, 'status' | 'type'> & { status: ResolversTypes['JobStatus'], type: ResolversTypes['JobType'] }>;
   Goal: ResolverTypeWrapper<Omit<Goal, 'familyMember' | 'notes' | 'parentGoal' | 'research' | 'subGoals' | 'userStories'> & { familyMember?: Maybe<ResolversTypes['FamilyMember']>, notes: Array<ResolversTypes['Note']>, parentGoal?: Maybe<ResolversTypes['Goal']>, research: Array<ResolversTypes['Research']>, subGoals: Array<ResolversTypes['Goal']>, userStories: Array<ResolversTypes['Story']> }>;
   GoalStory: ResolverTypeWrapper<GoalStory>;
+  ImpairmentDomain: ResolverTypeWrapper<'ACADEMIC' | 'PEER' | 'FAMILY' | 'SELF_CARE' | 'SAFETY'>;
   JobError: ResolverTypeWrapper<JobError>;
   JobResult: ResolverTypeWrapper<JobResult>;
   JobStatus: ResolverTypeWrapper<'RUNNING' | 'SUCCEEDED' | 'FAILED'>;
@@ -1494,10 +1609,13 @@ export type ResolversTypes = {
   RelationshipStatus: ResolverTypeWrapper<'ACTIVE' | 'ENDED'>;
   Research: ResolverTypeWrapper<Omit<Research, 'goal'> & { goal?: Maybe<ResolversTypes['Goal']> }>;
   ResearchSource: ResolverTypeWrapper<'ARXIV' | 'CROSSREF' | 'DATACITE' | 'EUROPEPMC' | 'OPENALEX' | 'PUBMED' | 'SEMANTIC_SCHOLAR'>;
+  RiskTier: ResolverTypeWrapper<'NONE' | 'WATCH' | 'CONCERN' | 'SAFEGUARDING_ALERT'>;
+  SeverityLevel: ResolverTypeWrapper<'MILD' | 'MODERATE' | 'SEVERE' | 'PROFOUND'>;
   Story: ResolverTypeWrapper<Omit<Story, 'goal'> & { goal?: Maybe<ResolversTypes['Goal']> }>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   TextSegment: ResolverTypeWrapper<TextSegment>;
   TherapeuticQuestion: ResolverTypeWrapper<TherapeuticQuestion>;
+  UniqueOutcome: ResolverTypeWrapper<UniqueOutcome>;
   UpdateBehaviorObservationInput: UpdateBehaviorObservationInput;
   UpdateContactInput: UpdateContactInput;
   UpdateFamilyMemberCharacteristicInput: UpdateFamilyMemberCharacteristicInput;
@@ -1507,6 +1625,7 @@ export type ResolversTypes = {
   UpdateNoteInput: UpdateNoteInput;
   UpdateRelationshipInput: UpdateRelationshipInput;
   UpdateStoryInput: UpdateStoryInput;
+  UpdateUniqueOutcomeInput: UpdateUniqueOutcomeInput;
   UserSettings: ResolverTypeWrapper<UserSettings>;
 };
 
@@ -1541,6 +1660,7 @@ export type ResolversParentTypes = {
   CreateRelationshipInput: CreateRelationshipInput;
   CreateStoryInput: CreateStoryInput;
   CreateSubGoalInput: CreateSubGoalInput;
+  CreateUniqueOutcomeInput: CreateUniqueOutcomeInput;
   DeleteBehaviorObservationResult: DeleteBehaviorObservationResult;
   DeleteContactResult: DeleteContactResult;
   DeleteFamilyMemberCharacteristicResult: DeleteFamilyMemberCharacteristicResult;
@@ -1552,10 +1672,11 @@ export type ResolversParentTypes = {
   DeleteRelationshipResult: DeleteRelationshipResult;
   DeleteResearchResult: DeleteResearchResult;
   DeleteStoryResult: DeleteStoryResult;
+  DeleteUniqueOutcomeResult: DeleteUniqueOutcomeResult;
   EvidenceItem: EvidenceItem;
   EvidenceLocator: EvidenceLocator;
   FamilyMember: Omit<FamilyMember, 'behaviorObservations' | 'goals' | 'shares'> & { behaviorObservations: Array<ResolversParentTypes['BehaviorObservation']>, goals: Array<ResolversParentTypes['Goal']>, shares: Array<ResolversParentTypes['FamilyMemberShare']> };
-  FamilyMemberCharacteristic: Omit<FamilyMemberCharacteristic, 'familyMember'> & { familyMember?: Maybe<ResolversParentTypes['FamilyMember']> };
+  FamilyMemberCharacteristic: Omit<FamilyMemberCharacteristic, 'behaviorObservations' | 'familyMember'> & { behaviorObservations: Array<ResolversParentTypes['BehaviorObservation']>, familyMember?: Maybe<ResolversParentTypes['FamilyMember']> };
   FamilyMemberShare: FamilyMemberShare;
   GenerateAudioResult: GenerateAudioResult;
   GenerateLongFormTextResult: GenerateLongFormTextResult;
@@ -1582,6 +1703,7 @@ export type ResolversParentTypes = {
   Subscription: Record<PropertyKey, never>;
   TextSegment: TextSegment;
   TherapeuticQuestion: TherapeuticQuestion;
+  UniqueOutcome: UniqueOutcome;
   UpdateBehaviorObservationInput: UpdateBehaviorObservationInput;
   UpdateContactInput: UpdateContactInput;
   UpdateFamilyMemberCharacteristicInput: UpdateFamilyMemberCharacteristicInput;
@@ -1591,6 +1713,7 @@ export type ResolversParentTypes = {
   UpdateNoteInput: UpdateNoteInput;
   UpdateRelationshipInput: UpdateRelationshipInput;
   UpdateStoryInput: UpdateStoryInput;
+  UpdateUniqueOutcomeInput: UpdateUniqueOutcomeInput;
   UserSettings: UserSettings;
 };
 
@@ -1638,6 +1761,7 @@ export type AudioSegmentInfoResolvers<ContextType = GraphQLContext, ParentType e
 export type BehaviorIntensityResolvers = EnumResolverSignature<{ HIGH?: any, LOW?: any, MEDIUM?: any }, ResolversTypes['BehaviorIntensity']>;
 
 export type BehaviorObservationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['BehaviorObservation'] = ResolversParentTypes['BehaviorObservation']> = {
+  characteristicId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   context?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1660,7 +1784,7 @@ export type BuildClaimCardsResultResolvers<ContextType = GraphQLContext, ParentT
   cards?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType>;
 };
 
-export type CharacteristicCategoryResolvers = EnumResolverSignature<{ ISSUE?: any, PROBLEM?: any, TRAIT?: any }, ResolversTypes['CharacteristicCategory']>;
+export type CharacteristicCategoryResolvers = EnumResolverSignature<{ PRIORITY_CONCERN?: any, STRENGTH?: any, SUPPORT_NEED?: any }, ResolversTypes['CharacteristicCategory']>;
 
 export type CheckNoteClaimsResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['CheckNoteClaimsResult'] = ResolversParentTypes['CheckNoteClaimsResult']> = {
   cards?: Resolver<Array<ResolversTypes['ClaimCard']>, ParentType, ContextType>;
@@ -1769,6 +1893,13 @@ export type DeleteStoryResultResolvers<ContextType = GraphQLContext, ParentType 
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
+export type DeleteUniqueOutcomeResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['DeleteUniqueOutcomeResult'] = ResolversParentTypes['DeleteUniqueOutcomeResult']> = {
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type DevelopmentalTierResolvers = EnumResolverSignature<{ ADULT?: any, EARLY_ADOLESCENCE?: any, EARLY_CHILDHOOD?: any, LATE_ADOLESCENCE?: any, MIDDLE_CHILDHOOD?: any }, ResolversTypes['DevelopmentalTier']>;
+
 export type EvidenceItemResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['EvidenceItem'] = ResolversParentTypes['EvidenceItem']> = {
   excerpt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   locator?: Resolver<Maybe<ResolversTypes['EvidenceLocator']>, ParentType, ContextType>;
@@ -1807,14 +1938,25 @@ export type FamilyMemberResolvers<ContextType = GraphQLContext, ParentType exten
 };
 
 export type FamilyMemberCharacteristicResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['FamilyMemberCharacteristic'] = ResolversParentTypes['FamilyMemberCharacteristic']> = {
+  ageOfOnset?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  behaviorObservations?: Resolver<Array<ResolversTypes['BehaviorObservation']>, ParentType, ContextType>;
   category?: Resolver<ResolversTypes['CharacteristicCategory'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  durationWeeks?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  externalizedName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   familyMember?: Resolver<Maybe<ResolversTypes['FamilyMember']>, ParentType, ContextType>;
   familyMemberId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  formulationStatus?: Resolver<ResolversTypes['FormulationStatus'], ParentType, ContextType>;
+  frequencyPerWeek?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  impairmentDomains?: Resolver<Array<ResolversTypes['ImpairmentDomain']>, ParentType, ContextType>;
+  riskTier?: Resolver<ResolversTypes['RiskTier'], ParentType, ContextType>;
+  severity?: Resolver<Maybe<ResolversTypes['SeverityLevel']>, ParentType, ContextType>;
+  strengths?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uniqueOutcomes?: Resolver<Array<ResolversTypes['UniqueOutcome']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1827,6 +1969,8 @@ export type FamilyMemberShareResolvers<ContextType = GraphQLContext, ParentType 
 };
 
 export type FamilyMemberShareRoleResolvers = EnumResolverSignature<{ EDITOR?: any, VIEWER?: any }, ResolversTypes['FamilyMemberShareRole']>;
+
+export type FormulationStatusResolvers = EnumResolverSignature<{ ASSESSED?: any, DRAFT?: any, FORMULATED?: any }, ResolversTypes['FormulationStatus']>;
 
 export type GenerateAudioResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['GenerateAudioResult'] = ResolversParentTypes['GenerateAudioResult']> = {
   audioUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1925,6 +2069,8 @@ export type GoalStoryResolvers<ContextType = GraphQLContext, ParentType extends 
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type ImpairmentDomainResolvers = EnumResolverSignature<{ ACADEMIC?: any, FAMILY?: any, PEER?: any, SAFETY?: any, SELF_CARE?: any }, ResolversTypes['ImpairmentDomain']>;
+
 export type JobErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['JobError'] = ResolversParentTypes['JobError']> = {
   code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   details?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1976,6 +2122,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   createRelationship?: Resolver<ResolversTypes['Relationship'], ParentType, ContextType, RequireFields<MutationcreateRelationshipArgs, 'input'>>;
   createStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationcreateStoryArgs, 'input'>>;
   createSubGoal?: Resolver<ResolversTypes['Goal'], ParentType, ContextType, RequireFields<MutationcreateSubGoalArgs, 'goalId' | 'input'>>;
+  createUniqueOutcome?: Resolver<ResolversTypes['UniqueOutcome'], ParentType, ContextType, RequireFields<MutationcreateUniqueOutcomeArgs, 'input'>>;
   deleteBehaviorObservation?: Resolver<ResolversTypes['DeleteBehaviorObservationResult'], ParentType, ContextType, RequireFields<MutationdeleteBehaviorObservationArgs, 'id'>>;
   deleteClaimCard?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationdeleteClaimCardArgs, 'id'>>;
   deleteContact?: Resolver<ResolversTypes['DeleteContactResult'], ParentType, ContextType, RequireFields<MutationdeleteContactArgs, 'id'>>;
@@ -1988,6 +2135,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   deleteResearch?: Resolver<ResolversTypes['DeleteResearchResult'], ParentType, ContextType, RequireFields<MutationdeleteResearchArgs, 'goalId'>>;
   deleteStory?: Resolver<ResolversTypes['DeleteStoryResult'], ParentType, ContextType, RequireFields<MutationdeleteStoryArgs, 'id'>>;
   deleteTherapeuticQuestions?: Resolver<ResolversTypes['DeleteQuestionsResult'], ParentType, ContextType, RequireFields<MutationdeleteTherapeuticQuestionsArgs, 'goalId'>>;
+  deleteUniqueOutcome?: Resolver<ResolversTypes['DeleteUniqueOutcomeResult'], ParentType, ContextType, RequireFields<MutationdeleteUniqueOutcomeArgs, 'id'>>;
   generateAudio?: Resolver<ResolversTypes['GenerateAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateAudioArgs, 'goalId'>>;
   generateLongFormText?: Resolver<ResolversTypes['GenerateLongFormTextResult'], ParentType, ContextType, RequireFields<MutationgenerateLongFormTextArgs, 'goalId'>>;
   generateOpenAIAudio?: Resolver<ResolversTypes['GenerateOpenAIAudioResult'], ParentType, ContextType, RequireFields<MutationgenerateOpenAIAudioArgs, 'input'>>;
@@ -2008,6 +2156,7 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   updateNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationupdateNoteArgs, 'id' | 'input'>>;
   updateRelationship?: Resolver<ResolversTypes['Relationship'], ParentType, ContextType, RequireFields<MutationupdateRelationshipArgs, 'id' | 'input'>>;
   updateStory?: Resolver<ResolversTypes['Story'], ParentType, ContextType, RequireFields<MutationupdateStoryArgs, 'id' | 'input'>>;
+  updateUniqueOutcome?: Resolver<ResolversTypes['UniqueOutcome'], ParentType, ContextType, RequireFields<MutationupdateUniqueOutcomeArgs, 'id' | 'input'>>;
   updateUserSettings?: Resolver<ResolversTypes['UserSettings'], ParentType, ContextType, RequireFields<MutationupdateUserSettingsArgs, 'storyLanguage'>>;
 };
 
@@ -2156,6 +2305,10 @@ export type ResearchResolvers<ContextType = GraphQLContext, ParentType extends R
 
 export type ResearchSourceResolvers = EnumResolverSignature<{ ARXIV?: any, CROSSREF?: any, DATACITE?: any, EUROPEPMC?: any, OPENALEX?: any, PUBMED?: any, SEMANTIC_SCHOLAR?: any }, ResolversTypes['ResearchSource']>;
 
+export type RiskTierResolvers = EnumResolverSignature<{ CONCERN?: any, NONE?: any, SAFEGUARDING_ALERT?: any, WATCH?: any }, ResolversTypes['RiskTier']>;
+
+export type SeverityLevelResolvers = EnumResolverSignature<{ MILD?: any, MODERATE?: any, PROFOUND?: any, SEVERE?: any }, ResolversTypes['SeverityLevel']>;
+
 export type StoryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Story'] = ResolversParentTypes['Story']> = {
   audioGeneratedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   audioKey?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2195,6 +2348,16 @@ export type TherapeuticQuestionResolvers<ContextType = GraphQLContext, ParentTyp
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type UniqueOutcomeResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UniqueOutcome'] = ResolversParentTypes['UniqueOutcome']> = {
+  characteristicId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  observedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type UserSettingsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UserSettings'] = ResolversParentTypes['UserSettings']> = {
   storyLanguage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   storyMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2229,6 +2392,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DeleteRelationshipResult?: DeleteRelationshipResultResolvers<ContextType>;
   DeleteResearchResult?: DeleteResearchResultResolvers<ContextType>;
   DeleteStoryResult?: DeleteStoryResultResolvers<ContextType>;
+  DeleteUniqueOutcomeResult?: DeleteUniqueOutcomeResultResolvers<ContextType>;
+  DevelopmentalTier?: DevelopmentalTierResolvers;
   EvidenceItem?: EvidenceItemResolvers<ContextType>;
   EvidenceLocator?: EvidenceLocatorResolvers<ContextType>;
   EvidencePolarity?: EvidencePolarityResolvers;
@@ -2236,6 +2401,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   FamilyMemberCharacteristic?: FamilyMemberCharacteristicResolvers<ContextType>;
   FamilyMemberShare?: FamilyMemberShareResolvers<ContextType>;
   FamilyMemberShareRole?: FamilyMemberShareRoleResolvers;
+  FormulationStatus?: FormulationStatusResolvers;
   GenerateAudioResult?: GenerateAudioResultResolvers<ContextType>;
   GenerateLongFormTextResult?: GenerateLongFormTextResultResolvers<ContextType>;
   GenerateOpenAIAudioResult?: GenerateOpenAIAudioResultResolvers<ContextType>;
@@ -2244,6 +2410,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   GenerationJob?: GenerationJobResolvers<ContextType>;
   Goal?: GoalResolvers<ContextType>;
   GoalStory?: GoalStoryResolvers<ContextType>;
+  ImpairmentDomain?: ImpairmentDomainResolvers;
   JobError?: JobErrorResolvers<ContextType>;
   JobResult?: JobResultResolvers<ContextType>;
   JobStatus?: JobStatusResolvers;
@@ -2267,10 +2434,13 @@ export type Resolvers<ContextType = GraphQLContext> = {
   RelationshipStatus?: RelationshipStatusResolvers;
   Research?: ResearchResolvers<ContextType>;
   ResearchSource?: ResearchSourceResolvers;
+  RiskTier?: RiskTierResolvers;
+  SeverityLevel?: SeverityLevelResolvers;
   Story?: StoryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   TextSegment?: TextSegmentResolvers<ContextType>;
   TherapeuticQuestion?: TherapeuticQuestionResolvers<ContextType>;
+  UniqueOutcome?: UniqueOutcomeResolvers<ContextType>;
   UserSettings?: UserSettingsResolvers<ContextType>;
 };
 

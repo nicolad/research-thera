@@ -14,6 +14,7 @@ export const createBehaviorObservation: NonNullable<MutationResolvers['createBeh
   const obsId = await d1Tools.createBehaviorObservation({
     familyMemberId: args.input.familyMemberId,
     goalId: args.input.goalId ?? null,
+    characteristicId: args.input.characteristicId ?? null,
     userId: userEmail,
     observedAt: args.input.observedAt,
     observationType: args.input.observationType,

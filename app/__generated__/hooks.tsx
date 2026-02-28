@@ -71,6 +71,7 @@ export enum BehaviorIntensity {
 
 export type BehaviorObservation = {
   __typename?: 'BehaviorObservation';
+  characteristicId?: Maybe<Scalars['Int']['output']>;
   context?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
@@ -109,9 +110,9 @@ export type BuildClaimCardsResult = {
 };
 
 export enum CharacteristicCategory {
-  Issue = 'ISSUE',
-  Problem = 'PROBLEM',
-  Trait = 'TRAIT'
+  PriorityConcern = 'PRIORITY_CONCERN',
+  Strength = 'STRENGTH',
+  SupportNeed = 'SUPPORT_NEED'
 }
 
 export type CheckNoteClaimsInput = {
@@ -185,6 +186,7 @@ export type Contact = {
 };
 
 export type CreateBehaviorObservationInput = {
+  characteristicId?: InputMaybe<Scalars['Int']['input']>;
   context?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
   frequency?: InputMaybe<Scalars['Int']['input']>;
@@ -204,9 +206,18 @@ export type CreateContactInput = {
 };
 
 export type CreateFamilyMemberCharacteristicInput = {
+  ageOfOnset?: InputMaybe<Scalars['Int']['input']>;
   category: CharacteristicCategory;
   description?: InputMaybe<Scalars['String']['input']>;
+  durationWeeks?: InputMaybe<Scalars['Int']['input']>;
+  externalizedName?: InputMaybe<Scalars['String']['input']>;
   familyMemberId: Scalars['Int']['input'];
+  formulationStatus?: InputMaybe<FormulationStatus>;
+  frequencyPerWeek?: InputMaybe<Scalars['Int']['input']>;
+  impairmentDomains?: InputMaybe<Array<ImpairmentDomain>>;
+  riskTier?: InputMaybe<RiskTier>;
+  severity?: InputMaybe<SeverityLevel>;
+  strengths?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -271,6 +282,12 @@ export type CreateStoryInput = {
 export type CreateSubGoalInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
+};
+
+export type CreateUniqueOutcomeInput = {
+  characteristicId: Scalars['Int']['input'];
+  description: Scalars['String']['input'];
+  observedAt: Scalars['String']['input'];
 };
 
 export type DeleteBehaviorObservationResult = {
@@ -341,6 +358,20 @@ export type DeleteStoryResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type DeleteUniqueOutcomeResult = {
+  __typename?: 'DeleteUniqueOutcomeResult';
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum DevelopmentalTier {
+  Adult = 'ADULT',
+  EarlyAdolescence = 'EARLY_ADOLESCENCE',
+  EarlyChildhood = 'EARLY_CHILDHOOD',
+  LateAdolescence = 'LATE_ADOLESCENCE',
+  MiddleChildhood = 'MIDDLE_CHILDHOOD'
+}
+
 export type EvidenceItem = {
   __typename?: 'EvidenceItem';
   excerpt?: Maybe<Scalars['String']['output']>;
@@ -393,14 +424,25 @@ export type FamilyMemberBehaviorObservationsArgs = {
 
 export type FamilyMemberCharacteristic = {
   __typename?: 'FamilyMemberCharacteristic';
+  ageOfOnset?: Maybe<Scalars['Int']['output']>;
+  behaviorObservations: Array<BehaviorObservation>;
   category: CharacteristicCategory;
   createdAt: Scalars['String']['output'];
   createdBy: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  durationWeeks?: Maybe<Scalars['Int']['output']>;
+  externalizedName?: Maybe<Scalars['String']['output']>;
   familyMember?: Maybe<FamilyMember>;
   familyMemberId: Scalars['Int']['output'];
+  formulationStatus: FormulationStatus;
+  frequencyPerWeek?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  impairmentDomains: Array<ImpairmentDomain>;
+  riskTier: RiskTier;
+  severity?: Maybe<SeverityLevel>;
+  strengths?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+  uniqueOutcomes: Array<UniqueOutcome>;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -416,6 +458,12 @@ export type FamilyMemberShare = {
 export enum FamilyMemberShareRole {
   Editor = 'EDITOR',
   Viewer = 'VIEWER'
+}
+
+export enum FormulationStatus {
+  Assessed = 'ASSESSED',
+  Draft = 'DRAFT',
+  Formulated = 'FORMULATED'
 }
 
 export type GenerateAudioResult = {
@@ -536,6 +584,14 @@ export type GoalStory = {
   updatedAt: Scalars['String']['output'];
 };
 
+export enum ImpairmentDomain {
+  Academic = 'ACADEMIC',
+  Family = 'FAMILY',
+  Peer = 'PEER',
+  Safety = 'SAFETY',
+  SelfCare = 'SELF_CARE'
+}
+
 export type JobError = {
   __typename?: 'JobError';
   code?: Maybe<Scalars['String']['output']>;
@@ -600,6 +656,7 @@ export type Mutation = {
   createRelationship: Relationship;
   createStory: Story;
   createSubGoal: Goal;
+  createUniqueOutcome: UniqueOutcome;
   deleteBehaviorObservation: DeleteBehaviorObservationResult;
   deleteClaimCard: Scalars['Boolean']['output'];
   deleteContact: DeleteContactResult;
@@ -612,6 +669,7 @@ export type Mutation = {
   deleteResearch: DeleteResearchResult;
   deleteStory: DeleteStoryResult;
   deleteTherapeuticQuestions: DeleteQuestionsResult;
+  deleteUniqueOutcome: DeleteUniqueOutcomeResult;
   generateAudio: GenerateAudioResult;
   generateLongFormText: GenerateLongFormTextResult;
   generateOpenAIAudio: GenerateOpenAiAudioResult;
@@ -632,6 +690,7 @@ export type Mutation = {
   updateNote: Note;
   updateRelationship: Relationship;
   updateStory: Story;
+  updateUniqueOutcome: UniqueOutcome;
   updateUserSettings: UserSettings;
 };
 
@@ -697,6 +756,11 @@ export type MutationCreateSubGoalArgs = {
 };
 
 
+export type MutationCreateUniqueOutcomeArgs = {
+  input: CreateUniqueOutcomeInput;
+};
+
+
 export type MutationDeleteBehaviorObservationArgs = {
   id: Scalars['Int']['input'];
 };
@@ -757,6 +821,11 @@ export type MutationDeleteTherapeuticQuestionsArgs = {
 };
 
 
+export type MutationDeleteUniqueOutcomeArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationGenerateAudioArgs = {
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
@@ -767,6 +836,7 @@ export type MutationGenerateAudioArgs = {
 
 
 export type MutationGenerateLongFormTextArgs = {
+  characteristicId?: InputMaybe<Scalars['Int']['input']>;
   goalId: Scalars['Int']['input'];
   language?: InputMaybe<Scalars['String']['input']>;
   minutes?: InputMaybe<Scalars['Int']['input']>;
@@ -876,6 +946,12 @@ export type MutationUpdateRelationshipArgs = {
 export type MutationUpdateStoryArgs = {
   id: Scalars['Int']['input'];
   input: UpdateStoryInput;
+};
+
+
+export type MutationUpdateUniqueOutcomeArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateUniqueOutcomeInput;
 };
 
 
@@ -1217,6 +1293,20 @@ export enum ResearchSource {
   SemanticScholar = 'SEMANTIC_SCHOLAR'
 }
 
+export enum RiskTier {
+  Concern = 'CONCERN',
+  None = 'NONE',
+  SafeguardingAlert = 'SAFEGUARDING_ALERT',
+  Watch = 'WATCH'
+}
+
+export enum SeverityLevel {
+  Mild = 'MILD',
+  Moderate = 'MODERATE',
+  Profound = 'PROFOUND',
+  Severe = 'SEVERE'
+}
+
 export type Story = {
   __typename?: 'Story';
   audioGeneratedAt?: Maybe<Scalars['String']['output']>;
@@ -1270,6 +1360,17 @@ export type TherapeuticQuestion = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type UniqueOutcome = {
+  __typename?: 'UniqueOutcome';
+  characteristicId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  createdBy: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  observedAt: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
 export type UpdateBehaviorObservationInput = {
   context?: InputMaybe<Scalars['String']['input']>;
   frequency?: InputMaybe<Scalars['Int']['input']>;
@@ -1288,8 +1389,17 @@ export type UpdateContactInput = {
 };
 
 export type UpdateFamilyMemberCharacteristicInput = {
+  ageOfOnset?: InputMaybe<Scalars['Int']['input']>;
   category?: InputMaybe<CharacteristicCategory>;
   description?: InputMaybe<Scalars['String']['input']>;
+  durationWeeks?: InputMaybe<Scalars['Int']['input']>;
+  externalizedName?: InputMaybe<Scalars['String']['input']>;
+  formulationStatus?: InputMaybe<FormulationStatus>;
+  frequencyPerWeek?: InputMaybe<Scalars['Int']['input']>;
+  impairmentDomains?: InputMaybe<Array<ImpairmentDomain>>;
+  riskTier?: InputMaybe<RiskTier>;
+  severity?: InputMaybe<SeverityLevel>;
+  strengths?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1344,6 +1454,11 @@ export type UpdateRelationshipInput = {
 
 export type UpdateStoryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUniqueOutcomeInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  observedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UserSettings = {
@@ -1416,7 +1531,7 @@ export type CreateFamilyMemberCharacteristicMutationVariables = Exact<{
 }>;
 
 
-export type CreateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', createFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } };
+export type CreateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', createFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, severity?: SeverityLevel | null, frequencyPerWeek?: number | null, durationWeeks?: number | null, ageOfOnset?: number | null, impairmentDomains: Array<ImpairmentDomain>, formulationStatus: FormulationStatus, externalizedName?: string | null, strengths?: string | null, riskTier: RiskTier, createdAt: string, updatedAt: string } };
 
 export type CreateGoalMutationVariables = Exact<{
   input: CreateGoalInput;
@@ -1460,6 +1575,13 @@ export type CreateSubGoalMutationVariables = Exact<{
 
 
 export type CreateSubGoalMutation = { __typename?: 'Mutation', createSubGoal: { __typename?: 'Goal', id: number, slug?: string | null, title: string, description?: string | null, status: string, parentGoalId?: number | null, createdAt: string, updatedAt: string, familyMemberId: number } };
+
+export type CreateUniqueOutcomeMutationVariables = Exact<{
+  input: CreateUniqueOutcomeInput;
+}>;
+
+
+export type CreateUniqueOutcomeMutation = { __typename?: 'Mutation', createUniqueOutcome: { __typename?: 'UniqueOutcome', id: number, characteristicId: number, createdBy: string, observedAt: string, description: string, createdAt: string, updatedAt: string } };
 
 export type DeleteBehaviorObservationMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1531,6 +1653,13 @@ export type DeleteStoryMutationVariables = Exact<{
 
 export type DeleteStoryMutation = { __typename?: 'Mutation', deleteStory: { __typename?: 'DeleteStoryResult', success: boolean, message?: string | null } };
 
+export type DeleteUniqueOutcomeMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type DeleteUniqueOutcomeMutation = { __typename?: 'Mutation', deleteUniqueOutcome: { __typename?: 'DeleteUniqueOutcomeResult', success: boolean, message?: string | null } };
+
 export type GenerateAudioMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
   storyId?: InputMaybe<Scalars['Int']['input']>;
@@ -1544,6 +1673,7 @@ export type GenerateAudioMutation = { __typename?: 'Mutation', generateAudio: { 
 
 export type GenerateLongFormTextMutationVariables = Exact<{
   goalId: Scalars['Int']['input'];
+  characteristicId?: InputMaybe<Scalars['Int']['input']>;
   language?: InputMaybe<Scalars['String']['input']>;
   minutes?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -1628,7 +1758,7 @@ export type GetFamilyMemberCharacteristicQueryVariables = Exact<{
 }>;
 
 
-export type GetFamilyMemberCharacteristicQuery = { __typename?: 'Query', familyMemberCharacteristic?: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } | null };
+export type GetFamilyMemberCharacteristicQuery = { __typename?: 'Query', familyMemberCharacteristic?: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, severity?: SeverityLevel | null, frequencyPerWeek?: number | null, durationWeeks?: number | null, ageOfOnset?: number | null, impairmentDomains: Array<ImpairmentDomain>, formulationStatus: FormulationStatus, externalizedName?: string | null, strengths?: string | null, riskTier: RiskTier, createdAt: string, updatedAt: string, uniqueOutcomes: Array<{ __typename?: 'UniqueOutcome', id: number, characteristicId: number, createdBy: string, observedAt: string, description: string, createdAt: string, updatedAt: string }>, behaviorObservations: Array<{ __typename?: 'BehaviorObservation', id: number, familyMemberId: number, goalId?: number | null, characteristicId?: number | null, createdBy: string, observedAt: string, observationType: BehaviorObservationType, frequency?: number | null, intensity?: BehaviorIntensity | null, context?: string | null, notes?: string | null, createdAt: string, updatedAt: string }> } | null };
 
 export type GetFamilyMemberCharacteristicsQueryVariables = Exact<{
   familyMemberId: Scalars['Int']['input'];
@@ -1796,7 +1926,7 @@ export type UpdateFamilyMemberCharacteristicMutationVariables = Exact<{
 }>;
 
 
-export type UpdateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', updateFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, createdAt: string, updatedAt: string } };
+export type UpdateFamilyMemberCharacteristicMutation = { __typename?: 'Mutation', updateFamilyMemberCharacteristic: { __typename?: 'FamilyMemberCharacteristic', id: number, familyMemberId: number, createdBy: string, category: CharacteristicCategory, title: string, description?: string | null, severity?: SeverityLevel | null, frequencyPerWeek?: number | null, durationWeeks?: number | null, ageOfOnset?: number | null, impairmentDomains: Array<ImpairmentDomain>, formulationStatus: FormulationStatus, externalizedName?: string | null, strengths?: string | null, riskTier: RiskTier, createdAt: string, updatedAt: string } };
 
 export type UpdateGoalMutationVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1837,6 +1967,14 @@ export type UpdateStoryMutationVariables = Exact<{
 
 
 export type UpdateStoryMutation = { __typename?: 'Mutation', updateStory: { __typename?: 'Story', id: number, goalId: number, createdBy: string, content: string, createdAt: string, updatedAt: string } };
+
+export type UpdateUniqueOutcomeMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  input: UpdateUniqueOutcomeInput;
+}>;
+
+
+export type UpdateUniqueOutcomeMutation = { __typename?: 'Mutation', updateUniqueOutcome: { __typename?: 'UniqueOutcome', id: number, characteristicId: number, createdBy: string, observedAt: string, description: string, createdAt: string, updatedAt: string } };
 
 export type GetUserSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2376,6 +2514,15 @@ export const CreateFamilyMemberCharacteristicDocument = gql`
     category
     title
     description
+    severity
+    frequencyPerWeek
+    durationWeeks
+    ageOfOnset
+    impairmentDomains
+    formulationStatus
+    externalizedName
+    strengths
+    riskTier
     createdAt
     updatedAt
   }
@@ -2659,6 +2806,45 @@ export function useCreateSubGoalMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateSubGoalMutationHookResult = ReturnType<typeof useCreateSubGoalMutation>;
 export type CreateSubGoalMutationResult = Apollo.MutationResult<CreateSubGoalMutation>;
 export type CreateSubGoalMutationOptions = Apollo.BaseMutationOptions<CreateSubGoalMutation, CreateSubGoalMutationVariables>;
+export const CreateUniqueOutcomeDocument = gql`
+    mutation CreateUniqueOutcome($input: CreateUniqueOutcomeInput!) {
+  createUniqueOutcome(input: $input) {
+    id
+    characteristicId
+    createdBy
+    observedAt
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateUniqueOutcomeMutationFn = Apollo.MutationFunction<CreateUniqueOutcomeMutation, CreateUniqueOutcomeMutationVariables>;
+
+/**
+ * __useCreateUniqueOutcomeMutation__
+ *
+ * To run a mutation, you first call `useCreateUniqueOutcomeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateUniqueOutcomeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createUniqueOutcomeMutation, { data, loading, error }] = useCreateUniqueOutcomeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateUniqueOutcomeMutation(baseOptions?: Apollo.MutationHookOptions<CreateUniqueOutcomeMutation, CreateUniqueOutcomeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateUniqueOutcomeMutation, CreateUniqueOutcomeMutationVariables>(CreateUniqueOutcomeDocument, options);
+      }
+export type CreateUniqueOutcomeMutationHookResult = ReturnType<typeof useCreateUniqueOutcomeMutation>;
+export type CreateUniqueOutcomeMutationResult = Apollo.MutationResult<CreateUniqueOutcomeMutation>;
+export type CreateUniqueOutcomeMutationOptions = Apollo.BaseMutationOptions<CreateUniqueOutcomeMutation, CreateUniqueOutcomeMutationVariables>;
 export const DeleteBehaviorObservationDocument = gql`
     mutation DeleteBehaviorObservation($id: Int!) {
   deleteBehaviorObservation(id: $id) {
@@ -3000,6 +3186,40 @@ export function useDeleteStoryMutation(baseOptions?: Apollo.MutationHookOptions<
 export type DeleteStoryMutationHookResult = ReturnType<typeof useDeleteStoryMutation>;
 export type DeleteStoryMutationResult = Apollo.MutationResult<DeleteStoryMutation>;
 export type DeleteStoryMutationOptions = Apollo.BaseMutationOptions<DeleteStoryMutation, DeleteStoryMutationVariables>;
+export const DeleteUniqueOutcomeDocument = gql`
+    mutation DeleteUniqueOutcome($id: Int!) {
+  deleteUniqueOutcome(id: $id) {
+    success
+    message
+  }
+}
+    `;
+export type DeleteUniqueOutcomeMutationFn = Apollo.MutationFunction<DeleteUniqueOutcomeMutation, DeleteUniqueOutcomeMutationVariables>;
+
+/**
+ * __useDeleteUniqueOutcomeMutation__
+ *
+ * To run a mutation, you first call `useDeleteUniqueOutcomeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteUniqueOutcomeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteUniqueOutcomeMutation, { data, loading, error }] = useDeleteUniqueOutcomeMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteUniqueOutcomeMutation(baseOptions?: Apollo.MutationHookOptions<DeleteUniqueOutcomeMutation, DeleteUniqueOutcomeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteUniqueOutcomeMutation, DeleteUniqueOutcomeMutationVariables>(DeleteUniqueOutcomeDocument, options);
+      }
+export type DeleteUniqueOutcomeMutationHookResult = ReturnType<typeof useDeleteUniqueOutcomeMutation>;
+export type DeleteUniqueOutcomeMutationResult = Apollo.MutationResult<DeleteUniqueOutcomeMutation>;
+export type DeleteUniqueOutcomeMutationOptions = Apollo.BaseMutationOptions<DeleteUniqueOutcomeMutation, DeleteUniqueOutcomeMutationVariables>;
 export const GenerateAudioDocument = gql`
     mutation GenerateAudio($goalId: Int!, $storyId: Int, $text: String, $language: String, $voice: String) {
   generateAudio(
@@ -3047,8 +3267,13 @@ export type GenerateAudioMutationHookResult = ReturnType<typeof useGenerateAudio
 export type GenerateAudioMutationResult = Apollo.MutationResult<GenerateAudioMutation>;
 export type GenerateAudioMutationOptions = Apollo.BaseMutationOptions<GenerateAudioMutation, GenerateAudioMutationVariables>;
 export const GenerateLongFormTextDocument = gql`
-    mutation GenerateLongFormText($goalId: Int!, $language: String, $minutes: Int) {
-  generateLongFormText(goalId: $goalId, language: $language, minutes: $minutes) {
+    mutation GenerateLongFormText($goalId: Int!, $characteristicId: Int, $language: String, $minutes: Int) {
+  generateLongFormText(
+    goalId: $goalId
+    characteristicId: $characteristicId
+    language: $language
+    minutes: $minutes
+  ) {
     success
     message
     jobId
@@ -3076,6 +3301,7 @@ export type GenerateLongFormTextMutationFn = Apollo.MutationFunction<GenerateLon
  * const [generateLongFormTextMutation, { data, loading, error }] = useGenerateLongFormTextMutation({
  *   variables: {
  *      goalId: // value for 'goalId'
+ *      characteristicId: // value for 'characteristicId'
  *      language: // value for 'language'
  *      minutes: // value for 'minutes'
  *   },
@@ -3687,6 +3913,39 @@ export const GetFamilyMemberCharacteristicDocument = gql`
     category
     title
     description
+    severity
+    frequencyPerWeek
+    durationWeeks
+    ageOfOnset
+    impairmentDomains
+    formulationStatus
+    externalizedName
+    strengths
+    riskTier
+    uniqueOutcomes {
+      id
+      characteristicId
+      createdBy
+      observedAt
+      description
+      createdAt
+      updatedAt
+    }
+    behaviorObservations {
+      id
+      familyMemberId
+      goalId
+      characteristicId
+      createdBy
+      observedAt
+      observationType
+      frequency
+      intensity
+      context
+      notes
+      createdAt
+      updatedAt
+    }
     createdAt
     updatedAt
   }
@@ -4995,6 +5254,15 @@ export const UpdateFamilyMemberCharacteristicDocument = gql`
     category
     title
     description
+    severity
+    frequencyPerWeek
+    durationWeeks
+    ageOfOnset
+    impairmentDomains
+    formulationStatus
+    externalizedName
+    strengths
+    riskTier
     createdAt
     updatedAt
   }
@@ -5248,6 +5516,46 @@ export function useUpdateStoryMutation(baseOptions?: Apollo.MutationHookOptions<
 export type UpdateStoryMutationHookResult = ReturnType<typeof useUpdateStoryMutation>;
 export type UpdateStoryMutationResult = Apollo.MutationResult<UpdateStoryMutation>;
 export type UpdateStoryMutationOptions = Apollo.BaseMutationOptions<UpdateStoryMutation, UpdateStoryMutationVariables>;
+export const UpdateUniqueOutcomeDocument = gql`
+    mutation UpdateUniqueOutcome($id: Int!, $input: UpdateUniqueOutcomeInput!) {
+  updateUniqueOutcome(id: $id, input: $input) {
+    id
+    characteristicId
+    createdBy
+    observedAt
+    description
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateUniqueOutcomeMutationFn = Apollo.MutationFunction<UpdateUniqueOutcomeMutation, UpdateUniqueOutcomeMutationVariables>;
+
+/**
+ * __useUpdateUniqueOutcomeMutation__
+ *
+ * To run a mutation, you first call `useUpdateUniqueOutcomeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUniqueOutcomeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUniqueOutcomeMutation, { data, loading, error }] = useUpdateUniqueOutcomeMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateUniqueOutcomeMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUniqueOutcomeMutation, UpdateUniqueOutcomeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUniqueOutcomeMutation, UpdateUniqueOutcomeMutationVariables>(UpdateUniqueOutcomeDocument, options);
+      }
+export type UpdateUniqueOutcomeMutationHookResult = ReturnType<typeof useUpdateUniqueOutcomeMutation>;
+export type UpdateUniqueOutcomeMutationResult = Apollo.MutationResult<UpdateUniqueOutcomeMutation>;
+export type UpdateUniqueOutcomeMutationOptions = Apollo.BaseMutationOptions<UpdateUniqueOutcomeMutation, UpdateUniqueOutcomeMutationVariables>;
 export const GetUserSettingsDocument = gql`
     query GetUserSettings {
   userSettings {

@@ -266,6 +266,7 @@ export const behaviorObservations = sqliteTable("behavior_observations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   familyMemberId: integer("family_member_id").notNull(),
   goalId: integer("goal_id"),
+  characteristicId: integer("characteristic_id"),
   userId: text("user_id").notNull(),
   observedAt: text("observed_at").notNull(),
   observationType: text("observation_type").notNull(),
@@ -287,9 +288,18 @@ export const familyMemberCharacteristics = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     familyMemberId: integer("family_member_id").notNull(),
     userId: text("user_id").notNull(),
-    category: text("category").notNull(), // TRAIT | ISSUE | PROBLEM
+    category: text("category").notNull(), // STRENGTH | SUPPORT_NEED | PRIORITY_CONCERN
     title: text("title").notNull(),
     description: text("description"),
+    severity: text("severity"),
+    frequencyPerWeek: integer("frequency_per_week"),
+    durationWeeks: integer("duration_weeks"),
+    ageOfOnset: integer("age_of_onset"),
+    impairmentDomains: text("impairment_domains"), // JSON array
+    formulationStatus: text("formulation_status").notNull().default("DRAFT"),
+    externalizedName: text("externalized_name"),
+    strengths: text("strengths"),
+    riskTier: text("risk_tier").notNull().default("NONE"),
     createdAt: text("created_at")
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -298,6 +308,20 @@ export const familyMemberCharacteristics = sqliteTable(
       .default(sql`CURRENT_TIMESTAMP`),
   },
 );
+
+export const uniqueOutcomes = sqliteTable("unique_outcomes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  characteristicId: integer("characteristic_id").notNull(),
+  userId: text("user_id").notNull(),
+  observedAt: text("observed_at").notNull(),
+  description: text("description").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
 
 export const contacts = sqliteTable("contacts", {
   id: integer("id").primaryKey({ autoIncrement: true }),

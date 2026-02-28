@@ -11,6 +11,15 @@ import { task, logger } from "@trigger.dev/sdk/v3";
 import { therapeuticAgent } from "@/src/agents/index";
 import { d1Tools } from "@/src/db";
 
+function getDevelopmentalTier(ageYears: number | null | undefined): string {
+  if (!ageYears) return "ADULT";
+  if (ageYears <= 5) return "EARLY_CHILDHOOD";
+  if (ageYears <= 11) return "MIDDLE_CHILDHOOD";
+  if (ageYears <= 14) return "EARLY_ADOLESCENCE";
+  if (ageYears <= 18) return "LATE_ADOLESCENCE";
+  return "ADULT";
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -24,6 +33,8 @@ export interface GenerateStoryPayload {
   userEmail: string;
   language?: string;
   minutes?: number;
+  /** When set, this characteristic is the primary focus of the story */
+  characteristicId?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +69,7 @@ export const generateStoryTask = task({
       .catch(() => {});
   },
   run: async (payload: GenerateStoryPayload) => {
-    const { jobId, goalId, userEmail, language = "English", minutes = 10 } = payload;
+    const { jobId, goalId, userEmail, language = "English", minutes = 10, characteristicId } = payload;
 
     logger.info("generate-story.started", { jobId, goalId, language, minutes });
 
@@ -72,10 +83,21 @@ export const generateStoryTask = task({
       throw new Error(`Family member ${goal.familyMemberId} not found`);
     }
 
+    const characteristics = await d1Tools.getCharacteristicsForFamilyMember(
+      goal.familyMemberId,
+      userEmail,
+    );
+
+    const focusCharacteristic = characteristicId
+      ? (await d1Tools.getCharacteristic(characteristicId, userEmail)) ?? null
+      : null;
+
     logger.info("generate-story.loaded_context", {
       jobId,
       goalTitle: goal.title,
       familyMemberName: familyMember.firstName,
+      characteristicCount: characteristics.length,
+      focusCharacteristicId: focusCharacteristic?.id ?? null,
     });
 
     // --- 30% — Fetch research papers ---
@@ -107,6 +129,57 @@ export const generateStoryTask = task({
       ? ` (age ${familyMember.ageYears})`
       : "";
 
+    const developmentalTier = getDevelopmentalTier(familyMember.ageYears);
+
+    // Fetch unique outcomes for the focus characteristic
+    const uniqueOutcomes = focusCharacteristic
+      ? await d1Tools.getUniqueOutcomesForCharacteristic(
+          focusCharacteristic.id,
+          userEmail,
+        )
+      : [];
+
+    const otherCharacteristics = focusCharacteristic
+      ? characteristics.filter((c) => c.id !== focusCharacteristic.id)
+      : characteristics;
+
+    const characteristicsSection = (() => {
+      const lines: string[] = [];
+      if (focusCharacteristic) {
+        const focusLabel =
+          focusCharacteristic.externalizedName || focusCharacteristic.title;
+        lines.push(
+          `\n## Therapeutic Focus`,
+          `${focusLabel}`,
+          `Category: ${focusCharacteristic.category}`,
+        );
+        if (focusCharacteristic.description) {
+          lines.push(`Description: ${focusCharacteristic.description}`);
+        }
+        if (focusCharacteristic.strengths) {
+          lines.push(`\n## Strengths`, focusCharacteristic.strengths);
+        }
+        if (uniqueOutcomes.length > 0) {
+          lines.push(
+            `\n## Sparkling Moments`,
+            ...uniqueOutcomes.map(
+              (o) => `- ${o.observedAt}: ${o.description}`,
+            ),
+          );
+        }
+      }
+      if (otherCharacteristics.length > 0) {
+        lines.push(
+          `\n## Additional Person Characteristics`,
+          ...otherCharacteristics.map(
+            (c) =>
+              `- ${c.category}: ${c.title}${c.description ? ` — ${c.description}` : ""}`,
+          ),
+        );
+      }
+      return lines.length > 0 ? lines.join("\n") + "\n" : "";
+    })();
+
     const prompt = `Create a therapeutic audio session for the following goal. Write the full script in ${language}, approximately ${minutes} minutes long when read aloud.
 
 ## Goal
@@ -115,6 +188,8 @@ Description: ${goal.description || "No additional description provided."}
 
 ## Person
 This is for ${familyMember.firstName}${ageContext}.
+Developmental Tier: ${developmentalTier}
+${characteristicsSection}
 
 ## Research Evidence
 The following research papers inform the therapeutic techniques to use:
@@ -124,7 +199,7 @@ ${researchSummary || "No research papers available yet. Use general evidence-bas
 ## Instructions
 - Create a complete, flowing therapeutic audio script
 - Incorporate specific techniques and findings from the research above
-- Personalize for ${familyMember.firstName}${ageContext}
+- Personalize for ${familyMember.firstName}${ageContext} (developmental tier: ${developmentalTier})
 - Target duration: ${minutes} minutes when read aloud at a calm pace
 - Write in ${language}
 - Follow the therapeutic audio content structure (warm introduction, understanding the challenge, guided practices, integration)`;

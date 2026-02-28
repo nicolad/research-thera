@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import type { NextRequest, NextFetchEvent } from "next/server";
 
 const isProtectedRoute = createRouteMatcher(["/goals(.*)", "/notes(.*)"]);
 
@@ -14,8 +14,8 @@ const clerkHandler = clerkMiddleware(async (auth, req) => {
   }
 });
 
-export function proxy(request: NextRequest) {
-  return clerkHandler(request as any);
+export function proxy(request: NextRequest, event: NextFetchEvent) {
+  return clerkHandler(request as any, event as any);
 }
 
 export const config = {

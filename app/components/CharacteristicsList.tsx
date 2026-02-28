@@ -8,7 +8,7 @@ import {
   Text,
   AlertDialog,
 } from "@radix-ui/themes";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { TrashIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import NextLink from "next/link";
 import { CharacteristicCategory } from "@/app/__generated__/hooks";
 
@@ -16,9 +16,10 @@ export { CharacteristicCategory };
 
 export interface Characteristic {
   id: number;
-  category: CharacteristicCategory;
+  category: CharacteristicCategory | string;
   title: string;
   description?: string | null;
+  riskTier?: string | null;
   createdAt: string;
 }
 
@@ -30,13 +31,10 @@ interface CharacteristicsListProps {
   getHref?: (item: Characteristic) => string;
 }
 
-const CATEGORY_COLORS: Record<
-  CharacteristicCategory,
-  "gray" | "orange" | "red"
-> = {
-  [CharacteristicCategory.Trait]: "gray",
-  [CharacteristicCategory.Issue]: "orange",
-  [CharacteristicCategory.Problem]: "red",
+const CATEGORY_COLORS: Record<string, "teal" | "blue" | "orange"> = {
+  [CharacteristicCategory.Strength]: "teal",
+  [CharacteristicCategory.SupportNeed]: "blue",
+  [CharacteristicCategory.PriorityConcern]: "orange",
 };
 
 export default function CharacteristicsList({
@@ -57,17 +55,24 @@ export default function CharacteristicsList({
   return (
     <Flex direction="column" gap="2">
       {items.map((item) => {
+        const categoryColor = CATEGORY_COLORS[item.category] ?? "gray";
+        const showRiskWarning = item.riskTier === "CONCERN" || item.riskTier === "SAFEGUARDING_ALERT";
         const leftContent = (
           <Flex direction="column" gap="1" style={{ flex: 1 }}>
             <Flex gap="2" align="center">
               <Badge
-                color={CATEGORY_COLORS[item.category]}
+                color={categoryColor}
                 variant="soft"
                 size="1"
               >
                 {item.category.charAt(0) +
-                  item.category.slice(1).toLowerCase()}
+                  item.category.slice(1).toLowerCase().replace(/_/g, " ")}
               </Badge>
+              {showRiskWarning && (
+                <Badge color={item.riskTier === "SAFEGUARDING_ALERT" ? "red" : "orange"} variant="soft" size="1">
+                  <ExclamationTriangleIcon width="12" height="12" />
+                </Badge>
+              )}
               <Text size="2" weight="medium">
                 {item.title}
               </Text>
