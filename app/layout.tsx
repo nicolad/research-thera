@@ -1,4 +1,5 @@
 import "@radix-ui/themes/styles.css";
+import "./globals.css";
 import type { Metadata } from "next";
 import { Container, Theme } from "@radix-ui/themes";
 import { ClerkProvider } from "@clerk/nextjs";

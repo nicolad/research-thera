@@ -52,3 +52,6 @@ next-env.d.ts
 better-auth/
 src/elevenlabs-examples/
 .trigger/
+
+# clerk configuration (can include secrets)
+/.clerk/

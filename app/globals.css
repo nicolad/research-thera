@@ -1,0 +1,191 @@
+/* Global responsive utilities */
+
+/* Mobile-first responsive breakpoints */
+:root {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* Responsive heading sizes for mobile */
+@media (max-width: 768px) {
+  /* Scale down large headings on mobile */
+  .rt-Heading[data-size="9"] {
+    font-size: var(--font-size-7) !important;
+    line-height: var(--line-height-7) !important;
+  }
+  
+  .rt-Heading[data-size="8"] {
+    font-size: var(--font-size-6) !important;
+    line-height: var(--line-height-6) !important;
+  }
+  
+  .rt-Heading[data-size="7"] {
+    font-size: var(--font-size-5) !important;
+    line-height: var(--line-height-5) !important;
+  }
+
+  /* Reduce container padding on mobile */
+  .rt-Container {
+    padding-left: var(--space-4) !important;
+    padding-right: var(--space-4) !important;
+  }
+  
+  /* Hero card adjustments */
+  .rt-Card[data-size="4"] {
+    padding: var(--space-4) !important;
+  }
+  
+  /* Better spacing for mobile cards */
+  .rt-Card .rt-Flex[data-p="4"] {
+    padding: var(--space-3) !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .rt-Heading[data-size="9"] {
+    font-size: var(--font-size-6) !important;
+    line-height: var(--line-height-6) !important;
+  }
+  
+  .rt-Heading[data-size="8"] {
+    font-size: var(--font-size-5) !important;
+    line-height: var(--line-height-5) !important;
+  }
+  
+  /* Smaller buttons on very small screens */
+  .rt-Button[data-size="3"] {
+    font-size: var(--font-size-2) !important;
+    padding: var(--space-2) var(--space-3) !important;
+  }
+}
+
+/* Display utility classes */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.desktop-nav {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .desktop-nav {
+    display: none !important;
+  }
+}
+
+/* Flex wrap utilities for mobile */
+@media (max-width: 640px) {
+  .mobile-wrap {
+    flex-wrap: wrap !important;
+  }
+  
+  .mobile-column {
+    flex-direction: column !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+}
+
+/* Animation for mobile menu */
+.mobile-nav {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sticky header responsive adjustments */
+@media (max-width: 768px) {
+  .sticky-header-responsive {
+    margin-left: calc(-1 * var(--space-4)) !important;
+    margin-right: calc(-1 * var(--space-4)) !important;
+    padding-left: var(--space-4) !important;
+    padding-right: var(--space-4) !important;
+  }
+}
+
+/* Select trigger responsive - prevent overflow */
+@media (max-width: 480px) {
+  .rt-SelectTrigger {
+    max-width: 140px;
+    font-size: var(--font-size-1) !important;
+  }
+}
+
+/* Dialog responsive */
+@media (max-width: 640px) {
+  .rt-DialogContent {
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+    margin: 16px !important;
+  }
+}
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  .rt-Button,
+  .rt-IconButton {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent horizontal overflow */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure cards don't overflow */
+.rt-Card {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Text truncation helper */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Multi-line truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

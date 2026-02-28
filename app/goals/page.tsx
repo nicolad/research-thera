@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  Box,
   Flex,
   Heading,
   Text,
@@ -43,7 +44,7 @@ function GoalsListContent() {
   if (error) {
     return (
       <Card>
-        <Flex direction="column" gap="3" p="4">
+        <Flex direction="column" gap="3" p={{ initial: "3", md: "4" }}>
           <Text color="red">{error.message}</Text>
           <Button onClick={() => refetch()}>Retry</Button>
         </Flex>
@@ -71,9 +72,14 @@ function GoalsListContent() {
   };
 
   return (
-    <Flex direction="column" gap="4">
-      <Flex justify="between" align="center" wrap="wrap" gap="3">
-        <Heading size="5">
+    <Flex direction="column" gap={{ initial: "3", md: "4" }}>
+      <Flex 
+        direction={{ initial: "column", sm: "row" }} 
+        justify="between" 
+        align={{ initial: "stretch", sm: "center" }} 
+        gap="3"
+      >
+        <Heading size={{ initial: "4", md: "5" }}>
           My Goals ({goals.length})
           {subGoalCount > 0 && (
             <Text size="2" color="gray" weight="regular">
@@ -82,29 +88,31 @@ function GoalsListContent() {
             </Text>
           )}
         </Heading>
-        <Flex gap="3" align="center">
-          <Select.Root
-            value={statusFilter || "all"}
-            onValueChange={(value) =>
-              setStatusFilter(value === "all" ? undefined : value)
-            }
-          >
-            <Select.Trigger placeholder="Filter by status" />
-            <Select.Content>
-              <Select.Item value="all">All Statuses</Select.Item>
-              <Select.Item value="active">Active</Select.Item>
-              <Select.Item value="completed">Completed</Select.Item>
-              <Select.Item value="paused">Paused</Select.Item>
-              <Select.Item value="archived">Archived</Select.Item>
-            </Select.Content>
-          </Select.Root>
+        <Flex gap="2" align="center" wrap="wrap">
+          <Box style={{ minWidth: "120px" }}>
+            <Select.Root
+              value={statusFilter || "all"}
+              onValueChange={(value) =>
+                setStatusFilter(value === "all" ? undefined : value)
+              }
+            >
+              <Select.Trigger placeholder="Filter" style={{ width: "100%" }} />
+              <Select.Content>
+                <Select.Item value="all">All Statuses</Select.Item>
+                <Select.Item value="active">Active</Select.Item>
+                <Select.Item value="completed">Completed</Select.Item>
+                <Select.Item value="paused">Paused</Select.Item>
+                <Select.Item value="archived">Archived</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Box>
           <AddGoalButton />
         </Flex>
       </Flex>
 
       {goals.length === 0 ? (
         <Card>
-          <Flex direction="column" gap="2" p="4" align="center">
+          <Flex direction="column" gap="2" p={{ initial: "3", md: "4" }} align="center">
             <Text color="gray">No goals found</Text>
             <Text size="2" color="gray">
               {statusFilter
@@ -114,17 +122,19 @@ function GoalsListContent() {
           </Flex>
         </Card>
       ) : (
-        <Flex direction="column" gap="3">
+        <Flex direction="column" gap={{ initial: "2", md: "3" }}>
           {goals.map((goal) => (
             <Card
               key={goal.id}
               style={{ cursor: "pointer" }}
               onClick={() => router.push(`/goals/${goal.id}`)}
             >
-              <Flex direction="column" gap="3" p="4">
-                <Flex justify="between" align="start" gap="3">
-                  <Flex direction="column" gap="2" style={{ flex: 1 }}>
-                    <Heading size="4">{goal.title}</Heading>
+              <Flex direction="column" gap={{ initial: "2", md: "3" }} p={{ initial: "3", md: "4" }}>
+                <Flex justify="between" align="start" gap={{ initial: "2", md: "3" }}>
+                  <Flex direction="column" gap="2" style={{ flex: 1, minWidth: 0 }}>
+                    <Heading size={{ initial: "3", md: "4" }} style={{ wordBreak: "break-word" }}>
+                      {goal.title}
+                    </Heading>
                     {goal.familyMember && (
                       <Badge
                         color="cyan"
@@ -156,20 +166,19 @@ function GoalsListContent() {
                   <Badge
                     color={getStatusColor(goal.status)}
                     variant="soft"
-                    size="2"
+                    size={{ initial: "1", md: "2" }}
+                    style={{ flexShrink: 0 }}
                   >
                     {goal.status}
                   </Badge>
                 </Flex>
 
-                <Flex gap="4" align="center" wrap="wrap">
+                <Flex gap={{ initial: "2", md: "4" }} align="center" wrap="wrap">
                   {goal.notes && goal.notes.length > 0 && (
-                    <Flex align="center" gap="2">
-                      <Badge color="indigo" variant="outline" size="1">
-                        {goal.notes.length} note
-                        {goal.notes.length !== 1 ? "s" : ""}
-                      </Badge>
-                    </Flex>
+                    <Badge color="indigo" variant="outline" size="1">
+                      {goal.notes.length} note
+                      {goal.notes.length !== 1 ? "s" : ""}
+                    </Badge>
                   )}
                   <Text size="1" color="gray">
                     Created {new Date(goal.createdAt).toLocaleDateString()}
@@ -195,8 +204,8 @@ export default function GoalsPage() {
       pageName="Goals"
       description="Your therapeutic goals are private. Sign in to manage your progress."
     >
-      <Flex direction="column" gap="4">
-        <Heading size="8">Goals</Heading>
+      <Flex direction="column" gap={{ initial: "3", md: "4" }}>
+        <Heading size={{ initial: "6", md: "8" }}>Goals</Heading>
         <DynamicGoalsListContent />
       </Flex>
     </AuthGate>
