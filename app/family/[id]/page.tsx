@@ -444,12 +444,12 @@ function FamilyMemberContent() {
         </Flex>
       </Card>
 
-      {/* Support Needs */}
+      {/* Support Priority */}
       <Card>
         <Flex direction="column" gap="3" p="4">
           <Flex justify="between" align="center">
             <Flex direction="column" gap="1">
-              <Heading size="4">Support Needs ({supportNeeds.length})</Heading>
+              <Heading size="4">Support Priority ({supportNeeds.length})</Heading>
               <Text size="1" color="gray">
                 Interferes with something
               </Text>
@@ -467,7 +467,7 @@ function FamilyMemberContent() {
             items={supportNeeds}
             onDelete={handleDeleteCharacteristic}
             deleting={deletingChar}
-            emptyMessage="No support needs added yet"
+            emptyMessage="No Support Priority added yet"
             getHref={(item) => `/family/${id}/characteristics/${item.id}`}
           />
         </Flex>
