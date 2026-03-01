@@ -182,3 +182,195 @@ Fetching Crossref results...
 ○ Local worker ready [node] -> 20260228.12
 ○ Rebuilding local worker…
 ○ Local worker ready [node] -> 20260228.13
+○ Rebuilding local worker…
+○ Local worker ready [node] -> 20260228.14
+○ Feb 28, 22:17:06.001 ->  20260228.14 | generate-research | run_cmm6rido558er0ioembliohx4.1
+○ Feb 28, 22:17:14.469 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning System: To turn off warning logging, set the AI_SDK_LOG_WARNINGS global to false.
+○ Feb 28, 22:17:14.470 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:17:14.472 run_cmm6rido558er0ioembliohx4.1 🌐 Goal normalized: "Therapeutic approaches for social skills and emotional regulation" → "Therapeutic approaches for social skills and emotional regulation" (oppositional_defiant_behavior_children, REDUCE)
+○ Feb 28, 22:17:15.252 run_cmm6rido558er0ioembliohx4.1 [Langfuse SDK] Error while fetching prompt 'research.plan.goal_5-label:production': Error: Prompt not found: 'research.plan.goal_5' with label 'production'
+    at Langfuse._fetchPromptAndUpdateCache (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/langfuse-core@3.38.6/node_modules/langfuse-core/src/index.ts:1672:15)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at Langfuse.getPrompt (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/langfuse-core@3.38.6/node_modules/langfuse-core/src/index.ts:1571:16)
+    at safeGetTextPrompt (file:///Users/vadimnicolai/Public/research-thera/src/tools/langfusePromptPack.tools.ts:67:12)
+    at Object.ensureLangfusePromptPackForGoal [as ensure] (file:///Users/vadimnicolai/Public/research-thera/src/tools/langfusePromptPack.tools.ts:172:27)
+    at Object.execute (file:///Users/vadimnicolai/Public/research-thera/src/workflows/generateTherapyResearch.workflow.ts:335:21)
+    at engine.executeStepWithRetry.retries.retries (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:307:22)
+    at DefaultExecutionEngine.executeStepWithRetry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/default.ts:418:24)
+    at executeStep (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:269:27)
+    at executeEntry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/entry.ts:144:28)
+○ Feb 28, 22:17:15.441 run_cmm6rido558er0ioembliohx4.1 [Langfuse SDK] Error while fetching prompt 'research.extract.goal_5-label:production': Error: Prompt not found: 'research.extract.goal_5' with label 'production'
+    at Langfuse._fetchPromptAndUpdateCache (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/langfuse-core@3.38.6/node_modules/langfuse-core/src/index.ts:1672:15)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at Langfuse.getPrompt (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/langfuse-core@3.38.6/node_modules/langfuse-core/src/index.ts:1571:16)
+    at safeGetTextPrompt (file:///Users/vadimnicolai/Public/research-thera/src/tools/langfusePromptPack.tools.ts:67:12)
+    at Object.ensureLangfusePromptPackForGoal [as ensure] (file:///Users/vadimnicolai/Public/research-thera/src/tools/langfusePromptPack.tools.ts:173:29)
+    at Object.execute (file:///Users/vadimnicolai/Public/research-thera/src/workflows/generateTherapyResearch.workflow.ts:335:21)
+    at engine.executeStepWithRetry.retries.retries (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:307:22)
+    at DefaultExecutionEngine.executeStepWithRetry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/default.ts:418:24)
+    at executeStep (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:269:27)
+    at executeEntry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/entry.ts:144:28)
+○ Feb 28, 22:17:15.442 run_cmm6rido558er0ioembliohx4.1 🔄 Generating new Langfuse prompt templates with OpenAI...  Attempt 1/3...
+○ Feb 28, 22:17:38.955 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:17:38.956 run_cmm6rido558er0ioembliohx4.1   ✅ Valid prompts generated on attempt 1✅ Templates validated, saving to Langfuse...
+○ Feb 28, 22:17:39.260 run_cmm6rido558er0ioembliohx4.1 ✅ Saved research.plan.goal_5 and research.extract.goal_5 to Langfuse
+○ Feb 28, 22:17:50.381 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:17:50.382 run_cmm6rido558er0ioembliohx4.1 
+📋 Query Plan:
+○ Feb 28, 22:17:50.382 run_cmm6rido558er0ioembliohx4.1    Goal Type: oppositional_defiant_noncompliance_preschool   Semantic Scholar Queries: 4
+○ Feb 28, 22:17:50.389 run_cmm6rido558er0ioembliohx4.1    Crossref Queries: 4   PubMed Queries: 3
+
+○ Feb 28, 22:17:50.615 run_cmm6rido558er0ioembliohx4.1 
+🔍 Multi-source search with query expansion...
+
+○ Feb 28, 22:17:50.616 run_cmm6rido558er0ioembliohx4.1    Crossref: 4 queries   Semantic Scholar: 4 queries   PubMed: 3 queries
+Fetching Crossref results...
+○ Feb 28, 22:17:54.132 run_cmm6rido558er0ioembliohx4.1 Fetching PubMed results...
+○ Feb 28, 22:17:58.112 run_cmm6rido558er0ioembliohx4.1 Fetching Semantic Scholar results...
+○ Feb 28, 22:17:58.709 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 1000ms before retry 1/3...
+○ Feb 28, 22:18:00.212 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 2000ms before retry 2/3...
+○ Feb 28, 22:18:08.341 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 1000ms before retry 1/3...
+○ Feb 28, 22:18:12.395 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 1000ms before retry 1/3...
+○ Feb 28, 22:18:16.137 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 1000ms before retry 1/3...
+○ Feb 28, 22:18:17.331 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 2000ms before retry 2/3...
+○ Feb 28, 22:18:19.836 run_cmm6rido558er0ioembliohx4.1 Rate limited (429). Waiting 4000ms before retry 3/3...
+○ Feb 28, 22:18:23.838 run_cmm6rido558er0ioembliohx4.1 Error searching Semantic Scholar: Error: Max retries exceeded
+    at fetchWithRetry (file:///Users/vadimnicolai/Public/research-thera/src/tools/sources.tools.ts:173:22)
+    at runNextTicks (node:internal/process/task_queues:64:5)
+    at listOnTimeout (node:internal/timers:567:9)
+    at processTimers (node:internal/timers:541:7)
+    at Object.searchSemanticScholar (file:///Users/vadimnicolai/Public/research-thera/src/tools/sources.tools.ts:451:22)
+    at Object.execute (file:///Users/vadimnicolai/Public/research-thera/src/workflows/generateTherapyResearch.workflow.ts:540:9)
+    at engine.executeStepWithRetry.retries.retries (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:307:22)
+    at DefaultExecutionEngine.executeStepWithRetry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/default.ts:418:24)
+    at executeStep (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/step.ts:269:27)
+    at executeEntry (file:///Users/vadimnicolai/Public/research-thera/node_modules/.pnpm/@mastra+core@1.1.0_@standard-community+standard-json@0.3.5_@standard-schema+spec@1.1.0__ff61ce79506c774ff53571f2c9cfd913/node_modules/@mastra/core/src/workflows/handlers/entry.ts:144:28)
+○ Feb 28, 22:18:24.039 run_cmm6rido558er0ioembliohx4.1 🔗 Fetching S2 recommendations for: "Handbook of Peer Interactions, Relationships, and Groups"
+○ Feb 28, 22:18:24.617 run_cmm6rido558er0ioembliohx4.1 📚 Raw results: Crossref(200), PubMed(2), Semantic(150), S2 Recs(0)
+○ Feb 28, 22:18:24.626 run_cmm6rido558er0ioembliohx4.1 🔗 After dedup: 299 candidates
+○ Feb 28, 22:18:24.627 run_cmm6rido558er0ioembliohx4.1 🚫 After title filter: 298 candidates🚫 Filtered book chapter: "Tailoring Parent-Child Interaction Therapy for Oppositional Defiant Disorder in a Case of Child Maltreatment" (type: book-chapter)
+○ Feb 28, 22:18:24.629 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Theories of oppositional defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: reference-entry)🚫 Filtered book chapter: "Causal factors of oppositional defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional-Defiant and Conduct-Disordered Children" (type: book-chapter)🚫 Filtered book chapter: "Conduct disorder and oppositional-defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Conduct Disorder in Children" (type: book-chapter)🚫 Filtered book chapter: "Overview of evidence-based treatments of oppositional defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional defiant disorder dimensions and prediction of later problems" (type: book-chapter)🚫 Filtered book chapter: "Behavioral Parent Training with Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Conduct
+                    Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "The importance and ease of assessment of oppositional-defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional defiant disorder and conduct disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)🚫 Filtered book chapter: "Overview of evidence-based treatment components for oppositional defiant disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "CHILDREN SEE, CHILDREN DO" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Parent Training" (type: book-chapter)🚫 Filtered book chapter: "Conduct Disorder and Oppositional Defiant Disorder" (type: book-chapter)🚫 Filtered book chapter: "Oppositional defiant disorder and conduct disorder: Paul J. Frick and Luna Muñoz" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder and Parent Training" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: reference-entry)
+○ Feb 28, 22:18:24.629 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Prevention and Intervention in Preschool and Early Elementary School Years" (type: book-chapter)🚫 Filtered book chapter: "Emotional and Behavioural Regulation Through Music: Handbook for preschool teachers, elementary teachers, counsellors, therapists in work with children with emotional and behavioural problems" (type: book)🚫 Filtered book chapter: "Emotion Understanding and Emotion Regulation: Twin Keys to Preschool Sel" (type: book-chapter)🚫 Filtered book chapter: "Cognitive-Behavioral Prevention and Intervention Approaches to Student Emotional and Behavioral Functioning" (type: book-chapter)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Assessment of Social and Emotional Development in Preschool Children" (type: book-chapter)🚫 Filtered book chapter: "Behavior and Social-Emotional Skills Assessment of Preschool Children" (type: book-chapter)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Related treatment issues: how to address sleep, toilet training, social skills, and learning problems and when to consider medication for comorbid disorders" (type: book-chapter)🚫 Filtered book chapter: "Treating Oppositional Defiant Disorders/Conduct Disorders" (type: book-chapter)🚫 Filtered book chapter: "Treating Oppositional Defiant Disorders/Conduct Disorders" (type: book-chapter)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Parent Management Training in Perspective" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: reference-entry)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Treatment component #4: Cognitive skills" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder (ODD)" (type: reference-entry)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Using Problem-Solving Skills Training and Parent Management Training for Children with Conduct Disorder" (type: book-chapter)🚫 Filtered book chapter: "Parent Management Training" (type: monograph)
+○ Feb 28, 22:18:24.630 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Oppositional Defiant Disorder: Social Factors" (type: reference-entry)🚫 Filtered book chapter: "Understanding Conduct Disorder and Oppositional-Defiant Disorder" (type: book)🚫 Filtered book chapter: "Oppositional Defiant Disorder" (type: reference-entry)
+○ Feb 28, 22:18:24.631 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Introduction" (type: book-chapter)🚫 Filtered book chapter: "Cognitive Functioning in Children with Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)
+○ Feb 28, 22:18:24.631 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Residential Care for Children and Adolescents with Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)🚫 Filtered book chapter: "Outcomes of Children and Adolescents with Oppositional Defiant Disorder and Conduct Disorder" (type: book-chapter)
+○ Feb 28, 22:18:24.631 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Determination of Prosocial Behavior of Preschool-Aged Children in the Context of Preschool Education" (type: monograph)🚫 Filtered book chapter: "Oppositional Defiant and Conduct Disorders Leading to Anti-Social Behavior and Violence" (type: book-chapter)🚫 Filtered book chapter: "Chapter 3. Oppositional Defiant Disorder" (type: book-chapter)
+○ Feb 28, 22:18:24.631 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Children and Adolescents with Oppositional Defiant Disorder and Conduct Disorder in the Community" (type: book-chapter)🚫 Filtered book chapter: "Psychopharmacology of Disruptive Behavior Disorders" (type: book-chapter)🚫 Filtered book chapter: "Oppositional Defiant Disorder: Cultural Factors That Influence Interpretations of Defiant Behavior and Their Social and Scientific Consequences" (type: book-chapter)
+○ Feb 28, 22:18:24.632 run_cmm6rido558er0ioembliohx4.1 🚫 Filtered book chapter: "Oppositional Defiant and Conduct Disorders" (type: reference-entry)✅ After book chapter filter: 242 candidates
+
+○ Feb 28, 22:18:24.880 run_cmm6rido558er0ioembliohx4.1 
+🔬 Enriching abstracts from OpenAlex...
+
+○ Feb 28, 22:18:26.639 run_cmm6rido558er0ioembliohx4.1    Enriched 100 / 242...
+○ Feb 28, 22:18:27.678 run_cmm6rido558er0ioembliohx4.1    Enriched: 242 candidates
+○ Feb 28, 22:18:27.679 run_cmm6rido558er0ioembliohx4.1    With abstracts (≥150 chars): 167
+
+○ Feb 28, 22:18:28.036 run_cmm6rido558er0ioembliohx4.1 
+🧠 Extracting 50 candidates (batches of 6)...
+
+○ Feb 28, 22:18:28.037 run_cmm6rido558er0ioembliohx4.1    Batch 1/9 (candidates 1-6)
+○ Feb 28, 22:18:43.719 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:44.273 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:45.026 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:45.109 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:46.988 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:48.377 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:18:48.377 run_cmm6rido558er0ioembliohx4.1    Batch 2/9 (candidates 7-12)
+○ Feb 28, 22:19:02.179 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:04.358 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:04.699 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:05.647 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:05.648 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:06.625 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:06.626 run_cmm6rido558er0ioembliohx4.1    Batch 3/9 (candidates 13-18)
+○ Feb 28, 22:19:21.030 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:22.119 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:24.397 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:24.503 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:25.000 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:27.579 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:27.580 run_cmm6rido558er0ioembliohx4.1    Batch 4/9 (candidates 19-24)
+○ Feb 28, 22:19:41.742 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:42.688 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:42.976 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:43.888 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:44.381 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:44.914 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:44.914 run_cmm6rido558er0ioembliohx4.1    Batch 5/9 (candidates 25-30)
+○ Feb 28, 22:19:58.746 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:59.074 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:19:59.961 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:00.677 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:02.045 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:04.703 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:04.705 run_cmm6rido558er0ioembliohx4.1    Batch 6/9 (candidates 31-36)
+○ Feb 28, 22:20:20.217 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:20.402 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:20.775 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:20.806 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:22.742 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:23.052 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:23.052 run_cmm6rido558er0ioembliohx4.1    Batch 7/9 (candidates 37-42)
+○ Feb 28, 22:20:39.424 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:40.617 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:40.850 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:43.016 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:45.935 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:47.943 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:20:47.944 run_cmm6rido558er0ioembliohx4.1    Batch 8/9 (candidates 43-48)
+○ Feb 28, 22:20:54.373 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:03.567 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:03.882 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:04.363 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:04.481 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:05.838 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:05.839 run_cmm6rido558er0ioembliohx4.1    Batch 9/9 (candidates 49-50)
+○ Feb 28, 22:21:19.022 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:19.408 run_cmm6rido558er0ioembliohx4.1 AI SDK Warning (deepseek.chat / deepseek-chat): The feature "responseFormat JSON schema" is used in a compatibility mode. JSON response schema is injected into the system message.
+○ Feb 28, 22:21:19.408 run_cmm6rido558er0ioembliohx4.1 
+   Extraction complete: 13/50 passed initial gate
+
+○ Feb 28, 22:21:19.830 run_cmm6rido558er0ioembliohx4.1 
+📊 Extraction results: 50 total
+
+○ Feb 28, 22:21:19.830 run_cmm6rido558er0ioembliohx4.1 
+🎯 Persisting top 13 papers:
+
+○ Feb 28, 22:21:19.830 run_cmm6rido558er0ioembliohx4.1    1. [blended=0.97 llm=0.97 kw=0.50] The effect of child-centered play therapy (CCPT) on the symptoms of oppositional…
+○ Feb 28, 22:21:20.393 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 127
+○ Feb 28, 22:21:20.393 run_cmm6rido558er0ioembliohx4.1    2. [blended=0.97 llm=0.97 kw=0.50] Evaluation of a guided compliance procedure to reduce noncompliance among presch…
+○ Feb 28, 22:21:20.927 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 128
+○ Feb 28, 22:21:20.927 run_cmm6rido558er0ioembliohx4.1    3. [blended=0.83 llm=0.83 kw=0.50] Behavioral Parent Training
+○ Feb 28, 22:21:21.442 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 129
+○ Feb 28, 22:21:21.443 run_cmm6rido558er0ioembliohx4.1    4. [blended=0.83 llm=0.83 kw=0.50] Parental Stress of Preschool Children With Generalized Anxiety or Oppositional D…
+○ Feb 28, 22:21:21.946 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 130
+○ Feb 28, 22:21:21.947 run_cmm6rido558er0ioembliohx4.1    5. [blended=0.83 llm=0.83 kw=0.50] Inhibition and working memory in young preschool children with symptoms of ADHD …
+○ Feb 28, 22:21:22.481 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 131
+○ Feb 28, 22:21:22.482 run_cmm6rido558er0ioembliohx4.1    6. [blended=0.83 llm=0.83 kw=0.50] Impairment in Young Preschool Children with Symptoms of Attention-Deficit/Hypera…
+○ Feb 28, 22:21:23.027 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 132
+○ Feb 28, 22:21:23.028 run_cmm6rido558er0ioembliohx4.1    7. [blended=0.83 llm=0.83 kw=0.50] Clinical Characteristics of Preschool Children with Oppositional Defiant Disorde…
+○ Feb 28, 22:21:23.963 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 133
+○ Feb 28, 22:21:23.963 run_cmm6rido558er0ioembliohx4.1    8. [blended=0.83 llm=0.83 kw=0.50] Self-Regulation Intervention Impact on Turkish Children with Emotional and Behav…
+○ Feb 28, 22:21:24.530 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 134
+○ Feb 28, 22:21:24.531 run_cmm6rido558er0ioembliohx4.1    9. [blended=0.83 llm=0.83 kw=0.50] The Development of Behavioral and Emotional Self-Regulation During the Preschool…
+○ Feb 28, 22:21:25.052 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 135
+○ Feb 28, 22:21:25.053 run_cmm6rido558er0ioembliohx4.1    10. [blended=0.83 llm=0.83 kw=0.50] Early Intervention for Preschool-Age Children with ADHD
+○ Feb 28, 22:21:25.596 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 136
+○ Feb 28, 22:21:25.597 run_cmm6rido558er0ioembliohx4.1    11. [blended=0.83 llm=0.83 kw=0.50] Combining Mental Health Treatment with Education for Preschool Children with Sev…
+○ Feb 28, 22:21:26.103 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 137
+○ Feb 28, 22:21:26.103 run_cmm6rido558er0ioembliohx4.1    12. [blended=0.81 llm=0.81 kw=0.50] The effectiveness of play therapy on emotional and behavioral disorders of presc…
+○ Feb 28, 22:21:26.610 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 138
+○ Feb 28, 22:21:26.611 run_cmm6rido558er0ioembliohx4.1    13. [blended=0.81 llm=0.81 kw=0.50] Emotional and behavioral problems in infants and preschool children: prevalence …
+○ Feb 28, 22:21:27.121 run_cmm6rido558er0ioembliohx4.1 [RAG] Would upsert research chunks for TherapyResearch 139
+○ Feb 28, 22:21:27.121 run_cmm6rido558er0ioembliohx4.1 
+✨ Persisted 13 papers
+
+○ Feb 28, 22:21:27.956 ->  20260228.14 | generate-research | run_cmm6rido558er0ioembliohx4.1 | Success (4m, 20.4s)
+○ Connection was lost: transport close
+○ Connection was restored
