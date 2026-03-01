@@ -469,24 +469,14 @@ function RelationshipsSection({
 
 const RESEARCH_STEP_LABELS: Record<number, string> = {
   5: "Loading goal context…",
-  10: "Spawning specialized research agents…",
-  15: "Running Clinical Agent (therapeutic techniques)…",
-  25: "Running Educational Agent (school interventions)…",
-  35: "Running Family Agent (parent training)…",
-  40: "Searching academic databases…",
+  10: "Preparing search prompts…",
+  20: "Planning search queries…",
+  40: "Searching Crossref, PubMed, Semantic Scholar…",
   60: "Enriching paper abstracts…",
   65: "Preparing extraction…",
   85: "Extracting relevant findings…",
   95: "Saving papers to database…",
   100: "Research complete!",
-};
-
-// Multi-agent status labels
-const MULTI_AGENT_STATUS_LABELS: Record<string, string> = {
-  spawning_agents: "Spawning 3 specialized research agents…",
-  agents_running: "Running parallel research agents…",
-  aggregating: "Aggregating research results…",
-  complete: "Research complete!",
 };
 
 function CharacteristicDetailContent() {
@@ -1235,59 +1225,6 @@ function CharacteristicDetailContent() {
           )}
           {isJobRunning ? (
             <Flex direction="column" gap="2">
-              <Text size="2" weight="medium">
-                {goals.find((g) => g.id === researchGoalId)?.title}
-              </Text>
-              
-              {/* Multi-agent status */}
-              {jobData?.generationJob?.result && (() => {
-                try {
-                  const resultStr = typeof jobData.generationJob.result === 'string' 
-                    ? jobData.generationJob.result 
-                    : JSON.stringify(jobData.generationJob.result);
-                  const result = JSON.parse(resultStr);
-                  if (result.multiAgent) {
-                    const phase = result.phase || result.aggregatedAt ? 'complete' : 'unknown';
-                    const agents = result.agents || [];
-
-                    return (
-                      <Flex direction="column" gap="2" mb="2">
-                        <Text size="1" weight="medium" color="gray">
-                          {MULTI_AGENT_STATUS_LABELS[phase] || "Processing research agents…"}
-                        </Text>
-                        {agents.length > 0 && (
-                          <Flex direction="column" gap="1">
-                            {agents.map((agent: any, idx: number) => (
-                              <Flex key={idx} align="center" gap="2">
-                                <Text size="1" style={{ width: 80 }}>
-                                  {agent.num ? `Agent ${agent.num}` : "Agent"}
-                                </Text>
-                                <Box style={{ flex: 1, height: 4, borderRadius: 2, background: "var(--gray-4)", overflow: "hidden" }}>
-                                  <Box 
-                                    style={{ 
-                                      height: "100%", 
-                                      width: agent.status === "SUCCEEDED" ? "100%" : agent.status === "RUNNING" ? "50%" : "0%",
-                                      background: agent.status === "SUCCEEDED" ? "var(--green-9)" : agent.status === "RUNNING" ? "var(--indigo-9)" : "var(--gray-6)",
-                                      transition: "width 0.4s ease", 
-                                      borderRadius: 2,
-                                      animation: agent.status === "RUNNING" ? "researchSweep 1.4s ease-in-out infinite" : undefined,
-                                    }} 
-                                  />
-                                </Box>
-                                <Text size="1" color="gray">{agent.status === "SUCCEEDED" ? "✓" : agent.status === "RUNNING" ? "…" : "○"}</Text>
-                              </Flex>
-                            ))}
-                          </Flex>
-                        )}
-                      </Flex>
-                    );
-                  }
-                } catch {
-                  // Not multi-agent or parse error, fall through to standard display
-                }
-                return null;
-              })()}
-              
               <Flex justify="between" align="center">
                 <Text size="2" color="gray">
                   {RESEARCH_STEP_LABELS[jobProgress] ?? "Searching for papers\u2026"}
@@ -1318,25 +1255,16 @@ function CharacteristicDetailContent() {
               />
             </Flex>
           ) : (
-            <Flex direction="column" gap="2">
-              {goals.map((goal) => (
-                <Flex key={goal.id} align="center" justify="between" gap="2">
-                  <Text size="2" style={{ flex: 1, minWidth: 0 }} truncate>
-                    {goal.title}
-                  </Text>
-                  <Button
-                    size="2"
-                    variant="soft"
-                    disabled={generatingResearch}
-                    loading={researchGoalId === goal.id && generatingResearch}
-                    onClick={() => handleGenerateResearch(goal.id)}
-                  >
-                    <MagnifyingGlassIcon />
-                    Research
-                  </Button>
-                </Flex>
-              ))}
-            </Flex>
+            <Button
+              size="2"
+              variant="soft"
+              disabled={generatingResearch}
+              loading={generatingResearch}
+              onClick={() => handleGenerateResearch(goals[0].id)}
+            >
+              <MagnifyingGlassIcon />
+              Generate Research
+            </Button>
           )}
         </Flex>
       </Card>
